@@ -24,6 +24,9 @@ bin/
 /dist/
 /nbdist/
 /.nb-gradle/
+nbactions.xml
+nb-configuration.xml
+build.xml
 
 ### VS Code ###
 .vscode/
@@ -42,3 +45,13 @@ Thumbs.db
 *.jar
 *.war
 *.ear
+
+### Misc ###
+*.bak
+*.swp
+release.properties
+pom.xml.releaseBackup
+pom.xml.tag
+manifest.mf
+*.orig
+*.rej
