@@ -91,9 +91,24 @@ public final class Database {
                 List<String> userData = new ArrayList<>(
                         Arrays.asList(userFileScanner.nextLine().split(","))
                 );
-                if (userData.getFirst().charAt(0) == 'C') {
-                    Customer customer = new Customer(userData.getFirst(), userData.get(1), userData.getLast(), Account.getPassword(userData.getLast()));
-                    users.add(customer);
+
+                String userId = userData.getFirst();
+                String userName = userData.get(1);
+                String userEmail = userData.getLast();
+                String userPassword = Account.getPassword(userEmail);
+
+                if (userId.charAt(0) == 'C') {
+                    users.add(new Customer(userId, userName, userEmail, userPassword));
+                } else if (userId.charAt(0) == 'D') {
+                    users.add(new Doctor(userId, userName, userEmail, userPassword));
+                } else if (userId.charAt(0) == 'M') {
+                    users.add(new Manager(userId, userName, userEmail, userPassword));
+                } else if (userId.charAt(0) == 'S') {
+                    users.add(new Staff(userId, userName, userEmail, userPassword));
+                } else {
+                    throw new InvalidUserIdException(
+                            String.format("--- Database.populate() failed when populating users. Encountered invalid user ID: %s ---", userId)
+                    );
                 }
             }
         }
