@@ -22,7 +22,7 @@ public class MedicalCentre {
         Account.save();
         */
 
-        Customer myCustomer3 = (Customer) Database.getUser("C002");
-        System.out.println(myCustomer3.getPassword());
+        Customer myCustomer3 = new Customer("Micheal", "micheal@email.com", "456");
+        System.out.println(myCustomer3.getId());
     }
 }

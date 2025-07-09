@@ -12,11 +12,11 @@ import java.io.FileWriter;
 
 public final class Database {
 
-    private static File userFile = new File("data/user.txt");
-    private static File appointmentFile = new File("data/appointment.txt");
-    private static File customerFeedbackFile = new File("data/customerFeedback.txt");
-    private static File medicineFile = new File("data/medicine.txt");
-    private static File invoiceFile = new File("data/invoice.txt");
+    private final static File userFile = new File("data/user.txt");
+    private final static File appointmentFile = new File("data/appointment.txt");
+    private final static File customerFeedbackFile = new File("data/customerFeedback.txt");
+    private final static File medicineFile = new File("data/medicine.txt");
+    private final static File invoiceFile = new File("data/invoice.txt");
 
     private static Queue<User> users;
     private static Queue<Appointment> appointments;
@@ -83,6 +83,38 @@ public final class Database {
             allUserId.add(user.getId());
         }
         return allUserId;
+    }
+
+    public static List<String> getAllAppointmentId() {
+        List<String> allAppointmentId = new ArrayList<>();
+        for (Appointment appointment: appointments) {
+            allAppointmentId.add(appointment.getId());
+        }
+        return allAppointmentId;
+    }
+
+    public static List<String> getAllCustomerFeedbackId() {
+        List<String> allCustomerFeedbackId = new ArrayList<>();
+        for (CustomerFeedback customerFeedback: customerFeedbacks) {
+            allCustomerFeedbackId.add(customerFeedback.getId());
+        }
+        return allCustomerFeedbackId;
+    }
+
+    public static List<String> getAllMedicineId() {
+        List<String> allMedicineId = new ArrayList<>();
+        for (Medicine medicine: medicines) {
+            allMedicineId.add(medicine.getId());
+        }
+        return allMedicineId;
+    }
+
+    public static List<String> getAllInvoiceId() {
+        List<String> allInvoiceId = new ArrayList<>();
+        for (Invoice invoice: invoices) {
+            allInvoiceId.add(invoice.getId());
+        }
+        return allInvoiceId;
     }
 
     private static void populate() throws IOException {
