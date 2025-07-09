@@ -2,20 +2,27 @@ package database;
 
 import user.*;
 import operation.*;
+import customExceptions.*;
 
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Queue;
-import java.util.PriorityQueue;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
-import java.util.Comparator;
+import java.io.FileWriter;
 
 public final class Database {
+
+    private static File userFile = new File("data/user.txt");
+    private static File appointmentFile = new File("data/appointment.txt");
+    private static File customerFeedbackFile = new File("data/customerFeedback.txt");
+    private static File medicineFile = new File("data/medicine.txt");
+    private static File invoiceFile = new File("data/invoice.txt");
+
     private static Queue<User> users;
     private static Queue<Appointment> appointments;
-    private static Queue<CustomerFeedback> customerFeedbacks = new PriorityQueue<>();
-    private static Queue<Medicine> medicines = new PriorityQueue<>();
-    private static Queue<Invoice> invoices = new PriorityQueue<>();
+    private static Queue<CustomerFeedback> customerFeedbacks;
+    private static Queue<Medicine> medicines;
+    private static Queue<Invoice> invoices;
 
     static {
 
@@ -31,6 +38,94 @@ public final class Database {
                 appointment -> appointmentStatusPriority.get(appointment.getStatus())
         ));
 
-        
+        customerFeedbacks = new PriorityQueue<>(Comparator.comparingInt(
+                customerFeedback -> Integer.parseInt(customerFeedback.getId().substring(1))
+        ));
+
+        medicines = new PriorityQueue<>(Comparator.comparingInt(
+                medicine -> Integer.parseInt(medicine.getId().substring(1))
+        ));
+
+        invoices = new PriorityQueue<>(Comparator.comparingInt(
+                invoice -> Integer.parseInt(invoice.getId().substring(1))
+        ));
+
+        try {
+            Database.populate();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
+    }
+
+    public static void addUser(User newUser) throws RecordAlreadyInDatabaseException {
+        if (!getAllUserId().contains(newUser.getId())) {
+            users.add(newUser);
+            Account.addAccount(newUser.getEmail(), newUser.getPassword(), newUser.getId());
+        } else {
+            throw new RecordAlreadyInDatabaseException("--- Database.addUser(User) failed. User already in database ---");
+        }
+    }
+
+    public static User getUser(String userId) {
+        for (User user: users) {
+            if (user.getId().equals(userId)) {
+                return user;
+            }
+        }
+        return null;
+    }
+
+    public static List<String> getAllUserId() {
+        List<String> allUserId = new ArrayList<>();
+        for (User user: users) {
+            allUserId.add(user.getId());
+        }
+        return allUserId;
+    }
+
+    private static void populate() throws IOException {
+        try (Scanner userFileScanner = new Scanner(userFile)) {
+            while (userFileScanner.hasNextLine()) {
+                List<String> userData = new ArrayList<>(
+                        Arrays.asList(userFileScanner.nextLine().split(","))
+                );
+                if (userData.getFirst().charAt(0) == 'C') {
+                    Customer customer = new Customer(userData.getFirst(), userData.get(1), userData.getLast(), Account.getPassword(userData.getLast()));
+                    users.add(customer);
+                }
+            }
+        }
+    }
+    public static void save() throws IOException {
+        try (FileWriter userFileWriter = new FileWriter(userFile)) {
+            List<String> userRecords = new ArrayList<>();
+            for (User user: users) {
+                List<String> userData = new ArrayList<>(Arrays.asList(
+                        user.getId(), user.getName(), user.getEmail()
+                ));
+                String csUserData = String.join(",", userData);
+                userRecords.add(csUserData);
+            }
+            String nsUserRecords = String.join("\n", userRecords);
+            userFileWriter.write(nsUserRecords);
+        }
+
+        try (FileWriter appointmentFileWriter = new FileWriter(appointmentFile)) {
+
+        }
+
+        try (FileWriter customerFeedbackFileWriter = new FileWriter(customerFeedbackFile)) {
+
+        }
+
+        try (FileWriter medicineFileWriter = new FileWriter(medicineFile)) {
+
+        }
+
+        try (FileWriter invoiceFileWriter = new FileWriter(invoiceFile)) {
+
+        }
     }
 }
