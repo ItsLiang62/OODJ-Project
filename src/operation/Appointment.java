@@ -35,7 +35,10 @@ public class Appointment {
     public double getCharge() { return this.charge; }
     public String getStatus() { return this.status; }
 
-
-
-
+    public void setDoctorId(String doctorId) { this.doctorId = doctorId; }
+    public void setCustomerId(String customerId) { this.customerId = customerId; }
+    public void setMedicineIds(HashSet<String> medicineIds) { this.medicineIds = medicineIds; }
+    public void setDoctorFeedback(String doctorFeedback) { this.doctorFeedback = doctorFeedback; }
+    public void setCharge(double charge) { this.charge = charge; }
+    public void setStatus(String status) { this.status = status; }
 }

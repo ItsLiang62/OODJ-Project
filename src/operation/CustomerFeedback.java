@@ -16,7 +16,7 @@ public class CustomerFeedback implements Identifiable {
     }
 
     public CustomerFeedback(String customerId, String content, String targetEmployeeId) {
-        this(Identifiable.createId('I'), customerId, content, targetEmployeeId);
+        this(Identifiable.createId('F'), customerId, content, targetEmployeeId);
     }
 
     public String getId() { return this.id; }

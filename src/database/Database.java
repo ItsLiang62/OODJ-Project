@@ -144,7 +144,29 @@ public final class Database {
                 }
             }
         }
+
+        try (Scanner appointmentFileScanner = new Scanner(appointmentFile)) {
+            while (appointmentFileScanner.hasNextLine()) {
+                List<String> appointmentData = new ArrayList<>(
+                        Arrays.asList(appointmentFileScanner.nextLine().split(","))
+                );
+
+                String id = appointmentData.getFirst();
+                String doctorId = appointmentData.get(1);
+                String customerId = appointmentData.get(2);
+                HashSet<String> medicineIds = new HashSet<>(
+                        Arrays.asList(appointmentData.get(3).split("&"))
+                );
+                String doctorFeedback = appointmentData.get(4);
+                double charge = Double.parseDouble(appointmentData.get(5));
+                String status = appointmentData.getLast();
+
+                Appointment appointment = new Appointment(id, doctorId, customerId, medicineIds, doctorFeedback, charge, status);
+                appointments.add(appointment);
+            }
+        }
     }
+
     public static void save() throws IOException {
         try (FileWriter userFileWriter = new FileWriter(userFile)) {
             List<String> userRecords = new ArrayList<>();
