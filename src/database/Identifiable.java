@@ -21,7 +21,9 @@ public interface Identifiable {
         ).collect(Collectors.toSet()));
 
         String newestSamePrefixId = allSamePrefixId.peek();
-        assert newestSamePrefixId != null;
+        if (newestSamePrefixId == null) {
+            return String.format("%s%03d", prefix, 1);
+        }
         return String.format("%s%03d", prefix, Integer.parseInt(newestSamePrefixId.substring(1)) + 1);
     }
 }

@@ -1,5 +1,6 @@
 package operation;
 
+import database.Database;
 import database.Identifiable;
 import java.util.*;
 

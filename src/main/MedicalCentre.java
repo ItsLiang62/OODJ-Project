@@ -22,7 +22,12 @@ public class MedicalCentre {
         Account.save();
         */
 
-        Customer myCustomer3 = new Customer("Micheal", "micheal@email.com", "456");
+        Customer myCustomer3 = (Customer) Database.getUser("C002");
         System.out.println(myCustomer3.getId());
+
+        Appointment myAppointment = new Appointment("C005");
+        Appointment myAppointment2 = Database.getAppointment("A002");
+        System.out.println(myAppointment2.getId() + myAppointment2.getDoctorId() + myAppointment2.getCustomerId() + myAppointment2.getMedicineIds() + myAppointment2.getDoctorFeedback() + myAppointment2.getCharge() + myAppointment2.getStatus());
+        Database.save();
     }
 }

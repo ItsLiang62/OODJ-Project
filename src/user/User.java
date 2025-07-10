@@ -19,7 +19,6 @@ public abstract class User implements Identifiable {
         this.name = name;
         this.email = email;
         this.password = password;
-        Database.addUser(this);
     }
 
     public String getId() { return this.id; }

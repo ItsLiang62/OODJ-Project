@@ -49,14 +49,11 @@ public final class Database {
         invoices = new PriorityQueue<>(Comparator.comparingInt(
                 invoice -> Integer.parseInt(invoice.getId().substring(1))
         ));
-
         try {
             Database.populate();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-
     }
 
     public static void addUser(User newUser) throws RecordAlreadyInDatabaseException {
@@ -68,10 +65,29 @@ public final class Database {
         }
     }
 
+    public static void addAppointment(Appointment newAppointment) throws RecordAlreadyInDatabaseException {
+        if (getAllAppointmentId().contains(newAppointment.getId())) {
+            throw new RecordAlreadyInDatabaseException("--- Database.addAppointment(Appointment) failed. Appointment already in database ---");
+        } else if (getAllUpcomingAppointmentCustomerId().contains(newAppointment.getCustomerId())) {
+            throw new MultipleAppointmentsForUserException("--- Database.addAppointment(Appointment) failed. Customer already has an upcoming appointment  ---");
+        } else {
+            appointments.add(newAppointment);
+        }
+    }
+
     public static User getUser(String userId) {
         for (User user: users) {
             if (user.getId().equals(userId)) {
                 return user;
+            }
+        }
+        return null;
+    }
+
+    public static Appointment getAppointment(String appointmentId) {
+        for (Appointment appointment: appointments) {
+            if (appointment.getId().equals(appointmentId)) {
+                return appointment;
             }
         }
         return null;
@@ -117,18 +133,29 @@ public final class Database {
         return allInvoiceId;
     }
 
+    public static List<String> getAllUpcomingAppointmentCustomerId() {
+        Set<String> allNotCompletedAppointmentCustomerId = new LinkedHashSet<>();
+
+        for (Appointment appointment: appointments) {
+            if (!appointment.getStatus().equals("Completed")) {
+                allNotCompletedAppointmentCustomerId.add(appointment.getCustomerId());
+            }
+        }
+
+        return new ArrayList<>(allNotCompletedAppointmentCustomerId);
+    }
+
     private static void populate() throws IOException {
         try (Scanner userFileScanner = new Scanner(userFile)) {
             while (userFileScanner.hasNextLine()) {
                 List<String> userData = new ArrayList<>(
                         Arrays.asList(userFileScanner.nextLine().split(","))
                 );
-
+                //0
                 String userId = userData.getFirst();
                 String userName = userData.get(1);
                 String userEmail = userData.getLast();
                 String userPassword = Account.getPassword(userEmail);
-
                 if (userId.charAt(0) == 'C') {
                     users.add(new Customer(userId, userName, userEmail, userPassword));
                 } else if (userId.charAt(0) == 'D') {
@@ -142,6 +169,7 @@ public final class Database {
                             String.format("--- Database.populate() failed when populating users. Encountered invalid user ID: %s ---", userId)
                     );
                 }
+                //2
             }
         }
 
@@ -152,12 +180,27 @@ public final class Database {
                 );
 
                 String id = appointmentData.getFirst();
-                String doctorId = appointmentData.get(1);
+                String doctorId;
+                if (appointmentData.get(1).equalsIgnoreCase("NULL")) {
+                    doctorId = null;
+                } else {
+                    doctorId = appointmentData.get(1);
+                }
                 String customerId = appointmentData.get(2);
-                HashSet<String> medicineIds = new HashSet<>(
-                        Arrays.asList(appointmentData.get(3).split("&"))
-                );
-                String doctorFeedback = appointmentData.get(4);
+                HashSet<String> medicineIds;
+                if (appointmentData.get(3).equalsIgnoreCase("NULL")) {
+                    medicineIds = null;
+                } else {
+                    medicineIds = new HashSet<>(
+                            Arrays.asList(appointmentData.get(3).split("&"))
+                    );
+                }
+                String doctorFeedback;
+                if (appointmentData.get(4).equalsIgnoreCase("NULL")) {
+                    doctorFeedback = null;
+                } else {
+                    doctorFeedback = appointmentData.get(4);
+                }
                 double charge = Double.parseDouble(appointmentData.get(5));
                 String status = appointmentData.getLast();
 
@@ -182,7 +225,34 @@ public final class Database {
         }
 
         try (FileWriter appointmentFileWriter = new FileWriter(appointmentFile)) {
-
+            List<String> appointmentRecords = new ArrayList<>();
+            for (Appointment appointment: appointments) {
+                String id = appointment.getId();
+                String doctorId = appointment.getDoctorId();
+                if (doctorId == null) {
+                    doctorId = "NULL";
+                }
+                String customerId = appointment.getCustomerId();
+                String medicineIds;
+                try {
+                    medicineIds = String.join("&", appointment.getMedicineIds());
+                } catch (NullPointerException e) {
+                    medicineIds = "NULL";
+                }
+                String doctorFeedback = appointment.getDoctorFeedback();
+                if (doctorFeedback == null) {
+                    doctorFeedback = "NULL";
+                }
+                String charge = String.valueOf(appointment.getCharge());
+                String status = appointment.getStatus();
+                List<String> appointmentData = new ArrayList<>(Arrays.asList(
+                        id, doctorId, customerId, medicineIds, doctorFeedback, charge, status
+                ));
+                String csAppointmentData = String.join(",", appointmentData);
+                appointmentRecords.add(csAppointmentData);
+            }
+            String nsAppointmentRecords = String.join("\n", appointmentRecords);
+            appointmentFileWriter.write(nsAppointmentRecords);
         }
 
         try (FileWriter customerFeedbackFileWriter = new FileWriter(customerFeedbackFile)) {
