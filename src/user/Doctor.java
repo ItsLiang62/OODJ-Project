@@ -10,15 +10,22 @@ public class Doctor extends User implements Employee {
             appointmentId -> Integer.parseInt(appointmentId.substring(1))
     ));
     private Queue<String> customerFeedbackIdRecord = new PriorityQueue<>(Comparator.comparingInt(
-            appointmentId -> Integer.parseInt(appointmentId.substring(1))
+            feedbackId -> Integer.parseInt(feedbackId.substring(1))
     ));
 
-    public Doctor(String id, String name, String email, String password) {
+    public Doctor(String id, String name, String email, String password, Collection<String> appointmentIdRecord, Collection<String> customerFeedbackRecord) {
         super(id, name, email, password);
+        Comparator<String> ascendingId = Comparator.comparingInt(
+                appointmentId -> Integer.parseInt(appointmentId.substring(1))
+        );
+        this.appointmentIdRecord = new PriorityQueue<>(ascendingId);
+        this.appointmentIdRecord.addAll(appointmentIdRecord);
+        this.customerFeedbackIdRecord = new PriorityQueue<>(ascendingId);
+        this.customerFeedbackIdRecord.addAll(customerFeedbackRecord);
     }
 
     public Doctor(String name, String email, String password) {
-        this(Identifiable.createId('D'), name, email, password);
+        super(Identifiable.createId('D'), name, email, password);
     }
 
     public void addAppointmentIdToRecord(String appointmentId) {
@@ -58,5 +65,26 @@ public class Doctor extends User implements Employee {
         return new ArrayList<>(Arrays.asList(
                 dbId, dbName, dbEmail, dbPassword, dbAppointmentIdRecord, dbCustomerFeedbackIdRecord
         ));
+    }
+
+    public static Doctor createDoctorFromRecord(List<String> record) {
+        String doctorId = record.getFirst();
+        String doctorName = record.get(1);
+        String doctorEmail = record.get(2);
+        String doctorPassword = record.get(3);
+        Collection<String> doctorAppointmentIdRecord;
+        if (record.get(4).equalsIgnoreCase("NULL")) {
+            doctorAppointmentIdRecord = new PriorityQueue<>();
+        } else {
+            doctorAppointmentIdRecord = new PriorityQueue<>(Arrays.asList(record.get(4).split("&")));
+        }
+        Collection<String> doctorCustomerFeedbackIdRecord;
+        if (record.getLast().equalsIgnoreCase("NULL")) {
+            doctorCustomerFeedbackIdRecord = new PriorityQueue<>();
+        } else {
+            doctorCustomerFeedbackIdRecord = new PriorityQueue<>(Arrays.asList(record.getLast().split("&")));
+        }
+
+        return new Doctor(doctorId, doctorName, doctorEmail, doctorPassword, doctorAppointmentIdRecord, doctorCustomerFeedbackIdRecord);
     }
 }

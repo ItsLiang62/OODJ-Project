@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class CustomerFeedback implements Savable<CustomerFeedback> {
+public class CustomerFeedback implements Savable {
     private String id;
     private String customerId;
     private String targetEmployeeId;
@@ -45,7 +45,7 @@ public class CustomerFeedback implements Savable<CustomerFeedback> {
         ));
     }
 
-    public CustomerFeedback createInstanceFromRecord(List<String> record) {
+    public static CustomerFeedback createCustomerFeedbackFromRecord(List<String> record) {
         String customerFeedbackId = record.getFirst();
         String customerFeedbackCustomerId = record.get(1);
         String customerFeedbackTargetEmployeeId = record.get(2);

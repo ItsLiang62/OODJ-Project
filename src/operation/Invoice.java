@@ -6,7 +6,7 @@ import java.util.List;
 import database.Identifiable;
 import database.Savable;
 
-public class Invoice implements Savable<Invoice> {
+public class Invoice implements Savable {
     private String id;
     private String appointmentId;
     private String paymentMethod;
@@ -38,7 +38,7 @@ public class Invoice implements Savable<Invoice> {
         ));
     }
 
-    public Invoice createInstanceFromRecord(List<String> record) {
+    public static Invoice createInvoiceFromRecord(List<String> record) {
         String invoiceId = record.getFirst();
         String invoiceAppointmentId = record.get(1);
         String invoicePaymentMethod = record.getLast();

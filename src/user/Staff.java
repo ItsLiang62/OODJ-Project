@@ -4,7 +4,6 @@ import database.Database;
 import database.Identifiable;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Staff extends User implements Employee {
 
@@ -26,7 +25,7 @@ public class Staff extends User implements Employee {
         ));
     }
 
-    public Staff createInstanceFromRecord(List<String> record) {
+    public static Staff createStaffFromRecord(List<String> record) {
         String staffId = record.getFirst();
         String staffName = record.get(1);
         String staffEmail = record.get(2);

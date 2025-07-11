@@ -6,7 +6,7 @@ import database.Savable;
 
 import java.util.*;
 
-public class Appointment implements Savable<Appointment> {
+public class Appointment implements Savable {
     private String id;
     private String customerId;
     private String doctorId;
@@ -75,7 +75,7 @@ public class Appointment implements Savable<Appointment> {
         ));
     }
 
-    public Appointment createInstanceFromRecord(List<String> record) {
+    public static Appointment createAppointmentFromRecord(List<String> record) {
         String appointmentId = record.getFirst();
         String appointmentCustomerId = record.get(1);
         String appointmentDoctorId;
@@ -86,7 +86,7 @@ public class Appointment implements Savable<Appointment> {
         }
         Collection<String> appointmentMedicineIds;
         if (record.get(3).equalsIgnoreCase("NULL")) {
-            appointmentMedicineIds = null;
+            appointmentMedicineIds = new HashSet<>();
         } else {
             appointmentMedicineIds = new HashSet<>(Arrays.asList(record.get(3).split("&")));
         }

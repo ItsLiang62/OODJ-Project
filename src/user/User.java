@@ -2,12 +2,13 @@ package user;
 
 import database.Database;
 import database.Identifiable;
+import database.InstantiatableFromRecord;
 import database.Savable;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-public abstract class User implements Savable<User> {
+public abstract class User implements Savable {
     protected String id;
     protected String name;
     protected String email;

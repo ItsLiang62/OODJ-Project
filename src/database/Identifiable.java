@@ -10,7 +10,10 @@ public interface Identifiable {
         ).reversed());
 
         List<String> allId = new ArrayList<>();
-        allId.addAll(Database.getAllUserId());
+        allId.addAll(Database.getAllManagerId());
+        allId.addAll(Database.getAllStaffId());
+        allId.addAll(Database.getAllDoctorId());
+        allId.addAll(Database.getAllCustomerId());
         allId.addAll(Database.getAllAppointmentId());
         allId.addAll(Database.getAllCustomerFeedbackId());
         allId.addAll(Database.getAllMedicineId());

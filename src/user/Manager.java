@@ -26,7 +26,7 @@ public class Manager extends User implements Employee {
         ));
     }
 
-    public Manager createInstanceFromRecord(List<String> record) {
+    public static Manager createManagerFromRecord(List<String> record) {
         String managerId = record.getFirst();
         String managerName = record.get(1);
         String managerEmail = record.get(2);

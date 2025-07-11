@@ -6,7 +6,7 @@ import java.util.List;
 import database.Identifiable;
 import database.Savable;
 
-public class Medicine implements Identifiable, Savable<Medicine> {
+public class Medicine implements Savable {
     private String id;
     private String name;
     private double charge;
@@ -38,7 +38,7 @@ public class Medicine implements Identifiable, Savable<Medicine> {
         ));
     }
 
-    public Medicine createInstanceFromRecord(List<String> record) {
+    public static Medicine createMedicineFromRecord(List<String> record) {
         String medicineId = record.getFirst();
         String medicineName = record.get(1);
         double medicineCharge = Double.parseDouble(record.getLast());

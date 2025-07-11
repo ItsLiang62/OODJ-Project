@@ -13,19 +13,17 @@ public class Customer extends User {
 
     public Customer(String id, String name, String email, String password, double apWallet, Collection<String> appointmentIdRecord) {
         super(id, name, email, password);
-        Comparator<String> ascendingAppointmentId = Comparator.comparingInt(appointmentId -> Integer.parseInt(appointmentId.substring(1));
+        Comparator<String> ascendingAppointmentId = Comparator.comparingInt(
+                appointmentId -> Integer.parseInt(appointmentId.substring(1))
+        );
         this.apWallet = apWallet;
         this.appointmentIdRecord = new PriorityQueue<>(ascendingAppointmentId);
         this.appointmentIdRecord.addAll(appointmentIdRecord);
     }
 
-    public Customer(String id, String name, String email, String password, double apWallet) {
-        super(id, name, email, password);
-        this.apWallet = apWallet;
-    }
-
     public Customer(String name, String email, String password, double apWallet) {
-        this(Identifiable.createId('C'), name, email, password, apWallet);
+        super(Identifiable.createId('C'), name, email, password);
+        this.apWallet = apWallet;
     }
 
     public void addAppointmentIdToRecord(String appointmentId) {
@@ -53,7 +51,7 @@ public class Customer extends User {
         ));
     }
 
-    public Customer createInstanceFromRecord(List<String> record) {
+    public static Customer createCustomerFromRecord(List<String> record) {
         String customerId = record.getFirst();
         String customerName = record.get(1);
         String customerEmail = record.get(2);
@@ -61,7 +59,7 @@ public class Customer extends User {
         double customerApWallet = Double.parseDouble(record.get(4));
         Collection<String> customerAppointmentIdRecord;
         if (record.getLast().equalsIgnoreCase("NULL")) {
-            customerAppointmentIdRecord = null;
+            customerAppointmentIdRecord = new PriorityQueue<>();
         } else {
             customerAppointmentIdRecord = new PriorityQueue<>(Arrays.asList(record.getLast().split("&")));
         }

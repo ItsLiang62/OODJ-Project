@@ -31,8 +31,6 @@ public final class Database {
     private static Queue<Invoice> invoices;
 
     static {
-
-
         managers = new PriorityQueue<>(Comparator.comparingInt(
                 user -> Integer.parseInt(user.getId().substring(1))
         ));
@@ -253,88 +251,33 @@ public final class Database {
         return new ArrayList<>(allNotCompletedAppointmentCustomerId);
     }
 
-    private static void populate() throws IOException {
-        try (Scanner userFileScanner = new Scanner(userFile)) {
-            while (userFileScanner.hasNextLine()) {
-                List<String> userData = new ArrayList<>(
-                        Arrays.asList(userFileScanner.nextLine().split(","))
+    private static <T extends Savable> void populateFromRecords(InstantiatableFromRecord<T> instantiatableFromRecord, Queue<T> objects, File inputFile) throws IOException {
+        try (Scanner fileScanner = new Scanner(inputFile)) {
+            while (fileScanner.hasNextLine()) {
+                List<String> record = new ArrayList<>(
+                        Arrays.asList(fileScanner.nextLine().split(","))
                 );
-                //0
-                String userId = userData.getFirst();
-                String userName = userData.get(1);
-                String userEmail = userData.getLast();
-                String userPassword = Account.getPassword(userEmail);
-                if (userId.charAt(0) == 'C') {
-                    users.add(new Customer(userId, userName, userEmail, userPassword));
-                } else if (userId.charAt(0) == 'D') {
-                    users.add(new Doctor(userId, userName, userEmail, userPassword));
-                } else if (userId.charAt(0) == 'M') {
-                    users.add(new Manager(userId, userName, userEmail, userPassword));
-                } else if (userId.charAt(0) == 'S') {
-                    users.add(new Staff(userId, userName, userEmail, userPassword));
-                } else {
-                    throw new IdNotFoundException(
-                            String.format("--- Database.populate() failed when populating users. Encountered invalid user ID: %s ---", userId)
-                    );
-                }
-                //2
-            }
-        }
-
-        try (Scanner appointmentFileScanner = new Scanner(appointmentFile)) {
-            while (appointmentFileScanner.hasNextLine()) {
-                List<String> appointmentData = new ArrayList<>(
-                        Arrays.asList(appointmentFileScanner.nextLine().split(","))
-                );
-
-                String id = appointmentData.getFirst();
-                String doctorId;
-                if (appointmentData.get(1).equalsIgnoreCase("NULL")) {
-                    doctorId = null;
-                } else {
-                    doctorId = appointmentData.get(1);
-                }
-                String customerId = appointmentData.get(2);
-                HashSet<String> medicineIds;
-                if (appointmentData.get(3).equalsIgnoreCase("NULL")) {
-                    medicineIds = null;
-                } else {
-                    medicineIds = new HashSet<>(
-                            Arrays.asList(appointmentData.get(3).split("&"))
-                    );
-                }
-                String doctorFeedback;
-                if (appointmentData.get(4).equalsIgnoreCase("NULL")) {
-                    doctorFeedback = null;
-                } else {
-                    doctorFeedback = appointmentData.get(4);
-                }
-                double charge = Double.parseDouble(appointmentData.get(5));
-                String status = appointmentData.getLast();
-
-                appointments.add(new Appointment(id, customerId, doctorId, medicineIds, doctorFeedback, charge, status));
-            }
-        }
-
-        try (Scanner customerFeedbackFileScanner = new Scanner(customerFeedbackFile)) {
-            while (customerFeedbackFileScanner.hasNextLine()) {
-                List<String> customerFeedbackData = new ArrayList<>(
-                        Arrays.asList(customerFeedbackFileScanner.nextLine().split(","))
-                );
-                String id = customerFeedbackData.getFirst();
-                String customerId = customerFeedbackData.get(1);
-                String targetEmployeeId = customerFeedbackData.get(2);
-                String content = customerFeedbackData.getLast();
-                customerFeedbacks.add(new CustomerFeedback(id, customerId, targetEmployeeId, content));
+                objects.add(instantiatableFromRecord.createInstanceFromRecord(record));
             }
         }
     }
 
+    private static void populate() throws IOException {
+        populateFromRecords(Manager::createManagerFromRecord, managers, managerFile);
+        populateFromRecords(Staff::createStaffFromRecord, staffs, staffFile);
+        populateFromRecords(Doctor::createDoctorFromRecord, doctors, doctorFile);
+        populateFromRecords(Customer::createCustomerFromRecord, customers, customerFile);
+        populateFromRecords(Appointment::createAppointmentFromRecord, appointments, appointmentFile);
+        populateFromRecords(CustomerFeedback::createCustomerFeedbackFromRecord, customerFeedbacks, customerFeedbackFile);
+        populateFromRecords(Medicine::createMedicineFromRecord, medicines, medicineFile);
+        populateFromRecords(Invoice::createInvoiceFromRecord, invoices, invoiceFile);
+    }
 
-    public static void saveRecords(Queue<? extends Savable<?>> objects, File outputFile) throws IOException {
+
+    public static void saveRecords(Queue<? extends Savable> objectContainer, File outputFile) throws IOException {
         try (FileWriter fileWriter = new FileWriter(outputFile)) {
             List<String> objectRecords = new ArrayList<>();
-            for (Savable<?> object: objects) {
+            for (Savable object: objectContainer) {
                 String dbObjectRecord = String.join(",", object.createRecord());
                 objectRecords.add(dbObjectRecord);
             }
@@ -342,6 +285,7 @@ public final class Database {
             fileWriter.write(dbObjectRecords);
         }
     }
+
     public static void save() throws IOException {
         saveRecords(managers, managerFile);
         saveRecords(staffs, staffFile);
