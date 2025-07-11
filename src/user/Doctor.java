@@ -1,26 +1,28 @@
 package user;
 
+import customExceptions.AppointmentNotAssignedToDoctorException;
+import database.Database;
 import database.Identifiable;
 
 import java.util.*;
 
 public class Doctor extends User implements Employee {
 
-    private Queue<String> appointmentIdRecord = new PriorityQueue<>(Comparator.comparingInt(
-            appointmentId -> Integer.parseInt(appointmentId.substring(1))
-    ));
-    private Queue<String> customerFeedbackIdRecord = new PriorityQueue<>(Comparator.comparingInt(
-            feedbackId -> Integer.parseInt(feedbackId.substring(1))
-    ));
+    private Comparator<String> ascendingId = Comparator.comparingInt(
+            id -> Integer.parseInt(id.substring(1))
+    );
+
+    private Set<String> appointmentIdRecord = new TreeSet<>(ascendingId);;
+    private Set<String> customerFeedbackIdRecord = new TreeSet<>(ascendingId);
 
     public Doctor(String id, String name, String email, String password, Collection<String> appointmentIdRecord, Collection<String> customerFeedbackRecord) {
         super(id, name, email, password);
         Comparator<String> ascendingId = Comparator.comparingInt(
                 appointmentId -> Integer.parseInt(appointmentId.substring(1))
         );
-        this.appointmentIdRecord = new PriorityQueue<>(ascendingId);
+        this.appointmentIdRecord = new TreeSet<>(ascendingId);
         this.appointmentIdRecord.addAll(appointmentIdRecord);
-        this.customerFeedbackIdRecord = new PriorityQueue<>(ascendingId);
+        this.customerFeedbackIdRecord = new TreeSet<>(ascendingId);
         this.customerFeedbackIdRecord.addAll(customerFeedbackRecord);
     }
 
@@ -29,11 +31,26 @@ public class Doctor extends User implements Employee {
     }
 
     public void addAppointmentIdToRecord(String appointmentId) {
-        this.appointmentIdRecord.add(appointmentId);
+        if (Database.getAppointment(appointmentId).getDoctorId().equals(this.id)) {
+            this.appointmentIdRecord.add(appointmentId);
+        } else {
+            throw new AppointmentNotAssignedToDoctorException(
+                    String.format("--- Doctor.addAppointmentIdToRecord(String) failed. Appointment %s is never assigned to doctor %s. Have you assigned the doctor ID to the appointment using Appointment.setDoctorId(String) already?  ---", appointmentId, this.id));
+        }
     }
 
     public void removeAppointmentIdFromRecord(String appointmentId) {
-        this.appointmentIdRecord.remove(appointmentId);
+
+        if (this.appointmentIdRecord.contains(appointmentId)) {
+            if (Database.getAppointment(appointmentId).getDoctorId().equals(appointmentId)) {
+                this.appointmentIdRecord.remove(appointmentId);
+            } else {
+
+            }
+        } else {
+            throw new AppointmentNotAssignedToDoctorException(
+                    String.format("--- Doctor.removeAppointmentIdToRecord(String) failed. Appointment %s is never assigned to doctor %s ---", appointmentId, this.id));
+        }
     }
 
     public void addCustomerFeedbackIdToRecord(String customerFeedbackId) {
@@ -74,9 +91,9 @@ public class Doctor extends User implements Employee {
         String doctorPassword = record.get(3);
         Collection<String> doctorAppointmentIdRecord;
         if (record.get(4).equalsIgnoreCase("NULL")) {
-            doctorAppointmentIdRecord = new PriorityQueue<>();
+            doctorAppointmentIdRecord = new TreeSet<>();
         } else {
-            doctorAppointmentIdRecord = new PriorityQueue<>(Arrays.asList(record.get(4).split("&")));
+            doctorAppointmentIdRecord = new TreeSet<>(Arrays.asList(record.get(4).split("&")));
         }
         Collection<String> doctorCustomerFeedbackIdRecord;
         if (record.getLast().equalsIgnoreCase("NULL")) {

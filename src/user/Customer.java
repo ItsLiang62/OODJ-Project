@@ -6,18 +6,17 @@ import java.util.*;
 
 public class Customer extends User {
 
+    private Comparator<String> ascendingId = Comparator.comparingInt(
+            id -> Integer.parseInt(id.substring(1))
+    );
     private double apWallet;
-    private Queue<String> appointmentIdRecord = new PriorityQueue<>(Comparator.comparingInt(
-    appointmentId -> Integer.parseInt(appointmentId.substring(1))
-    ));
+    private Set<String> appointmentIdRecord = new TreeSet<>(ascendingId);
 
     public Customer(String id, String name, String email, String password, double apWallet, Collection<String> appointmentIdRecord) {
         super(id, name, email, password);
-        Comparator<String> ascendingAppointmentId = Comparator.comparingInt(
-                appointmentId -> Integer.parseInt(appointmentId.substring(1))
-        );
+
         this.apWallet = apWallet;
-        this.appointmentIdRecord = new PriorityQueue<>(ascendingAppointmentId);
+        this.appointmentIdRecord = new TreeSet<>(ascendingId);
         this.appointmentIdRecord.addAll(appointmentIdRecord);
     }
 
@@ -59,9 +58,9 @@ public class Customer extends User {
         double customerApWallet = Double.parseDouble(record.get(4));
         Collection<String> customerAppointmentIdRecord;
         if (record.getLast().equalsIgnoreCase("NULL")) {
-            customerAppointmentIdRecord = new PriorityQueue<>();
+            customerAppointmentIdRecord = new TreeSet<>();
         } else {
-            customerAppointmentIdRecord = new PriorityQueue<>(Arrays.asList(record.getLast().split("&")));
+            customerAppointmentIdRecord = new TreeSet<>(Arrays.asList(record.getLast().split("&")));
         }
 
         return new Customer(customerId, customerName, customerEmail, customerPassword, customerApWallet, customerAppointmentIdRecord);
