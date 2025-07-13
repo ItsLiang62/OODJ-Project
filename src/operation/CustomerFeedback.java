@@ -1,5 +1,8 @@
 package operation;
 
+import customExceptions.InvalidForeignKeyValueException;
+import customExceptions.NullValueRejectedException;
+import database.Database;
 import database.Identifiable;
 import database.Savable;
 
@@ -8,40 +11,77 @@ import java.util.Arrays;
 import java.util.List;
 
 public class CustomerFeedback implements Savable {
-    private String id;
+    private final String id;
     private String customerId;
-    private String targetEmployeeId;
+    private String nonManagerEmployeeId;
     private String content;
 
 
-    public CustomerFeedback(String id, String customerId, String targetEmployeeId, String content) {
+    public CustomerFeedback(String id, String customerId, String nonManagerEmployeeId, String content) {
+        checkCustomerId(customerId);
+        checkNonManagerEmployeeId(nonManagerEmployeeId);
+        checkContent(content);
         this.id = id;
         this.customerId = customerId;
-        this.targetEmployeeId = targetEmployeeId;
+        this.nonManagerEmployeeId = nonManagerEmployeeId;
         this.content = content;
     }
 
-    public CustomerFeedback(String customerId, String targetEmployeeId, String content) {
-        this(Identifiable.createId('F'), customerId, targetEmployeeId, content);
+    public CustomerFeedback(String customerId, String nonManagerEmployeeId, String content) {
+        this(Identifiable.createId('F'), customerId, nonManagerEmployeeId, content);
     }
 
     public String getId() { return this.id; }
     public String getCustomerId() { return this.customerId; }
-    public String getTargetEmployeeId() { return this.targetEmployeeId; }
+    public String getNonManagerEmployeeId() { return this.nonManagerEmployeeId; }
     public String getContent() { return this.content; }
 
-    public void setCustomerId(String customerId) { this.customerId = customerId ; }
-    public void setTargetEmployeeId(String content) { this.content = content; }
-    public void setContent(String content) { this.content = content; }
+    public void setCustomerId(String customerId) {
+        checkCustomerId(customerId);
+        this.customerId = customerId;
+    }
+
+    public void setNonManagerEmployeeId(String nonManagerEmployeeId) {
+        checkNonManagerEmployeeId(nonManagerEmployeeId);
+        this.nonManagerEmployeeId = nonManagerEmployeeId;
+    }
+
+    public void setContent(String content) {
+        checkContent(content);
+        this.content = content;
+    }
+
+    private void checkCustomerId(String customerId) {
+        if (customerId == null) {
+            throw new NullValueRejectedException("--- customerId field of CustomerFeedback object must not be null ---");
+        }
+        if (!Database.getAllCustomerId().contains(customerId)) {
+            throw new InvalidForeignKeyValueException("--- customerId field of CustomerFeedback object does not have a primary key reference ---");
+        }
+    }
+
+    private void checkNonManagerEmployeeId(String nonManagerEmployeeId) {
+        if (nonManagerEmployeeId == null) {
+            throw new NullValueRejectedException("--- nonManagerEmployeeId field of CustomerFeedback object must not be null ---");
+        }
+        if (!Database.getAllStaffId().contains(nonManagerEmployeeId) && !Database.getAllDoctorId().contains(nonManagerEmployeeId)) {
+            throw new InvalidForeignKeyValueException("--- nonManagerEmployeeId field of CustomerFeedback object does not have a primary key reference ---");
+        }
+    }
+
+    private void checkContent(String content) {
+        if (content == null) {
+            throw new NullValueRejectedException("--- content field of CustomerFeedback object must not be null ---");
+        }
+    }
 
     public List<String> createRecord() {
-        String dbId = this.id;
         String dbCustomerId = this.customerId;
-        String dbTargetEmployeeId = this.targetEmployeeId;
+        String dbTargetEmployeeId = this.nonManagerEmployeeId;
         String dbContent = this.content;
 
         return new ArrayList<>(Arrays.asList(
-                dbId, dbCustomerId, dbTargetEmployeeId, dbContent
+                this.id, dbCustomerId, dbTargetEmployeeId, dbContent
         ));
     }
 

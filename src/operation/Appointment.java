@@ -1,5 +1,8 @@
 package operation;
 
+import customExceptions.InvalidAppointmentStatusException;
+import customExceptions.InvalidForeignKeyValueException;
+import customExceptions.NullValueRejectedException;
 import database.Database;
 import database.Identifiable;
 import database.Savable;
@@ -10,24 +13,45 @@ public class Appointment implements Savable {
     private String id;
     private String customerId;
     private String doctorId;
-    private String invoiceId;
     private String doctorFeedback;
     private double charge;
-    private String status = "Pending";
+    private String status;
 
-    public Appointment(String id, String customerId, String doctorId, String invoiceId, String doctorFeedback, double charge, String status) {
+    public Appointment(String id, String customerId, String doctorId, String doctorFeedback, double charge, String status) {
+        checkCustomerId(customerId);
+        checkDoctorId(doctorId);
+        checkStatus(status);
         this.id = id;
         this.customerId = customerId;
         this.doctorId = doctorId;
-        this.invoiceId = invoiceId;
         this.doctorFeedback = doctorFeedback;
         this.charge = charge;
         this.status = status;
     }
 
     public Appointment(String id, String customerId) {
-        this.id = id;
-        this.customerId = customerId;
+        this(id, customerId, null, null, 0.0, "Pending");
+    }
+
+    private void checkCustomerId(String customerId) {
+        if (customerId == null) {
+            throw new NullValueRejectedException("--- customerId field of Appointment object must not be null ---");
+        }
+        if (!Database.getAllCustomerId().contains(customerId)) {
+            throw new InvalidForeignKeyValueException("--- customerId field of Appointment object does not have a primary key reference ---");
+        }
+    }
+
+    private void checkDoctorId(String doctorId) {
+        if (doctorId != null && !Database.getAllDoctorId().contains(doctorId)) {
+            throw new InvalidForeignKeyValueException("--- doctorId field of Appointment object does not have a primary key reference ---");
+        }
+    }
+
+    private void checkStatus(String status) {
+        if (!Arrays.asList(new String[] {"Pending", "Confirmed", "Completed"}).contains(status)) {
+            throw new InvalidAppointmentStatusException("--- status of Appointment object must be either Pending, Confirmed or Completed ---");
+        }
     }
 
     // for customer use when requesting an appointment
@@ -38,30 +62,36 @@ public class Appointment implements Savable {
     public String getId() { return this.id; }
     public String getCustomerId() { return this.customerId; }
     public String getDoctorId() { return this.doctorId; }
-    public String getInvoiceId() { return this.invoiceId; }
     public String getDoctorFeedback() { return this.doctorFeedback; }
     public double getCharge() { return this.charge; }
     public String getStatus() { return this.status; }
 
-    public void setCustomerId(String customerId) { this.customerId = customerId; }
-    public void setDoctorId(String doctorId) { this.doctorId = doctorId; }
+    public void setCustomerId(String customerId) {
+        checkCustomerId(customerId);
+        this.customerId = customerId;
+    }
+    public void setDoctorId(String doctorId) {
+        checkDoctorId(doctorId);
+        this.doctorId = doctorId;
+    }
     public void setDoctorFeedback(String doctorFeedback) { this.doctorFeedback = doctorFeedback; }
-    public void setInvoiceId(String invoiceId) {this.invoiceId = invoiceId; }
     public void setCharge(double charge) { this.charge = charge; }
-    public void setStatus(String status) { this.status = status; }
+    public void setStatus(String status) {
+        checkStatus(status);
+        this.status = status;
+    }
 
 
     public List<String> createRecord() {
         String dbId = this.id;
         String dbCustomerId = this.customerId;
         String dbDoctorId = Objects.requireNonNullElse(doctorId, "NULL");
-        String dbInvoiceId = Objects.requireNonNullElse(invoiceId, "NULL");
         String dbDoctorFeedback = Objects.requireNonNullElse(doctorFeedback, "NULL");
         String dbCharge = String.valueOf(this.charge);
         String dbStatus = this.status;
 
         return new ArrayList<>(Arrays.asList(
-                dbId, dbCustomerId, dbDoctorId, dbInvoiceId, dbDoctorFeedback, dbCharge, dbStatus
+                dbId, dbCustomerId, dbDoctorId, dbDoctorFeedback, dbCharge, dbStatus
         ));
     }
 
@@ -74,23 +104,17 @@ public class Appointment implements Savable {
         } else {
             appointmentDoctorId = record.get(2);
         }
-        String appointmentInvoiceId;
-        if (record.get(3).equalsIgnoreCase("NULL")) {
-            appointmentInvoiceId = null;
-        } else {
-            appointmentInvoiceId = record.get(3);
-        }
         String appointmentDoctorFeedback;
-        if (record.get(4).equalsIgnoreCase("NULL")) {
+        if (record.get(3).equalsIgnoreCase("NULL")) {
             appointmentDoctorFeedback = null;
         } else {
-            appointmentDoctorFeedback = record.get(4);
+            appointmentDoctorFeedback = record.get(3);
         }
-        double appointmentCharge = Double.parseDouble(record.get(5));
+        double appointmentCharge = Double.parseDouble(record.get(4));
         String appointmentStatus = record.getLast();
 
         return new Appointment(appointmentId, appointmentCustomerId, appointmentDoctorId,
-                appointmentInvoiceId, appointmentDoctorFeedback, appointmentCharge, appointmentStatus
+                appointmentDoctorFeedback, appointmentCharge, appointmentStatus
         );
     }
 }

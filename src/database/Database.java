@@ -175,68 +175,76 @@ public final class Database {
         throw new IdNotFoundException("--- Database.getCustomerFeedback(String) failed. Could not find CustomerFeedback with the given customerFeedbackId ---");
     }
 
-    public static List<String> getAllManagerId() {
-        List<String> allManagerId = new ArrayList<>();
+    public static Set<String> getAllManagerId() {
+        Set<String> allManagerId = new LinkedHashSet<>();
         for (Manager manager: managers) {
             allManagerId.add(manager.getId());
         }
         return allManagerId;
     }
 
-    public static List<String> getAllStaffId() {
-        List<String> allStaffId = new ArrayList<>();
+    public static Set<String> getAllStaffId() {
+        Set<String> allStaffId = new LinkedHashSet<>();
         for (Staff staff: staffs) {
             allStaffId.add(staff.getId());
         }
         return allStaffId;
     }
 
-    public static List<String> getAllDoctorId() {
-        List<String> allDoctorId = new ArrayList<>();
+    public static Set<String> getAllDoctorId() {
+        Set<String> allDoctorId = new LinkedHashSet<>();
         for (Doctor doctor: doctors) {
             allDoctorId.add(doctor.getId());
         }
         return allDoctorId;
     }
 
-    public static List<String> getAllCustomerId() {
-        List<String> allCustomerId = new ArrayList<>();
+    public static Set<String> getAllCustomerId() {
+        Set<String> allCustomerId = new LinkedHashSet<>();
         for (Customer customer: customers) {
             allCustomerId.add(customer.getId());
         }
         return allCustomerId;
     }
 
-    public static List<String> getAllAppointmentId() {
-        List<String> allAppointmentId = new ArrayList<>();
+    public static Set<String> getAllAppointmentId() {
+        Set<String> allAppointmentId = new LinkedHashSet<>();
         for (Appointment appointment: appointments) {
             allAppointmentId.add(appointment.getId());
         }
         return allAppointmentId;
     }
 
-    public static List<String> getAllCustomerFeedbackId() {
-        List<String> allCustomerFeedbackId = new ArrayList<>();
+    public static Set<String> getAllCustomerFeedbackId() {
+        Set<String> allCustomerFeedbackId = new LinkedHashSet<>();
         for (CustomerFeedback customerFeedback: customerFeedbacks) {
             allCustomerFeedbackId.add(customerFeedback.getId());
         }
         return allCustomerFeedbackId;
     }
 
-    public static List<String> getAllMedicineId() {
-        List<String> allMedicineId = new ArrayList<>();
+    public static Set<String> getAllMedicineId() {
+        Set<String> allMedicineId = new LinkedHashSet<>();
         for (Medicine medicine: medicines) {
             allMedicineId.add(medicine.getId());
         }
         return allMedicineId;
     }
 
-    public static List<String> getAllInvoiceId() {
-        List<String> allInvoiceId = new ArrayList<>();
+    public static Set<String> getAllInvoiceId() {
+        Set<String> allInvoiceId = new LinkedHashSet<>();
         for (Invoice invoice: invoices) {
             allInvoiceId.add(invoice.getId());
         }
         return allInvoiceId;
+    }
+
+    public static Set<String> getAllAppointmentIdInInvoices() {
+        Set<String> allAppointmentIdInInvoices = new LinkedHashSet<>();
+        for (Invoice invoice: invoices) {
+            allAppointmentIdInInvoices.add(invoice.getAppointmentId());
+        }
+        return allAppointmentIdInInvoices;
     }
 
     public static List<String> getAllUpcomingAppointmentCustomerId() {
