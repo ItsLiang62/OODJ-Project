@@ -10,16 +10,16 @@ public class Appointment implements Savable {
     private String id;
     private String customerId;
     private String doctorId;
-    private Set<String> medicineIds = new HashSet<>();
+    private String invoiceId;
     private String doctorFeedback;
     private double charge;
     private String status = "Pending";
 
-    public Appointment(String id, String customerId, String doctorId, Collection<String> medicineIds, String doctorFeedback, double charge, String status) {
+    public Appointment(String id, String customerId, String doctorId, String invoiceId, String doctorFeedback, double charge, String status) {
         this.id = id;
         this.customerId = customerId;
         this.doctorId = doctorId;
-        this.medicineIds = new HashSet<>(medicineIds);
+        this.invoiceId = invoiceId;
         this.doctorFeedback = doctorFeedback;
         this.charge = charge;
         this.status = status;
@@ -38,7 +38,7 @@ public class Appointment implements Savable {
     public String getId() { return this.id; }
     public String getCustomerId() { return this.customerId; }
     public String getDoctorId() { return this.doctorId; }
-    public Set<String> getMedicineIds() { return new HashSet<>(this.medicineIds); }
+    public String getInvoiceId() { return this.invoiceId; }
     public String getDoctorFeedback() { return this.doctorFeedback; }
     public double getCharge() { return this.charge; }
     public String getStatus() { return this.status; }
@@ -46,32 +46,22 @@ public class Appointment implements Savable {
     public void setCustomerId(String customerId) { this.customerId = customerId; }
     public void setDoctorId(String doctorId) { this.doctorId = doctorId; }
     public void setDoctorFeedback(String doctorFeedback) { this.doctorFeedback = doctorFeedback; }
+    public void setInvoiceId(String invoiceId) {this.invoiceId = invoiceId; }
     public void setCharge(double charge) { this.charge = charge; }
     public void setStatus(String status) { this.status = status; }
 
-    public void addMedicineId(String medicineId) {
-        this.medicineIds.add(medicineId);
-    }
-    public void removeMedicineId(String medicineId) {
-        this.medicineIds.remove(medicineId);
-    }
 
     public List<String> createRecord() {
         String dbId = this.id;
         String dbCustomerId = this.customerId;
-        String dbDoctorId = this.doctorId;
-        String dbMedicineIds;
-        if (this.medicineIds.isEmpty()) {
-            dbMedicineIds = "NULL";
-        } else {
-            dbMedicineIds = String.join("&", medicineIds);
-        }
+        String dbDoctorId = Objects.requireNonNullElse(doctorId, "NULL");
+        String dbInvoiceId = Objects.requireNonNullElse(invoiceId, "NULL");
         String dbDoctorFeedback = Objects.requireNonNullElse(doctorFeedback, "NULL");
         String dbCharge = String.valueOf(this.charge);
         String dbStatus = this.status;
 
         return new ArrayList<>(Arrays.asList(
-                dbId, dbCustomerId, dbDoctorId, dbMedicineIds, dbDoctorFeedback, dbCharge, dbStatus
+                dbId, dbCustomerId, dbDoctorId, dbInvoiceId, dbDoctorFeedback, dbCharge, dbStatus
         ));
     }
 
@@ -84,11 +74,11 @@ public class Appointment implements Savable {
         } else {
             appointmentDoctorId = record.get(2);
         }
-        Collection<String> appointmentMedicineIds;
+        String appointmentInvoiceId;
         if (record.get(3).equalsIgnoreCase("NULL")) {
-            appointmentMedicineIds = new HashSet<>();
+            appointmentInvoiceId = null;
         } else {
-            appointmentMedicineIds = new HashSet<>(Arrays.asList(record.get(3).split("&")));
+            appointmentInvoiceId = record.get(3);
         }
         String appointmentDoctorFeedback;
         if (record.get(4).equalsIgnoreCase("NULL")) {
@@ -100,7 +90,7 @@ public class Appointment implements Savable {
         String appointmentStatus = record.getLast();
 
         return new Appointment(appointmentId, appointmentCustomerId, appointmentDoctorId,
-                appointmentMedicineIds, appointmentDoctorFeedback, appointmentCharge, appointmentStatus
+                appointmentInvoiceId, appointmentDoctorFeedback, appointmentCharge, appointmentStatus
         );
     }
 }
