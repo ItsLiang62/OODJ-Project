@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import customExceptions.NullValueRejectedException;
+import customExceptions.RecordAlreadyInDatabaseException;
+import database.Database;
 import database.Identifiable;
 import database.Savable;
 
@@ -28,7 +30,11 @@ public class Medicine implements Savable {
         if (name == null) {
             throw new NullValueRejectedException("--- name field of Medicine object must not be null ---");
         }
+        if (Database.getAllMedicineNames().contains(name)) {
+            throw new RecordAlreadyInDatabaseException("--- name field of Medicine object is being used by another Medicine ---");
+        }
     }
+
     public String getId() { return this.id; }
     public String getName() { return this.name; }
     public double getCharge() { return this.charge; }

@@ -10,7 +10,6 @@ public class Customer extends User {
 
     public Customer(String id, String name, String email, String password, double apWallet) {
         super(id, name, email, password);
-
         this.apWallet = apWallet;
     }
 

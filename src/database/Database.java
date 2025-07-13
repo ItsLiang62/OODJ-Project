@@ -71,12 +71,14 @@ public final class Database {
         if (getAllManagerId().contains(newManager.getId())) {
             throw new RecordAlreadyInDatabaseException("--- Database.addManager(Manager) failed. Manager already in database ---");
         }
+        managers.add(newManager);
     }
 
     public static void addStaff(Staff newStaff) {
         if (getAllStaffId().contains(newStaff.getId())) {
             throw new RecordAlreadyInDatabaseException("--- Database.addStaff(Staff) failed. Staff already in database ---");
         }
+        staffs.add(newStaff);
     }
 
     public static void addDoctor(Doctor newDoctor) {
@@ -98,8 +100,6 @@ public final class Database {
     public static void addAppointment(Appointment newAppointment) {
         if (getAllAppointmentId().contains(newAppointment.getId())) {
             throw new RecordAlreadyInDatabaseException("--- Database.addAppointment(Appointment) failed. Appointment already in database ---");
-        } else if (getAllUpcomingAppointmentCustomerId().contains(newAppointment.getCustomerId())) {
-            throw new MultipleAppointmentsForUserException("--- Database.addAppointment(Appointment) failed. Customer already has an upcoming appointment  ---");
         } else {
             appointments.add(newAppointment);
         }
@@ -259,6 +259,30 @@ public final class Database {
         return new ArrayList<>(allNotCompletedAppointmentCustomerId);
     }
 
+    public static Set<String> getAllUserEmails() {
+        Set<String> allUserEmails = new LinkedHashSet<>();
+
+        List<User> users = new ArrayList<>();
+        users.addAll(managers);
+        users.addAll(staffs);
+        users.addAll(doctors);
+        users.addAll(customers);
+
+        for (User user: users) {
+            allUserEmails.add(user.getEmail());
+        }
+        return allUserEmails;
+    }
+
+    public static Set<String> getAllMedicineNames() {
+        Set<String> allMedicineNames = new LinkedHashSet<>();
+
+        for (Medicine medicine: medicines) {
+            allMedicineNames.add(medicine.getName());
+        }
+        return allMedicineNames;
+    }
+
     private static <T extends Savable> void populateFromRecords(InstantiatableFromRecord<T> instantiatableFromRecord, Queue<T> objects, File inputFile) throws IOException {
         try (Scanner fileScanner = new Scanner(inputFile)) {
             while (fileScanner.hasNextLine()) {
@@ -290,6 +314,7 @@ public final class Database {
                 objectRecords.add(dbObjectRecord);
             }
             String dbObjectRecords = String.join("\n", objectRecords);
+
             fileWriter.write(dbObjectRecords);
         }
     }

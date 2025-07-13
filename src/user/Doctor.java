@@ -1,6 +1,5 @@
 package user;
 
-import customExceptions.AppointmentNotAssignedToDoctorException;
 import database.Database;
 import database.Identifiable;
 
