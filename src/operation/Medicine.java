@@ -20,13 +20,14 @@ public class Medicine implements Savable {
         this.id = id;
         this.name = name;
         this.charge = charge;
+        Database.addMedicine(this);
     }
 
     public Medicine(String name, double charge) {
         this(Identifiable.createId('P'), name, charge);
     }
 
-    private void checkName(String name) {
+    public static void checkName(String name) {
         if (name == null) {
             throw new NullValueRejectedException("--- name field of Medicine object must not be null ---");
         }
@@ -55,11 +56,11 @@ public class Medicine implements Savable {
         ));
     }
 
-    public static Medicine createMedicineFromRecord(List<String> record) {
+    public static void createMedicineFromRecord(List<String> record) {
         String medicineId = record.getFirst();
         String medicineName = record.get(1);
         double medicineCharge = Double.parseDouble(record.getLast());
 
-        return new Medicine(medicineId, medicineName, medicineCharge);
+        new Medicine(medicineId, medicineName, medicineCharge);
     }
 }

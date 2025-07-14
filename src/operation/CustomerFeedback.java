@@ -25,10 +25,12 @@ public class CustomerFeedback implements Savable {
         this.customerId = customerId;
         this.nonManagerEmployeeId = nonManagerEmployeeId;
         this.content = content;
+        Database.addCustomerFeedback(this);
     }
 
     public CustomerFeedback(String customerId, String nonManagerEmployeeId, String content) {
         this(Identifiable.createId('F'), customerId, nonManagerEmployeeId, content);
+
     }
 
     public String getId() { return this.id; }
@@ -51,7 +53,7 @@ public class CustomerFeedback implements Savable {
         this.content = content;
     }
 
-    private void checkCustomerId(String customerId) {
+    public static void checkCustomerId(String customerId) {
         if (customerId == null) {
             throw new NullValueRejectedException("--- customerId field of CustomerFeedback object must not be null ---");
         }
@@ -60,7 +62,7 @@ public class CustomerFeedback implements Savable {
         }
     }
 
-    private void checkNonManagerEmployeeId(String nonManagerEmployeeId) {
+    public static void checkNonManagerEmployeeId(String nonManagerEmployeeId) {
         if (nonManagerEmployeeId == null) {
             throw new NullValueRejectedException("--- nonManagerEmployeeId field of CustomerFeedback object must not be null ---");
         }
@@ -69,7 +71,7 @@ public class CustomerFeedback implements Savable {
         }
     }
 
-    private void checkContent(String content) {
+    public static void checkContent(String content) {
         if (content == null) {
             throw new NullValueRejectedException("--- content field of CustomerFeedback object must not be null ---");
         }
@@ -85,12 +87,12 @@ public class CustomerFeedback implements Savable {
         ));
     }
 
-    public static CustomerFeedback createCustomerFeedbackFromRecord(List<String> record) {
+    public static void createCustomerFeedbackFromRecord(List<String> record) {
         String customerFeedbackId = record.getFirst();
         String customerFeedbackCustomerId = record.get(1);
         String customerFeedbackTargetEmployeeId = record.get(2);
         String customerFeedbackContent = record.getLast();
 
-        return new CustomerFeedback(customerFeedbackId, customerFeedbackCustomerId, customerFeedbackTargetEmployeeId, customerFeedbackContent);
+        new CustomerFeedback(customerFeedbackId, customerFeedbackCustomerId, customerFeedbackTargetEmployeeId, customerFeedbackContent);
     }
 }

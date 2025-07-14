@@ -17,30 +17,32 @@ public final class Database {
     private final static File doctorFile = new File("data/doctor.txt");
     private final static File customerFile = new File("data/customer.txt");
     private final static File appointmentFile = new File("data/appointment.txt");
-    private final static File customerFeedbackFile = new File("data/customerFeedback.txt");
     private final static File medicineFile = new File("data/medicine.txt");
+    private final static File appointmentMedicineFile = new File("data/appointmentmedicine.txt");
+    private final static File customerFeedbackFile = new File("data/customerFeedback.txt");
     private final static File invoiceFile = new File("data/invoice.txt");
 
-    private static Queue<Manager> managers;
-    private static Queue<Staff> staffs;
-    private static Queue<Doctor> doctors;
-    private static Queue<Customer> customers;
-    private static Queue<Appointment> appointments;
-    private static Queue<CustomerFeedback> customerFeedbacks;
-    private static Queue<Medicine> medicines;
-    private static Queue<Invoice> invoices;
+    private static Set<Manager> managers;
+    private static Set<Staff> staffs;
+    private static Set<Doctor> doctors;
+    private static Set<Customer> customers;
+    private static Set<Appointment> appointments;
+    private static Set<Medicine> medicines;
+    private static Set<AppointmentMedicine> appointmentMedicines;
+    private static Set<CustomerFeedback> customerFeedbacks;
+    private static Set<Invoice> invoices;
 
     static {
-        managers = new PriorityQueue<>(Comparator.comparingInt(
+        managers = new TreeSet<>(Comparator.comparingInt(
                 user -> Integer.parseInt(user.getId().substring(1))
         ));
-        staffs = new PriorityQueue<>(Comparator.comparingInt(
+        staffs = new TreeSet<>(Comparator.comparingInt(
                 user -> Integer.parseInt(user.getId().substring(1))
         ));
-        doctors = new PriorityQueue<>(Comparator.comparingInt(
+        doctors = new TreeSet<>(Comparator.comparingInt(
                 user -> Integer.parseInt(user.getId().substring(1))
         ));
-        customers = new PriorityQueue<>(Comparator.comparingInt(
+        customers = new TreeSet<>(Comparator.comparingInt(
                 user -> Integer.parseInt(user.getId().substring(1))
         ));
 
@@ -48,79 +50,71 @@ public final class Database {
         appointmentStatusPriority.put("Pending", 1);
         appointmentStatusPriority.put("Confirmed", 2);
         appointmentStatusPriority.put("Completed", 3);
-        appointments = new PriorityQueue<>(Comparator.comparingInt(
+        appointments = new TreeSet<>(Comparator.comparingInt(
                 appointment -> appointmentStatusPriority.get(appointment.getStatus())
         ));
-        customerFeedbacks = new PriorityQueue<>(Comparator.comparingInt(
-                customerFeedback -> Integer.parseInt(customerFeedback.getId().substring(1))
-        ));
-        medicines = new PriorityQueue<>(Comparator.comparingInt(
+        medicines = new TreeSet<>(Comparator.comparingInt(
                 medicine -> Integer.parseInt(medicine.getId().substring(1))
         ));
-        invoices = new PriorityQueue<>(Comparator.comparingInt(
+        appointmentMedicines = new TreeSet<>(Comparator.comparingInt(
+                appointmentMedicine -> Integer.parseInt(appointmentMedicine.getAppointmentId())
+        ));
+        customerFeedbacks = new TreeSet<>(Comparator.comparingInt(
+                customerFeedback -> Integer.parseInt(customerFeedback.getId().substring(1))
+        ));
+        invoices = new TreeSet<>(Comparator.comparingInt(
                 invoice -> Integer.parseInt(invoice.getId().substring(1))
         ));
-        try {
-            Database.populate();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        Database.populate();
     }
 
+    // add
     public static void addManager(Manager newManager) {
-        if (getAllManagerId().contains(newManager.getId())) {
-            throw new RecordAlreadyInDatabaseException("--- Database.addManager(Manager) failed. Manager already in database ---");
-        }
         managers.add(newManager);
+        Database.save();
     }
 
     public static void addStaff(Staff newStaff) {
-        if (getAllStaffId().contains(newStaff.getId())) {
-            throw new RecordAlreadyInDatabaseException("--- Database.addStaff(Staff) failed. Staff already in database ---");
-        }
         staffs.add(newStaff);
+        Database.save();
     }
 
     public static void addDoctor(Doctor newDoctor) {
-        if (getAllDoctorId().contains(newDoctor.getId())) {
-            throw new RecordAlreadyInDatabaseException("--- Database.addDoctor(Doctor) failed. Doctor already in database ---");
-        } else {
-            doctors.add(newDoctor);
-        }
+        doctors.add(newDoctor);
+        Database.save();
     }
 
     public static void addCustomer(Customer newCustomer) {
-        if (getAllCustomerId().contains(newCustomer.getId())) {
-            throw new RecordAlreadyInDatabaseException("--- Database.addCustomer(Customer) failed. Customer already in database ---");
-        } else {
-            customers.add(newCustomer);
-        }
+        customers.add(newCustomer);
+        Database.save();
     }
 
     public static void addAppointment(Appointment newAppointment) {
-        if (getAllAppointmentId().contains(newAppointment.getId())) {
-            throw new RecordAlreadyInDatabaseException("--- Database.addAppointment(Appointment) failed. Appointment already in database ---");
-        } else {
-            appointments.add(newAppointment);
-        }
-    }
-
-    public static void addCustomerFeedback(CustomerFeedback newCustomerFeedback) {
-        if (getAllCustomerFeedbackId().contains(newCustomerFeedback.getId())) {
-            throw new RecordAlreadyInDatabaseException("--- Database.addCustomerFeedback(CustomerFeedback) failed. CustomerFeedback already in database ---");
-        } else {
-            customerFeedbacks.add(newCustomerFeedback);
-        }
+        appointments.add(newAppointment);
+        Database.save();
     }
 
     public static void addMedicine(Medicine newMedicine) {
+        medicines.add(newMedicine);
+        Database.save();
+    }
 
+    public static void addAppointmentMedicine(AppointmentMedicine newAppointmentMedicine) {
+        appointmentMedicines.add(newAppointmentMedicine);
+        Database.save();
+    }
+
+    public static void addCustomerFeedback(CustomerFeedback newCustomerFeedback) {
+        customerFeedbacks.add(newCustomerFeedback);
+        Database.save();
     }
 
     public static void addInvoice(Invoice newInvoice) {
-
+        invoices.add(newInvoice);
+        Database.save();
     }
 
+    // get
     public static Manager getManager(String managerId) {
         for (Manager manager: managers) {
             if (manager.getId().equals(managerId)) {
@@ -166,6 +160,15 @@ public final class Database {
         throw new IdNotFoundException("--- Database.getAppointment(String) failed. Could not find Appointment with the given appointmentId ---");
     }
 
+    public static AppointmentMedicine getAppointmentMedicine(String appointmentId, String medicineId) {
+        for (AppointmentMedicine appointmentMedicine: appointmentMedicines) {
+            if (appointmentMedicine.getAppointmentId().equals(appointmentId) && appointmentMedicine.getMedicineId().equals(medicineId)) {
+                return appointmentMedicine;
+            }
+        }
+        throw new IdNotFoundException("--- Database.getAppointment(String) failed. Could not find Appointment with the given appointmentId ---");
+    }
+
     public static CustomerFeedback getCustomerFeedback(String customerFeedbackId) {
         for (CustomerFeedback customerFeedback: customerFeedbacks) {
             if (customerFeedback.getId().equals(customerFeedbackId)) {
@@ -175,7 +178,66 @@ public final class Database {
         throw new IdNotFoundException("--- Database.getCustomerFeedback(String) failed. Could not find CustomerFeedback with the given customerFeedbackId ---");
     }
 
+    public static Invoice getInvoice(String invoiceId) {
+        for (Invoice invoice: invoices) {
+            if (invoice.getId().equals(invoiceId)) {
+                return invoice;
+            }
+        }
+        throw new IdNotFoundException("--- Database.getInvoice(String) failed. Could not find Invoice with the given invoiceId ---");
+    }
+
+    public static Medicine getMedicine(String medicineId) {
+        for (Medicine medicine: medicines) {
+            if (medicine.getId().equals(medicineId)) {
+                return medicine;
+            }
+        }
+        throw new IdNotFoundException("--- Database.getMedicine(String) failed. Could not find Medicine with the given medicineId ---");
+    }
+
+    // update
+    public static void removeManager(String managerId) {
+        managers.removeIf(manager -> manager.getId().equals(managerId));
+    }
+
+    public static void removeStaff(String staffId) {
+        staffs.removeIf(staff -> staff.getId().equals(staffId));
+    }
+
+    public static void removeDoctor(String doctorId) {
+        doctors.removeIf(doctor -> doctor.getId().equals(doctorId));
+    }
+
+    public static void removeCustomer(String customerId) {
+        customers.removeIf(customer -> customer.getId().equals(customerId));
+    }
+
+    public static void removeAppointment(String appointmentId) {
+        appointments.removeIf(appointment -> appointment.getId().equals(appointmentId));
+    }
+
+    public static void removeMedicine(String medicineId) {
+        medicines.removeIf(medicine -> medicine.getId().equals(medicineId));
+    }
+
+    public static void removeAppointmentMedicine(String appointmentId, String medicineId) {
+        appointmentMedicines.removeIf(appointmentMedicine ->
+                appointmentMedicine.getAppointmentId().equals(appointmentId) &&
+                appointmentMedicine.getMedicineId().equals(medicineId)
+        );
+    }
+
+    public static void removeCustomerFeedback(String customerFeedbackId) {
+        customerFeedbacks.removeIf(customerFeedback -> customerFeedback.getId().equals(customerFeedbackId));
+    }
+
+    public static void removeInvoice(String invoiceId) {
+        invoices.removeIf(invoice -> invoice.getId().equals(invoiceId));
+    }
+
     public static Set<String> getAllManagerId() {
+
         Set<String> allManagerId = new LinkedHashSet<>();
         for (Manager manager: managers) {
             allManagerId.add(manager.getId());
@@ -215,20 +277,20 @@ public final class Database {
         return allAppointmentId;
     }
 
-    public static Set<String> getAllCustomerFeedbackId() {
-        Set<String> allCustomerFeedbackId = new LinkedHashSet<>();
-        for (CustomerFeedback customerFeedback: customerFeedbacks) {
-            allCustomerFeedbackId.add(customerFeedback.getId());
-        }
-        return allCustomerFeedbackId;
-    }
-
     public static Set<String> getAllMedicineId() {
         Set<String> allMedicineId = new LinkedHashSet<>();
         for (Medicine medicine: medicines) {
             allMedicineId.add(medicine.getId());
         }
         return allMedicineId;
+    }
+
+    public static Set<String> getAllCustomerFeedbackId() {
+        Set<String> allCustomerFeedbackId = new LinkedHashSet<>();
+        for (CustomerFeedback customerFeedback: customerFeedbacks) {
+            allCustomerFeedbackId.add(customerFeedback.getId());
+        }
+        return allCustomerFeedbackId;
     }
 
     public static Set<String> getAllInvoiceId() {
@@ -245,18 +307,6 @@ public final class Database {
             allAppointmentIdInInvoices.add(invoice.getAppointmentId());
         }
         return allAppointmentIdInInvoices;
-    }
-
-    public static List<String> getAllUpcomingAppointmentCustomerId() {
-        Set<String> allNotCompletedAppointmentCustomerId = new LinkedHashSet<>();
-
-        for (Appointment appointment: appointments) {
-            if (!appointment.getStatus().equals("Completed")) {
-                allNotCompletedAppointmentCustomerId.add(appointment.getCustomerId());
-            }
-        }
-
-        return new ArrayList<>(allNotCompletedAppointmentCustomerId);
     }
 
     public static Set<String> getAllUserEmails() {
@@ -283,30 +333,36 @@ public final class Database {
         return allMedicineNames;
     }
 
-    private static <T extends Savable> void populateFromRecords(InstantiatableFromRecord<T> instantiatableFromRecord, Queue<T> objects, File inputFile) throws IOException {
+    private static <T extends Savable> void populateFromRecords(InstantiatableFromRecord instantiatableFromRecord, Set<T> objects, File inputFile) throws IOException {
         try (Scanner fileScanner = new Scanner(inputFile)) {
             while (fileScanner.hasNextLine()) {
                 List<String> record = new ArrayList<>(
                         Arrays.asList(fileScanner.nextLine().split(","))
                 );
-                objects.add(instantiatableFromRecord.createInstanceFromRecord(record));
+                instantiatableFromRecord.createInstanceFromRecord(record);
             }
         }
     }
 
-    private static void populate() throws IOException {
-        populateFromRecords(Manager::createManagerFromRecord, managers, managerFile);
-        populateFromRecords(Staff::createStaffFromRecord, staffs, staffFile);
-        populateFromRecords(Doctor::createDoctorFromRecord, doctors, doctorFile);
-        populateFromRecords(Customer::createCustomerFromRecord, customers, customerFile);
-        populateFromRecords(Appointment::createAppointmentFromRecord, appointments, appointmentFile);
-        populateFromRecords(CustomerFeedback::createCustomerFeedbackFromRecord, customerFeedbacks, customerFeedbackFile);
-        populateFromRecords(Medicine::createMedicineFromRecord, medicines, medicineFile);
-        populateFromRecords(Invoice::createInvoiceFromRecord, invoices, invoiceFile);
+    private static void populate() {
+        try {
+            populateFromRecords(Manager::createManagerFromRecord, managers, managerFile);
+            populateFromRecords(Staff::createStaffFromRecord, staffs, staffFile);
+            populateFromRecords(Doctor::createDoctorFromRecord, doctors, doctorFile);
+            populateFromRecords(Customer::createCustomerFromRecord, customers, customerFile);
+            populateFromRecords(Appointment::createAppointmentFromRecord, appointments, appointmentFile);
+            populateFromRecords(AppointmentMedicine::createAppointmentMedicineFromRecord, appointmentMedicines, appointmentMedicineFile);
+            populateFromRecords(CustomerFeedback::createCustomerFeedbackFromRecord, customerFeedbacks, customerFeedbackFile);
+            populateFromRecords(Medicine::createMedicineFromRecord, medicines, medicineFile);
+            populateFromRecords(Invoice::createInvoiceFromRecord, invoices, invoiceFile);
+        } catch (IOException e) {
+            throw new RuntimeException(e.getMessage());
+        }
+
     }
 
 
-    public static void saveRecords(Queue<? extends Savable> objectContainer, File outputFile) throws IOException {
+    public static void saveRecords(Set<? extends Savable> objectContainer, File outputFile) throws IOException {
         try (FileWriter fileWriter = new FileWriter(outputFile)) {
             List<String> objectRecords = new ArrayList<>();
             for (Savable object: objectContainer) {
@@ -319,14 +375,20 @@ public final class Database {
         }
     }
 
-    public static void save() throws IOException {
-        saveRecords(managers, managerFile);
-        saveRecords(staffs, staffFile);
-        saveRecords(doctors, doctorFile);
-        saveRecords(customers, customerFile);
-        saveRecords(appointments, appointmentFile);
-        saveRecords(customerFeedbacks, customerFeedbackFile);
-        saveRecords(medicines, medicineFile);
-        saveRecords(invoices, invoiceFile);
+    public static void save() {
+        try {
+            saveRecords(managers, managerFile);
+            saveRecords(staffs, staffFile);
+            saveRecords(doctors, doctorFile);
+            saveRecords(customers, customerFile);
+            saveRecords(appointments, appointmentFile);
+            saveRecords(appointmentMedicines, appointmentMedicineFile);
+            saveRecords(customerFeedbacks, customerFeedbackFile);
+            saveRecords(medicines, medicineFile);
+            saveRecords(invoices, invoiceFile);
+        } catch (IOException e) {
+            throw new RuntimeException(e.getMessage());
+        }
+
     }
 }

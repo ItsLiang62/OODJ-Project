@@ -24,13 +24,14 @@ public class Invoice implements Savable {
         this.appointmentId = appointmentId;
         this.paymentMethod = paymentMethod;
         this.paymentDate = LocalDate.parse(paymentDate, DateTimeFormatter.ofPattern("d/M/yyyy"));
+        Database.addInvoice(this);;
     }
 
     public Invoice(String appointmentId, String paymentMethod, String paymentDate) {
         this(Identifiable.createId('I'), appointmentId, paymentMethod, paymentDate);
     }
 
-    private void checkAppointmentId(String appointmentId) {
+    public static void checkAppointmentId(String appointmentId) {
         if (appointmentId == null) {
             throw new NullValueRejectedException("--- appointmentId field of Invoice object must not be null ---");
         }
@@ -45,7 +46,7 @@ public class Invoice implements Savable {
         }
     }
 
-    private void checkPaymentMethod(String paymentMethod) {
+    public static void checkPaymentMethod(String paymentMethod) {
         if (!Arrays.asList(new String[] {"Cash", "Debit", "Credit", "Digital Wallet"}).contains(paymentMethod)) {
             throw new InvalidPaymentMethodException("--- paymentMethod field of Invoice object must be either Cash, Debit, Credit or Digital Wallet ---");
         }
@@ -68,21 +69,21 @@ public class Invoice implements Savable {
 
     public List<String> createRecord() {
         String dbId = this.id;
-        String dbAppointmentId = this.id;
+        String dbAppointmentId = this.appointmentId;
         String dbPaymentMethod = this.paymentMethod;
-        String dbPaymentDate = this.paymentDate.toString();
+        String dbPaymentDate = this.paymentDate.format(DateTimeFormatter.ofPattern("d/M/yyyy"));
 
         return new ArrayList<>(Arrays.asList(
                 dbId, dbAppointmentId, dbPaymentMethod, dbPaymentDate
         ));
     }
 
-    public static Invoice createInvoiceFromRecord(List<String> record) {
+    public static void createInvoiceFromRecord(List<String> record) {
         String invoiceId = record.getFirst();
         String invoiceAppointmentId = record.get(1);
         String invoicePaymentMethod = record.get(2);
         String invoicePaymentDate = record.getLast();
 
-        return new Invoice(invoiceId, invoiceAppointmentId, invoicePaymentMethod, invoicePaymentDate);
+        new Invoice(invoiceId, invoiceAppointmentId, invoicePaymentMethod, invoicePaymentDate);
     }
 }

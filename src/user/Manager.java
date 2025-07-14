@@ -6,10 +6,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class Manager extends User implements Employee {
+public class Manager extends User {
 
     public Manager(String id, String name, String email, String password) {
         super(id, name, email, password);
+        Database.addManager(this);
     }
 
     public Manager(String name, String email, String password) {
@@ -26,12 +27,12 @@ public class Manager extends User implements Employee {
         ));
     }
 
-    public static Manager createManagerFromRecord(List<String> record) {
+    public static void createManagerFromRecord(List<String> record) {
         String managerId = record.getFirst();
         String managerName = record.get(1);
         String managerEmail = record.get(2);
         String managerPassword = record.getLast();
 
-        return new Manager(managerId, managerName, managerEmail, managerPassword);
+        new Manager(managerId, managerName, managerEmail, managerPassword);
     }
 }

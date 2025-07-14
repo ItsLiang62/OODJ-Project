@@ -11,11 +11,11 @@ public class Customer extends User {
     public Customer(String id, String name, String email, String password, double apWallet) {
         super(id, name, email, password);
         this.apWallet = apWallet;
+        Database.addCustomer(this);
     }
 
     public Customer(String name, String email, String password, double apWallet) {
-        super(Identifiable.createId('C'), name, email, password);
-        this.apWallet = apWallet;
+        this(Identifiable.createId('C'), name, email, password, apWallet);
     }
 
     public List<String> createRecord() {
@@ -29,13 +29,13 @@ public class Customer extends User {
         ));
     }
 
-    public static Customer createCustomerFromRecord(List<String> record) {
+    public static void createCustomerFromRecord(List<String> record) {
         String customerId = record.getFirst();
         String customerName = record.get(1);
         String customerEmail = record.get(2);
         String customerPassword = record.get(3);
         double customerApWallet = Double.parseDouble(record.getLast());
 
-        return new Customer(customerId, customerName, customerEmail, customerPassword, customerApWallet);
+        new Customer(customerId, customerName, customerEmail, customerPassword, customerApWallet);
     }
 }

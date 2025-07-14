@@ -21,19 +21,23 @@ public class Appointment implements Savable {
         checkCustomerId(customerId);
         checkDoctorId(doctorId);
         checkStatus(status);
+
         this.id = id;
         this.customerId = customerId;
         this.doctorId = doctorId;
         this.doctorFeedback = doctorFeedback;
         this.charge = charge;
         this.status = status;
+
+        Database.addAppointment(this);
     }
 
-    public Appointment(String id, String customerId) {
-        this(id, customerId, null, null, 0.0, "Pending");
+
+    public Appointment(String customerId) {
+        this(Identifiable.createId('A'), customerId, null, null, 0.0, "Pending");
     }
 
-    private void checkCustomerId(String customerId) {
+    public static void checkCustomerId(String customerId) {
         if (customerId == null) {
             throw new NullValueRejectedException("--- customerId field of Appointment object must not be null ---");
         }
@@ -42,21 +46,16 @@ public class Appointment implements Savable {
         }
     }
 
-    private void checkDoctorId(String doctorId) {
+    public static void checkDoctorId(String doctorId) {
         if (doctorId != null && !Database.getAllDoctorId().contains(doctorId)) {
             throw new InvalidForeignKeyValueException("--- doctorId field of Appointment object does not have a primary key reference ---");
         }
     }
 
-    private void checkStatus(String status) {
+    public static void checkStatus(String status) {
         if (!Arrays.asList(new String[] {"Pending", "Confirmed", "Completed"}).contains(status)) {
             throw new InvalidAppointmentStatusException("--- status of Appointment object must be either Pending, Confirmed or Completed ---");
         }
-    }
-
-    // for customer use when requesting an appointment
-    public Appointment(String customerId) {
-        this(Identifiable.createId('A'), customerId);
     }
 
     public String getId() { return this.id; }
@@ -95,7 +94,7 @@ public class Appointment implements Savable {
         ));
     }
 
-    public static Appointment createAppointmentFromRecord(List<String> record) {
+    public static void createAppointmentFromRecord(List<String> record) {
         String appointmentId = record.getFirst();
         String appointmentCustomerId = record.get(1);
         String appointmentDoctorId;
@@ -113,7 +112,7 @@ public class Appointment implements Savable {
         double appointmentCharge = Double.parseDouble(record.get(4));
         String appointmentStatus = record.getLast();
 
-        return new Appointment(appointmentId, appointmentCustomerId, appointmentDoctorId,
+        new Appointment(appointmentId, appointmentCustomerId, appointmentDoctorId,
                 appointmentDoctorFeedback, appointmentCharge, appointmentStatus
         );
     }

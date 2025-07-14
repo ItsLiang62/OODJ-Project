@@ -1,5 +1,7 @@
 package operation;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import customExceptions.InvalidForeignKeyValueException;
@@ -21,13 +23,9 @@ public class AppointmentMedicine implements Savable {
         this.targetSymptom = targetSymptom;
     }
 
-    public List<String> createRecord() {
-        return null;
-    }
+    public String getAppointmentId() { return this.appointmentId; }
 
-    public AppointmentMedicine createAppointmentMedicineFromRecord(List<String> record) {
-        return null;
-    }
+    public String getMedicineId() { return this.medicineId; }
 
     public void setAppointmentId(String appointmentId) {
         checkAppointmentId(appointmentId);
@@ -40,7 +38,7 @@ public class AppointmentMedicine implements Savable {
 
     }
 
-    private void checkAppointmentId(String appointmentId) {
+    public static void checkAppointmentId(String appointmentId) {
         if (appointmentId == null) {
             throw new NullValueRejectedException("--- appointmentId field of AppointmentMedicine object must not be null ---");
         }
@@ -49,7 +47,7 @@ public class AppointmentMedicine implements Savable {
         }
     }
 
-    private void checkMedicineId(String medicineId) {
+    public static void checkMedicineId(String medicineId) {
         if (medicineId == null) {
             throw new NullValueRejectedException("--- medicineId field of AppointmentMedicine object must not be null ---");
         }
@@ -58,9 +56,27 @@ public class AppointmentMedicine implements Savable {
         }
     }
 
-    private void checkTargetSymptom(String targetSymptom) {
+    public static void checkTargetSymptom(String targetSymptom) {
         if (targetSymptom == null) {
             throw new NullValueRejectedException("--- targetSymptom field of AppointmentMedicine object must not be null ---");
         }
+    }
+
+    public List<String> createRecord() {
+        String dbAppointmentId = this.appointmentId;
+        String dbMedicineId = this.medicineId;
+        String dbTargetSymptom = this.targetSymptom;
+
+        return new ArrayList<>(Arrays.asList(
+                dbAppointmentId, dbMedicineId, dbTargetSymptom
+        ));
+    }
+
+    public static void createAppointmentMedicineFromRecord(List<String> record) {
+        String appointmentId = record.getFirst();
+        String medicineId = record.get(1);
+        String targetSymptom = record.getLast();
+
+        new AppointmentMedicine(appointmentId, medicineId, targetSymptom);
     }
 }

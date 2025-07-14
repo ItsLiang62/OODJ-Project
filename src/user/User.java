@@ -23,13 +23,13 @@ public abstract class User implements Savable {
         this.password = password;
     }
 
-    private void checkName(String name) {
+    public static void checkName(String name) {
         if (name == null) {
             throw new NullValueRejectedException("--- name field of User object must not be null ---");
         }
     }
 
-    private void checkEmail(String email) {
+    public static void checkEmail(String email) {
         if (email == null) {
             throw new NullValueRejectedException("--- email field of User object must not be null ---");
         }
@@ -38,7 +38,7 @@ public abstract class User implements Savable {
         }
     }
 
-    private void checkPassword(String password) {
+    public static void checkPassword(String password) {
         if (password == null) {
             throw new NullValueRejectedException("--- password field of User object must not be null ---");
         }

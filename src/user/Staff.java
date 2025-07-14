@@ -5,10 +5,11 @@ import database.Identifiable;
 
 import java.util.*;
 
-public class Staff extends User implements Employee {
+public class Staff extends User {
 
     public Staff(String id, String name, String email, String password) {
         super(id, name, email, password);
+        Database.addStaff(this);
     }
 
     public Staff(String name, String email, String password) {
@@ -25,12 +26,12 @@ public class Staff extends User implements Employee {
         ));
     }
 
-    public static Staff createStaffFromRecord(List<String> record) {
+    public static void createStaffFromRecord(List<String> record) {
         String staffId = record.getFirst();
         String staffName = record.get(1);
         String staffEmail = record.get(2);
         String staffPassword = record.getLast();
 
-        return new Staff(staffId, staffName, staffEmail, staffPassword);
+        new Staff(staffId, staffName, staffEmail, staffPassword);
     }
 }
