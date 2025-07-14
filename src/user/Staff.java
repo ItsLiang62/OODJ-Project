@@ -21,6 +21,7 @@ public class Staff extends User {
         String dbName = this.name;
         String dbEmail = this.email;
         String dbPassword = this.password;
+
         return new ArrayList<>(Arrays.asList(
                 dbId, dbName, dbEmail, dbPassword
         ));

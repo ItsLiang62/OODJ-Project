@@ -63,6 +63,4 @@ public abstract class User implements Savable {
     }
 
     //public abstract List<String> getProfileInfo();
-
-
 }

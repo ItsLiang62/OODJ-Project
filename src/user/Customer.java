@@ -24,6 +24,7 @@ public class Customer extends User {
         String dbEmail = this.email;
         String dbPassword = this.password;
         String dbApWallet = String.valueOf(this.apWallet);
+
         return new ArrayList<>(Arrays.asList(
                 dbId, dbName, dbEmail, dbPassword, dbApWallet
         ));

@@ -69,52 +69,55 @@ public final class Database {
     }
 
     // add
+
     public static void addManager(Manager newManager) {
         managers.add(newManager);
-        Database.save();
+        Database.saveRecords(managers, managerFile);
     }
 
     public static void addStaff(Staff newStaff) {
         staffs.add(newStaff);
         Database.save();
+        Database.saveRecords(staffs, staffFile);
     }
 
     public static void addDoctor(Doctor newDoctor) {
         doctors.add(newDoctor);
-        Database.save();
+        Database.saveRecords(doctors, doctorFile);
     }
 
     public static void addCustomer(Customer newCustomer) {
         customers.add(newCustomer);
-        Database.save();
+        Database.saveRecords(customers, customerFile);
     }
 
     public static void addAppointment(Appointment newAppointment) {
         appointments.add(newAppointment);
-        Database.save();
+        Database.saveRecords(appointments, appointmentFile);
     }
 
     public static void addMedicine(Medicine newMedicine) {
         medicines.add(newMedicine);
-        Database.save();
+        Database.saveRecords(medicines, medicineFile);
     }
 
     public static void addAppointmentMedicine(AppointmentMedicine newAppointmentMedicine) {
         appointmentMedicines.add(newAppointmentMedicine);
-        Database.save();
+        Database.saveRecords(appointmentMedicines, appointmentMedicineFile);
     }
 
     public static void addCustomerFeedback(CustomerFeedback newCustomerFeedback) {
         customerFeedbacks.add(newCustomerFeedback);
-        Database.save();
+        Database.saveRecords(customerFeedbacks, customerFeedbackFile);
     }
 
     public static void addInvoice(Invoice newInvoice) {
         invoices.add(newInvoice);
-        Database.save();
+        Database.saveRecords(invoices, invoiceFile);
     }
 
     // get
+
     public static Manager getManager(String managerId) {
         for (Manager manager: managers) {
             if (manager.getId().equals(managerId)) {
@@ -196,29 +199,36 @@ public final class Database {
         throw new IdNotFoundException("--- Database.getMedicine(String) failed. Could not find Medicine with the given medicineId ---");
     }
 
-    // update
+    // remove
+
     public static void removeManager(String managerId) {
         managers.removeIf(manager -> manager.getId().equals(managerId));
+        Database.saveRecords(managers, managerFile);
     }
 
     public static void removeStaff(String staffId) {
         staffs.removeIf(staff -> staff.getId().equals(staffId));
+        Database.saveRecords(staffs, staffFile);
     }
 
     public static void removeDoctor(String doctorId) {
         doctors.removeIf(doctor -> doctor.getId().equals(doctorId));
+        Database.saveRecords(doctors, doctorFile);
     }
 
     public static void removeCustomer(String customerId) {
         customers.removeIf(customer -> customer.getId().equals(customerId));
+        Database.saveRecords(customers, customerFile);
     }
 
     public static void removeAppointment(String appointmentId) {
         appointments.removeIf(appointment -> appointment.getId().equals(appointmentId));
+        Database.saveRecords(appointments, appointmentFile);
     }
 
     public static void removeMedicine(String medicineId) {
         medicines.removeIf(medicine -> medicine.getId().equals(medicineId));
+        Database.saveRecords(medicines, medicineFile);
     }
 
     public static void removeAppointmentMedicine(String appointmentId, String medicineId) {
@@ -226,15 +236,20 @@ public final class Database {
                 appointmentMedicine.getAppointmentId().equals(appointmentId) &&
                 appointmentMedicine.getMedicineId().equals(medicineId)
         );
+        Database.saveRecords(appointmentMedicines, appointmentMedicineFile);
     }
 
     public static void removeCustomerFeedback(String customerFeedbackId) {
         customerFeedbacks.removeIf(customerFeedback -> customerFeedback.getId().equals(customerFeedbackId));
+        Database.saveRecords(customerFeedbacks, customerFeedbackFile);
     }
 
     public static void removeInvoice(String invoiceId) {
         invoices.removeIf(invoice -> invoice.getId().equals(invoiceId));
+        Database.saveRecords(invoices, invoiceFile);
     }
+
+    // Basic utility methods
 
     public static Set<String> getAllManagerId() {
 
@@ -301,6 +316,24 @@ public final class Database {
         return allInvoiceId;
     }
 
+    // Additional utility methods
+
+    public static String getUserIdWithEmail(String email) {
+        Set<User> users = new LinkedHashSet<>();
+        users.addAll(managers);
+        users.addAll(staffs);
+        users.addAll(doctors);
+        users.addAll(customers);
+
+        for (User user: users) {
+            if (user.getEmail().equals(email)) {
+                return user.getId();
+            }
+        }
+
+        throw new EmailNotFoundException("--- Database.getUserIdWithEmail(String) failed. Could not find User with the given email ---");
+    }
+
     public static Set<String> getAllAppointmentIdInInvoices() {
         Set<String> allAppointmentIdInInvoices = new LinkedHashSet<>();
         for (Invoice invoice: invoices) {
@@ -333,62 +366,61 @@ public final class Database {
         return allMedicineNames;
     }
 
-    private static <T extends Savable> void populateFromRecords(InstantiatableFromRecord instantiatableFromRecord, Set<T> objects, File inputFile) throws IOException {
-        try (Scanner fileScanner = new Scanner(inputFile)) {
-            while (fileScanner.hasNextLine()) {
-                List<String> record = new ArrayList<>(
-                        Arrays.asList(fileScanner.nextLine().split(","))
-                );
-                instantiatableFromRecord.createInstanceFromRecord(record);
-            }
-        }
-    }
-
-    private static void populate() {
+    private static void populateFromRecords(InstantiatableFromRecord instantiatableFromRecord, File inputFile) {
         try {
-            populateFromRecords(Manager::createManagerFromRecord, managers, managerFile);
-            populateFromRecords(Staff::createStaffFromRecord, staffs, staffFile);
-            populateFromRecords(Doctor::createDoctorFromRecord, doctors, doctorFile);
-            populateFromRecords(Customer::createCustomerFromRecord, customers, customerFile);
-            populateFromRecords(Appointment::createAppointmentFromRecord, appointments, appointmentFile);
-            populateFromRecords(AppointmentMedicine::createAppointmentMedicineFromRecord, appointmentMedicines, appointmentMedicineFile);
-            populateFromRecords(CustomerFeedback::createCustomerFeedbackFromRecord, customerFeedbacks, customerFeedbackFile);
-            populateFromRecords(Medicine::createMedicineFromRecord, medicines, medicineFile);
-            populateFromRecords(Invoice::createInvoiceFromRecord, invoices, invoiceFile);
+            try (Scanner fileScanner = new Scanner(inputFile)) {
+                while (fileScanner.hasNextLine()) {
+                    List<String> record = new ArrayList<>(
+                            Arrays.asList(fileScanner.nextLine().split(","))
+                    );
+                    instantiatableFromRecord.createInstanceFromRecord(record);
+                }
+            }
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage());
         }
 
     }
 
+    private static void populate() {
+        populateFromRecords(Manager::createManagerFromRecord, managerFile);
+        populateFromRecords(Staff::createStaffFromRecord, staffFile);
+        populateFromRecords(Doctor::createDoctorFromRecord, doctorFile);
+        populateFromRecords(Customer::createCustomerFromRecord, customerFile);
+        populateFromRecords(Appointment::createAppointmentFromRecord, appointmentFile);
+        populateFromRecords(Medicine::createMedicineFromRecord, medicineFile);
+        populateFromRecords(AppointmentMedicine::createAppointmentMedicineFromRecord, appointmentMedicineFile);
+        populateFromRecords(CustomerFeedback::createCustomerFeedbackFromRecord, customerFeedbackFile);
+        populateFromRecords(Invoice::createInvoiceFromRecord, invoiceFile);
+    }
 
-    public static void saveRecords(Set<? extends Savable> objectContainer, File outputFile) throws IOException {
-        try (FileWriter fileWriter = new FileWriter(outputFile)) {
-            List<String> objectRecords = new ArrayList<>();
-            for (Savable object: objectContainer) {
-                String dbObjectRecord = String.join(",", object.createRecord());
-                objectRecords.add(dbObjectRecord);
+
+    public static void saveRecords(Set<? extends Savable> objectContainer, File outputFile) {
+        try {
+            try (FileWriter fileWriter = new FileWriter(outputFile)) {
+                List<String> objectRecords = new ArrayList<>();
+                for (Savable object: objectContainer) {
+                    String dbObjectRecord = String.join(",", object.createRecord());
+                    objectRecords.add(dbObjectRecord);
+                }
+                String dbObjectRecords = String.join("\n", objectRecords);
+
+                fileWriter.write(dbObjectRecords);
             }
-            String dbObjectRecords = String.join("\n", objectRecords);
-
-            fileWriter.write(dbObjectRecords);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
     public static void save() {
-        try {
-            saveRecords(managers, managerFile);
-            saveRecords(staffs, staffFile);
-            saveRecords(doctors, doctorFile);
-            saveRecords(customers, customerFile);
-            saveRecords(appointments, appointmentFile);
-            saveRecords(appointmentMedicines, appointmentMedicineFile);
-            saveRecords(customerFeedbacks, customerFeedbackFile);
-            saveRecords(medicines, medicineFile);
-            saveRecords(invoices, invoiceFile);
-        } catch (IOException e) {
-            throw new RuntimeException(e.getMessage());
-        }
-
+        saveRecords(managers, managerFile);
+        saveRecords(staffs, staffFile);
+        saveRecords(doctors, doctorFile);
+        saveRecords(customers, customerFile);
+        saveRecords(appointments, appointmentFile);
+        saveRecords(medicines, medicineFile);
+        saveRecords(appointmentMedicines, appointmentMedicineFile);
+        saveRecords(customerFeedbacks, customerFeedbackFile);
+        saveRecords(invoices, invoiceFile);
     }
 }
