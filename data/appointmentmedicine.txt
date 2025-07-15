@@ -1,0 +1,2 @@
+A001,P001,Headache
+A002,P001,Leg pain

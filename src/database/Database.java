@@ -51,13 +51,15 @@ public final class Database {
         appointmentStatusPriority.put("Confirmed", 2);
         appointmentStatusPriority.put("Completed", 3);
         appointments = new TreeSet<>(Comparator.comparingInt(
-                appointment -> appointmentStatusPriority.get(appointment.getStatus())
+                (Appointment appointment) -> appointmentStatusPriority.get(appointment.getStatus()))
+                .thenComparing(
+                Appointment::getId
         ));
         medicines = new TreeSet<>(Comparator.comparingInt(
                 medicine -> Integer.parseInt(medicine.getId().substring(1))
         ));
         appointmentMedicines = new TreeSet<>(Comparator.comparingInt(
-                appointmentMedicine -> Integer.parseInt(appointmentMedicine.getAppointmentId())
+                appointmentMedicine -> Integer.parseInt(appointmentMedicine.getAppointmentId().substring(1))
         ));
         customerFeedbacks = new TreeSet<>(Comparator.comparingInt(
                 customerFeedback -> Integer.parseInt(customerFeedback.getId().substring(1))
@@ -77,7 +79,6 @@ public final class Database {
 
     public static void addStaff(Staff newStaff) {
         staffs.add(newStaff);
-        Database.save();
         Database.saveRecords(staffs, staffFile);
     }
 
@@ -169,7 +170,7 @@ public final class Database {
                 return appointmentMedicine;
             }
         }
-        throw new IdNotFoundException("--- Database.getAppointment(String) failed. Could not find Appointment with the given appointmentId ---");
+        throw new IdNotFoundException("--- Database.getAppointmentMedicine(String) failed. Could not find AppointmentMedicine with the given appointmentId and medicineId ---");
     }
 
     public static CustomerFeedback getCustomerFeedback(String customerFeedbackId) {
@@ -300,6 +301,14 @@ public final class Database {
         return allMedicineId;
     }
 
+    public static Set<List<String>> getAllPrescriptionInfo() {
+        Set<List<String>> allPrescriptionInfo = new LinkedHashSet<>();
+        for (AppointmentMedicine appointmentMedicine: appointmentMedicines) {
+            allPrescriptionInfo.add(Arrays.asList(appointmentMedicine.getAppointmentId(), appointmentMedicine.getMedicineId()));
+        }
+        return allPrescriptionInfo;
+    }
+
     public static Set<String> getAllCustomerFeedbackId() {
         Set<String> allCustomerFeedbackId = new LinkedHashSet<>();
         for (CustomerFeedback customerFeedback: customerFeedbacks) {
@@ -379,7 +388,6 @@ public final class Database {
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage());
         }
-
     }
 
     private static void populate() {

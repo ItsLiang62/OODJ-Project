@@ -1,11 +1,13 @@
 package user;
 
-import customExceptions.NullValueRejectedException;
+import customExceptions.InvalidEmailException;
+import customExceptions.InvalidUserNameException;
+import customExceptions.NullOrEmptyValueRejectedException;
 import customExceptions.RecordAlreadyInDatabaseException;
 import database.*;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public abstract class User implements Savable {
     protected String id;
@@ -24,14 +26,18 @@ public abstract class User implements Savable {
     }
 
     public static void checkName(String name) {
-        if (name == null) {
-            throw new NullValueRejectedException("--- name field of User object must not be null ---");
+        Pattern namePattern = Pattern.compile("^([A-Z][A-Za-z]*(\\s[A-Z][A-Za-z]*)*)$");
+        Matcher nameMatcher = namePattern.matcher(name);
+        if (!nameMatcher.matches()) {
+            throw new InvalidUserNameException("--- name field of User object is invalid ---");
         }
     }
 
     public static void checkEmail(String email) {
-        if (email == null) {
-            throw new NullValueRejectedException("--- email field of User object must not be null ---");
+        Pattern emailPattern = Pattern.compile("^([\\w.+%-]+@[\\w.-]+\\.\\w{2,})$");
+        Matcher emailMatcher = emailPattern.matcher(email);
+        if (!emailMatcher.matches()) {
+            throw new InvalidEmailException("--- email field of User object must follow the correct email format ---");
         }
         if (Database.getAllUserEmails().contains(email)) {
             throw new RecordAlreadyInDatabaseException("--- email field of User object is being used by another User ---");
@@ -39,8 +45,8 @@ public abstract class User implements Savable {
     }
 
     public static void checkPassword(String password) {
-        if (password == null) {
-            throw new NullValueRejectedException("--- password field of User object must not be null ---");
+        if (password == null || password.isBlank()) {
+            throw new NullOrEmptyValueRejectedException("--- password field of User object must not be null or empty ---");
         }
     }
 

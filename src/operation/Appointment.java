@@ -1,8 +1,6 @@
 package operation;
 
-import customExceptions.InvalidAppointmentStatusException;
-import customExceptions.InvalidForeignKeyValueException;
-import customExceptions.NullValueRejectedException;
+import customExceptions.*;
 import database.Database;
 import database.Identifiable;
 import database.Savable;
@@ -21,6 +19,7 @@ public class Appointment implements Savable {
         checkCustomerId(customerId);
         checkDoctorId(doctorId);
         checkStatus(status);
+        checkCharge(charge);
 
         this.id = id;
         this.customerId = customerId;
@@ -38,8 +37,8 @@ public class Appointment implements Savable {
     }
 
     public static void checkCustomerId(String customerId) {
-        if (customerId == null) {
-            throw new NullValueRejectedException("--- customerId field of Appointment object must not be null ---");
+        if (customerId == null || customerId.isBlank()) {
+            throw new NullOrEmptyValueRejectedException("--- customerId field of Appointment object must not be null or empty ---");
         }
         if (!Database.getAllCustomerId().contains(customerId)) {
             throw new InvalidForeignKeyValueException("--- customerId field of Appointment object does not have a primary key reference ---");
@@ -54,7 +53,13 @@ public class Appointment implements Savable {
 
     public static void checkStatus(String status) {
         if (!Arrays.asList(new String[] {"Pending", "Confirmed", "Completed"}).contains(status)) {
-            throw new InvalidAppointmentStatusException("--- status of Appointment object must be either Pending, Confirmed or Completed ---");
+            throw new InvalidAppointmentStatusException("--- status field of Appointment object must be either Pending, Confirmed or Completed ---");
+        }
+    }
+
+    public static void checkCharge(double charge) {
+        if (charge < 0) {
+            throw new NegativeValueRejectedException("--- charge field of Appointment object must be equal or more than 0 ---");
         }
     }
 
@@ -65,21 +70,43 @@ public class Appointment implements Savable {
     public double getCharge() { return this.charge; }
     public String getStatus() { return this.status; }
 
-    public void setCustomerId(String customerId) {
-        checkCustomerId(customerId);
-        this.customerId = customerId;
-    }
     public void setDoctorId(String doctorId) {
+        if (this.status.equals("Completed")) {
+            throw new AppointmentCompletedException("--- doctor field of Appointment object whose status is Completed is unmodifiable");
+        }
         checkDoctorId(doctorId);
         this.doctorId = doctorId;
-    }
-    public void setDoctorFeedback(String doctorFeedback) { this.doctorFeedback = doctorFeedback; }
-    public void setCharge(double charge) { this.charge = charge; }
-    public void setStatus(String status) {
-        checkStatus(status);
-        this.status = status;
+        if (doctorId == null) {
+            this.status = "Pending";
+        } else {
+            this.status = "Confirmed";
+        }
+        Database.removeAppointment(this.id);
+        Database.addAppointment(this);
     }
 
+    public void setDoctorFeedback(String doctorFeedback) {
+        this.doctorFeedback = doctorFeedback;
+        Database.removeAppointment(this.id);
+        Database.addAppointment(this);
+    }
+
+    public void setCharge(double charge) {
+        checkCharge(charge);
+        this.charge = charge;
+        Database.removeAppointment(this.id);
+        Database.addAppointment(this);
+    }
+
+    public void setStatusToComplete() {
+        if (this.doctorId == null || !this.status.equals("Confirmed")) {
+            throw new AppointmentNotCompletableException("--- Appointment is not completable. Make sure the appointment is confirmed and has a valid doctor ID ---");
+        } else {
+            this.status = "Completed";
+        }
+        Database.removeAppointment(this.id);
+        Database.addAppointment(this);
+    }
 
     public List<String> createRecord() {
         String dbId = this.id;

@@ -32,8 +32,8 @@ public class Invoice implements Savable {
     }
 
     public static void checkAppointmentId(String appointmentId) {
-        if (appointmentId == null) {
-            throw new NullValueRejectedException("--- appointmentId field of Invoice object must not be null ---");
+        if (appointmentId == null || appointmentId.isBlank()) {
+            throw new NullOrEmptyValueRejectedException("--- appointmentId field of Invoice object must not be null ---");
         }
         if (!Database.getAllAppointmentId().contains(appointmentId)) {
             throw new InvalidForeignKeyValueException("--- appointmentId field of Invoice object does not have a primary key reference ---");
@@ -42,7 +42,7 @@ public class Invoice implements Savable {
             throw new AppointmentNotCompletedException("--- appointmentId field of Invoice object points to an Appointment whose status is not Completed ---");
         }
         if (Database.getAllAppointmentIdInInvoices().contains(appointmentId)) {
-            throw new AppointmentAlreadyHasInvoiceException("--- appointmentId field of Invoice object points to an Appointment that already has an invoice ---");
+            throw new AppointmentAlreadyHasInvoiceException("--- appointmentId field of Invoice object points to an Appointment that already has another invoice ---");
         }
     }
 
@@ -56,16 +56,6 @@ public class Invoice implements Savable {
     public String getAppointmentId() { return this.appointmentId; }
     public String getPaymentMethod() { return this.paymentMethod; }
     public String getPaymentDate() { return this.paymentDate.toString(); }
-
-    public void setAppointmentId(String appointmentId) {
-        checkAppointmentId(appointmentId);
-        this.appointmentId = appointmentId;
-    }
-    public void setPaymentMethod(String paymentMethod) {
-        checkPaymentMethod(paymentMethod);
-        this.paymentMethod = paymentMethod;
-    }
-    public void setPaymentDate(String paymentDate) { this.paymentDate = LocalDate.parse(paymentDate, DateTimeFormatter.ofPattern("d/M/yyyy")); }
 
     public List<String> createRecord() {
         String dbId = this.id;

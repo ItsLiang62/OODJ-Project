@@ -1,7 +1,7 @@
 package operation;
 
 import customExceptions.InvalidForeignKeyValueException;
-import customExceptions.NullValueRejectedException;
+import customExceptions.NullOrEmptyValueRejectedException;
 import database.Database;
 import database.Identifiable;
 import database.Savable;
@@ -38,24 +38,16 @@ public class CustomerFeedback implements Savable {
     public String getNonManagerEmployeeId() { return this.nonManagerEmployeeId; }
     public String getContent() { return this.content; }
 
-    public void setCustomerId(String customerId) {
-        checkCustomerId(customerId);
-        this.customerId = customerId;
-    }
-
-    public void setNonManagerEmployeeId(String nonManagerEmployeeId) {
-        checkNonManagerEmployeeId(nonManagerEmployeeId);
-        this.nonManagerEmployeeId = nonManagerEmployeeId;
-    }
-
     public void setContent(String content) {
         checkContent(content);
         this.content = content;
+        Database.removeCustomerFeedback(this.id);
+        Database.addCustomerFeedback(this);
     }
 
     public static void checkCustomerId(String customerId) {
-        if (customerId == null) {
-            throw new NullValueRejectedException("--- customerId field of CustomerFeedback object must not be null ---");
+        if (customerId == null || customerId.isBlank()) {
+            throw new NullOrEmptyValueRejectedException("--- customerId field of CustomerFeedback object must not be null or empty ---");
         }
         if (!Database.getAllCustomerId().contains(customerId)) {
             throw new InvalidForeignKeyValueException("--- customerId field of CustomerFeedback object does not have a primary key reference ---");
@@ -63,8 +55,8 @@ public class CustomerFeedback implements Savable {
     }
 
     public static void checkNonManagerEmployeeId(String nonManagerEmployeeId) {
-        if (nonManagerEmployeeId == null) {
-            throw new NullValueRejectedException("--- nonManagerEmployeeId field of CustomerFeedback object must not be null ---");
+        if (nonManagerEmployeeId == null || nonManagerEmployeeId.isBlank()) {
+            throw new NullOrEmptyValueRejectedException("--- nonManagerEmployeeId field of CustomerFeedback object must not be null or empty ---");
         }
         if (!Database.getAllStaffId().contains(nonManagerEmployeeId) && !Database.getAllDoctorId().contains(nonManagerEmployeeId)) {
             throw new InvalidForeignKeyValueException("--- nonManagerEmployeeId field of CustomerFeedback object does not have a primary key reference ---");
@@ -72,8 +64,8 @@ public class CustomerFeedback implements Savable {
     }
 
     public static void checkContent(String content) {
-        if (content == null) {
-            throw new NullValueRejectedException("--- content field of CustomerFeedback object must not be null ---");
+        if (content == null || content.isBlank()) {
+            throw new NullOrEmptyValueRejectedException("--- content field of CustomerFeedback object must not be null or empty ---");
         }
     }
 

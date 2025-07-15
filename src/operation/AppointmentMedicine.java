@@ -5,7 +5,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import customExceptions.InvalidForeignKeyValueException;
-import customExceptions.NullValueRejectedException;
+import customExceptions.NullOrEmptyValueRejectedException;
+import customExceptions.RepeatedPrescriptionForAppointmentException;
 import database.*;
 
 public class AppointmentMedicine implements Savable {
@@ -18,29 +19,29 @@ public class AppointmentMedicine implements Savable {
         checkAppointmentId(appointmentId);
         checkMedicineId(medicineId);
         checkTargetSymptom(targetSymptom);
+        checkPrescriptionUniqueness(appointmentId, medicineId);
         this.appointmentId = appointmentId;
         this.medicineId = medicineId;
         this.targetSymptom = targetSymptom;
+        Database.addAppointmentMedicine(this);
     }
 
     public String getAppointmentId() { return this.appointmentId; }
 
     public String getMedicineId() { return this.medicineId; }
 
-    public void setAppointmentId(String appointmentId) {
-        checkAppointmentId(appointmentId);
-        this.appointmentId = appointmentId;
-    }
+    public String getTargetSymptom() { return this.targetSymptom; }
 
-    public void setMedicineId(String medicineId) {
-        checkMedicineId(medicineId);
-        this.medicineId = medicineId;
-
+    public void setTargetSymptom(String targetSymptom) {
+        checkTargetSymptom(targetSymptom);
+        this.targetSymptom = targetSymptom;
+        Database.removeAppointmentMedicine(this.appointmentId, this.medicineId);
+        Database.addAppointmentMedicine(this);
     }
 
     public static void checkAppointmentId(String appointmentId) {
-        if (appointmentId == null) {
-            throw new NullValueRejectedException("--- appointmentId field of AppointmentMedicine object must not be null ---");
+        if (appointmentId == null || appointmentId.isBlank()) {
+            throw new NullOrEmptyValueRejectedException("--- appointmentId field of AppointmentMedicine object must not be null or empty ---");
         }
         if (!Database.getAllAppointmentId().contains(appointmentId)) {
             throw new InvalidForeignKeyValueException("--- appointmentId field of AppointmentMedicine object does not have a primary key reference ---");
@@ -48,8 +49,8 @@ public class AppointmentMedicine implements Savable {
     }
 
     public static void checkMedicineId(String medicineId) {
-        if (medicineId == null) {
-            throw new NullValueRejectedException("--- medicineId field of AppointmentMedicine object must not be null ---");
+        if (medicineId == null || medicineId.isBlank()) {
+            throw new NullOrEmptyValueRejectedException("--- medicineId field of AppointmentMedicine object must not be null or empty ---");
         }
         if (!Database.getAllMedicineId().contains(medicineId)) {
             throw new InvalidForeignKeyValueException("--- medicineId field of AppointmentMedicine object does not have a primary key reference ---");
@@ -57,8 +58,14 @@ public class AppointmentMedicine implements Savable {
     }
 
     public static void checkTargetSymptom(String targetSymptom) {
-        if (targetSymptom == null) {
-            throw new NullValueRejectedException("--- targetSymptom field of AppointmentMedicine object must not be null ---");
+        if (targetSymptom == null || targetSymptom.isBlank()) {
+            throw new NullOrEmptyValueRejectedException("--- targetSymptom field of AppointmentMedicine object must not be null or empty ---");
+        }
+    }
+
+    public static void checkPrescriptionUniqueness(String appointmentId, String medicineId) {
+        if (Database.getAllPrescriptionInfo().contains(Arrays.asList(appointmentId, medicineId))) {
+            throw new RepeatedPrescriptionForAppointmentException("--- The combination of appointmentId and medicineId for an AppointmentMedicine object already exists ---");
         }
     }
 

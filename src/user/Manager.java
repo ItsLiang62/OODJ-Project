@@ -87,20 +87,20 @@ public class Manager extends User {
         Database.removeDoctor(doctorId);
     }
 
-    public Set<Appointment> getAllAppointments() {
-        Set<Appointment> allAppointments = new LinkedHashSet<>();
+    public Set<List<String>> getAllAppointmentRecords() {
+        Set<List<String>> allAppointmentRecords = new LinkedHashSet<>();
         for (String appointmentId: Database.getAllAppointmentId()) {
-            allAppointments.add(Database.getAppointment(appointmentId));
+            allAppointmentRecords.add(Database.getAppointment(appointmentId).createRecord());
         }
-        return allAppointments;
+        return allAppointmentRecords;
     }
 
-    public Set<CustomerFeedback> getAllCustomerFeedbacks() {
-        Set<CustomerFeedback> allCustomerFeedbacks = new LinkedHashSet<>();
+    public Set<List<String>> getAllCustomerFeedbackRecords() {
+        Set<List<String>> allCustomerFeedbackRecords = new LinkedHashSet<>();
         for (String customerFeedbackId: Database.getAllCustomerFeedbackId()) {
-            allCustomerFeedbacks.add(Database.getCustomerFeedback(customerFeedbackId));
+            allCustomerFeedbackRecords.add(Database.getCustomerFeedback(customerFeedbackId).createRecord());
         }
-        return allCustomerFeedbacks;
+        return allCustomerFeedbackRecords;
     }
 
     public List<String> createRecord() {
@@ -121,5 +121,26 @@ public class Manager extends User {
         String managerPassword = record.getLast();
 
         new Manager(managerId, managerName, managerEmail, managerPassword);
+    }
+
+    @Override
+    public void setName(String name) {
+        super.setName(name);
+        Database.removeManager(this.id);
+        Database.addManager(this);
+    }
+
+    @Override
+    public void setEmail(String email) {
+        super.setEmail(email);
+        Database.removeManager(this.id);
+        Database.addManager(this);
+    }
+
+    @Override
+    public void setPassword(String password) {
+        super.setPassword(password);
+        Database.removeManager(this.id);
+        Database.addManager(this);
     }
 }

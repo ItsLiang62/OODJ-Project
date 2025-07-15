@@ -18,6 +18,27 @@ public class Customer extends User {
         this(Identifiable.createId('C'), name, email, password, apWallet);
     }
 
+    @Override
+    public void setName(String name) {
+        super.setName(name);
+        Database.removeCustomer(this.id);
+        Database.addCustomer(this);
+    }
+
+    @Override
+    public void setEmail(String email) {
+        super.setEmail(email);
+        Database.removeCustomer(this.id);
+        Database.addCustomer(this);
+    }
+
+    @Override
+    public void setPassword(String password) {
+        super.setPassword(password);
+        Database.removeCustomer(this.id);
+        Database.addCustomer(this);
+    }
+
     public List<String> createRecord() {
         String dbId = this.id;
         String dbName = this.name;

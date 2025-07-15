@@ -16,6 +16,27 @@ public class Staff extends User {
         this(Identifiable.createId('S'), name, email, password);
     }
 
+    @Override
+    public void setName(String name) {
+        super.setName(name);
+        Database.removeStaff(this.id);
+        Database.addStaff(this);
+    }
+
+    @Override
+    public void setEmail(String email) {
+        super.setEmail(email);
+        Database.removeStaff(this.id);
+        Database.addStaff(this);
+    }
+
+    @Override
+    public void setPassword(String password) {
+        super.setPassword(password);
+        Database.removeStaff(this.id);
+        Database.addStaff(this);
+    }
+
     public List<String> createRecord() {
         String dbId = this.id;
         String dbName = this.name;
