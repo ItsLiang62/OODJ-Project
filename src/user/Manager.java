@@ -3,6 +3,7 @@ package user;
 import database.*;
 import operation.Appointment;
 import operation.CustomerFeedback;
+import operation.Medicine;
 
 import java.util.*;
 
@@ -101,6 +102,14 @@ public class Manager extends User {
             allCustomerFeedbackRecords.add(Database.getCustomerFeedback(customerFeedbackId).createRecord());
         }
         return allCustomerFeedbackRecords;
+    }
+
+    public void addMedicine(String medicineName, double medicineCharge) {
+        new Medicine(medicineName, medicineCharge);
+    }
+
+    public void removeMedicine(String medicineId) {
+        Database.removeMedicine(medicineId);
     }
 
     public List<String> createRecord() {

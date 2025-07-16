@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import customExceptions.AppointmentCompletedException;
 import customExceptions.InvalidForeignKeyValueException;
 import customExceptions.NullOrEmptyValueRejectedException;
 import customExceptions.RepeatedPrescriptionForAppointmentException;
@@ -15,8 +16,8 @@ public class AppointmentMedicine implements Savable {
     private String medicineId;
     private String targetSymptom;
 
-    public AppointmentMedicine(String appointmentId, String medicineId, String targetSymptom) {
-        checkAppointmentId(appointmentId);
+    public AppointmentMedicine(String appointmentId, String medicineId, String targetSymptom, boolean prescribingMedicine) {
+        checkAppointmentId(appointmentId, prescribingMedicine);
         checkMedicineId(medicineId);
         checkTargetSymptom(targetSymptom);
         checkPrescriptionUniqueness(appointmentId, medicineId);
@@ -24,6 +25,10 @@ public class AppointmentMedicine implements Savable {
         this.medicineId = medicineId;
         this.targetSymptom = targetSymptom;
         Database.addAppointmentMedicine(this);
+    }
+
+    public AppointmentMedicine(String appointmentId, String medicineId, String targetSymptom) {
+        this(appointmentId, medicineId, targetSymptom, false);
     }
 
     public String getAppointmentId() { return this.appointmentId; }
@@ -39,12 +44,17 @@ public class AppointmentMedicine implements Savable {
         Database.addAppointmentMedicine(this);
     }
 
-    public static void checkAppointmentId(String appointmentId) {
+    public static void checkAppointmentId(String appointmentId, boolean prescribingMedicine) {
         if (appointmentId == null || appointmentId.isBlank()) {
             throw new NullOrEmptyValueRejectedException("--- appointmentId field of AppointmentMedicine object must not be null or empty ---");
         }
         if (!Database.getAllAppointmentId().contains(appointmentId)) {
             throw new InvalidForeignKeyValueException("--- appointmentId field of AppointmentMedicine object does not have a primary key reference ---");
+        }
+        if (prescribingMedicine) {
+            if (Database.getAppointment(appointmentId).getStatus().equals("Completed")) {
+                throw new AppointmentCompletedException("--- Appointment was completed and is not subject to any modification ---");
+            }
         }
     }
 

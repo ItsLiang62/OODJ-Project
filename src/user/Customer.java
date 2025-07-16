@@ -42,6 +42,30 @@ public class Customer extends User {
         return allMyCustomerFeedbackRecords;
     }
 
+    public Set<List<String>> getAllNonManagerEmployeeRecords() {
+        Set<List<String>> allNonManagerEmployeeRecords = new LinkedHashSet<>();
+        for (String staffId: Database.getAllStaffId()) {
+            List<String> staffRecords = Database.getStaff(staffId).createRecord();
+            staffRecords.removeLast();
+            staffRecords.removeLast();
+            staffRecords.add("Staff");
+            allNonManagerEmployeeRecords.add(staffRecords);
+        }
+        for (String doctorId: Database.getAllDoctorId()) {
+            List<String> doctorRecords = Database.getDoctor(doctorId).createRecord();
+            doctorRecords.removeLast();
+            doctorRecords.removeLast();
+            doctorRecords.add("Doctor");
+            allNonManagerEmployeeRecords.add(doctorRecords);
+        }
+        return allNonManagerEmployeeRecords;
+    }
+
+    public void changeFeedbackContent(String customerFeedbackID, String content) {
+        CustomerFeedback customerFeedback = Database.getCustomerFeedback(customerFeedbackID);
+        customerFeedback.setContent(content);
+    }
+
     public void provideFeedbackToNonManagerEmployee(String nonManagerEmployeeId, String content) {
         new CustomerFeedback(this.id, nonManagerEmployeeId, content);
     }

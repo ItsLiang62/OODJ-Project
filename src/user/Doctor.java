@@ -35,11 +35,19 @@ public class Doctor extends User {
         return allMyCustomerFeedbackRecords;
     }
 
-    public void prescribe(String appointmentId, String medicineId, String targetSymptom) {
+    public Set<List<String>> getAllMedicineRecords() {
+        Set<List<String>> allMedicineRecords = new LinkedHashSet<>();
+        for (String medicineId: Database.getAllMedicineId()){
+            allMedicineRecords.add(Database.getMedicine(medicineId).createRecord());
+        }
+        return allMedicineRecords;
+    }
+
+    public void prescribeMedicine(String appointmentId, String medicineId, String targetSymptom) {
         if (!Database.getAllAppointmentIdOfDoctor(this.id).contains(appointmentId)) {
             throw new AppointmentDoesNotBelongToDoctorException("--- Failed to set prescribe medicine for appointment. Appointment does not belong to doctor ---");
         }
-        new AppointmentMedicine(appointmentId, medicineId, targetSymptom);
+        new AppointmentMedicine(appointmentId, medicineId, targetSymptom, true);
     }
 
     public void setConsultationFee(String appointmentId, double consultationFee) {
@@ -50,7 +58,7 @@ public class Doctor extends User {
         appointment.setConsultationFee(consultationFee);
     }
 
-    public void setFeedback(String appointmentId, String feedback) {
+    public void provideFeedback(String appointmentId, String feedback) {
         if (!Database.getAllAppointmentIdOfDoctor(this.id).contains(appointmentId)) {
             throw new AppointmentDoesNotBelongToDoctorException("--- Failed to set feedback for customer of appointment. Appointment does not belong to doctor ---");
         }

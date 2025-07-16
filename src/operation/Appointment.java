@@ -79,7 +79,7 @@ public class Appointment implements Savable {
     }
     public void setDoctorId(String doctorId) {
         if (this.status.equals("Completed")) {
-            throw new AppointmentCompletedException("--- doctor field of Appointment object whose status is Completed is unmodifiable");
+            throw new AppointmentCompletedException("--- Appointment was completed and is not subject to any modification ---");
         }
         checkDoctorId(doctorId);
         this.doctorId = doctorId;
@@ -93,12 +93,18 @@ public class Appointment implements Savable {
     }
 
     public void setDoctorFeedback(String doctorFeedback) {
+        if (this.status.equals("Completed")) {
+            throw new AppointmentCompletedException("--- Appointment was completed and is not subject to any modification ---");
+        }
         this.doctorFeedback = doctorFeedback;
         Database.removeAppointment(this.id, false);
         Database.addAppointment(this);
     }
 
     public void setConsultationFee(double consultationFee) {
+        if (this.status.equals("Completed")) {
+            throw new AppointmentCompletedException("--- Appointment was completed and is not subject to any modification ---");
+        }
         checkConsultationFee(consultationFee);
         this.consultationFee = consultationFee;
         Database.removeAppointment(this.id, false);
