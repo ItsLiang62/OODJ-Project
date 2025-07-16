@@ -12,20 +12,20 @@ public class Appointment implements Savable {
     private String customerId;
     private String doctorId;
     private String doctorFeedback;
-    private double charge;
+    private double consultationFee;
     private String status;
 
-    public Appointment(String id, String customerId, String doctorId, String doctorFeedback, double charge, String status) {
+    public Appointment(String id, String customerId, String doctorId, String doctorFeedback, double consultationFee, String status) {
         checkCustomerId(customerId);
         checkDoctorId(doctorId);
         checkStatus(status);
-        checkCharge(charge);
+        checkConsultationFee(consultationFee);
 
         this.id = id;
         this.customerId = customerId;
         this.doctorId = doctorId;
         this.doctorFeedback = doctorFeedback;
-        this.charge = charge;
+        this.consultationFee = consultationFee;
         this.status = status;
 
         Database.addAppointment(this);
@@ -57,9 +57,9 @@ public class Appointment implements Savable {
         }
     }
 
-    public static void checkCharge(double charge) {
-        if (charge < 0) {
-            throw new NegativeValueRejectedException("--- charge field of Appointment object must be equal or more than 0 ---");
+    public static void checkConsultationFee(double consultationFee) {
+        if (consultationFee < 0) {
+            throw new NegativeValueRejectedException("--- consultationFee field of Appointment object must be equal or more than 0 ---");
         }
     }
 
@@ -67,9 +67,16 @@ public class Appointment implements Savable {
     public String getCustomerId() { return this.customerId; }
     public String getDoctorId() { return this.doctorId; }
     public String getDoctorFeedback() { return this.doctorFeedback; }
-    public double getCharge() { return this.charge; }
+    public double getConsultationFee() { return this.consultationFee; }
     public String getStatus() { return this.status; }
 
+    public double getTotalMedicineCharges() {
+        return Database.getTotalMedicineChargesOfAppointment(this.id);
+    }
+
+    public double getTotalCharge() {
+        return getConsultationFee() + getTotalMedicineCharges();
+    }
     public void setDoctorId(String doctorId) {
         if (this.status.equals("Completed")) {
             throw new AppointmentCompletedException("--- doctor field of Appointment object whose status is Completed is unmodifiable");
@@ -81,30 +88,30 @@ public class Appointment implements Savable {
         } else {
             this.status = "Confirmed";
         }
-        Database.removeAppointment(this.id);
+        Database.removeAppointment(this.id, false);
         Database.addAppointment(this);
     }
 
     public void setDoctorFeedback(String doctorFeedback) {
         this.doctorFeedback = doctorFeedback;
-        Database.removeAppointment(this.id);
+        Database.removeAppointment(this.id, false);
         Database.addAppointment(this);
     }
 
-    public void setCharge(double charge) {
-        checkCharge(charge);
-        this.charge = charge;
-        Database.removeAppointment(this.id);
+    public void setConsultationFee(double consultationFee) {
+        checkConsultationFee(consultationFee);
+        this.consultationFee = consultationFee;
+        Database.removeAppointment(this.id, false);
         Database.addAppointment(this);
     }
 
-    public void setStatusToComplete() {
+    public void setStatusToCompleted() {
         if (this.doctorId == null || !this.status.equals("Confirmed")) {
             throw new AppointmentNotCompletableException("--- Appointment is not completable. Make sure the appointment is confirmed and has a valid doctor ID ---");
         } else {
             this.status = "Completed";
         }
-        Database.removeAppointment(this.id);
+        Database.removeAppointment(this.id, false);
         Database.addAppointment(this);
     }
 
@@ -113,11 +120,11 @@ public class Appointment implements Savable {
         String dbCustomerId = this.customerId;
         String dbDoctorId = Objects.requireNonNullElse(doctorId, "NULL");
         String dbDoctorFeedback = Objects.requireNonNullElse(doctorFeedback, "NULL");
-        String dbCharge = String.valueOf(this.charge);
+        String dbConsultationFee = String.valueOf(this.consultationFee);
         String dbStatus = this.status;
 
         return new ArrayList<>(Arrays.asList(
-                dbId, dbCustomerId, dbDoctorId, dbDoctorFeedback, dbCharge, dbStatus
+                dbId, dbCustomerId, dbDoctorId, dbDoctorFeedback, dbConsultationFee, dbStatus
         ));
     }
 
@@ -136,11 +143,11 @@ public class Appointment implements Savable {
         } else {
             appointmentDoctorFeedback = record.get(3);
         }
-        double appointmentCharge = Double.parseDouble(record.get(4));
+        double appointmentConsultationFee = Double.parseDouble(record.get(4));
         String appointmentStatus = record.getLast();
 
         new Appointment(appointmentId, appointmentCustomerId, appointmentDoctorId,
-                appointmentDoctorFeedback, appointmentCharge, appointmentStatus
+                appointmentDoctorFeedback, appointmentConsultationFee, appointmentStatus
         );
     }
 }

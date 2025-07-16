@@ -1,2 +1,3 @@
 A001,P001,Headache
-A002,P001,Leg pain
+A002,P001,Headache
+A002,P002,Fever

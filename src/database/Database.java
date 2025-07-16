@@ -51,15 +51,17 @@ public final class Database {
         appointmentStatusPriority.put("Confirmed", 2);
         appointmentStatusPriority.put("Completed", 3);
         appointments = new TreeSet<>(Comparator.comparingInt(
-                (Appointment appointment) -> appointmentStatusPriority.get(appointment.getStatus()))
-                .thenComparing(
-                Appointment::getId
+                (Appointment appointment) -> appointmentStatusPriority.get(appointment.getStatus())
+        ).thenComparing(
+                (Appointment appointment) -> Integer.parseInt(appointment.getId().substring(1))
         ));
         medicines = new TreeSet<>(Comparator.comparingInt(
                 medicine -> Integer.parseInt(medicine.getId().substring(1))
         ));
         appointmentMedicines = new TreeSet<>(Comparator.comparingInt(
-                appointmentMedicine -> Integer.parseInt(appointmentMedicine.getAppointmentId().substring(1))
+                (AppointmentMedicine appointmentMedicine) -> Integer.parseInt(appointmentMedicine.getAppointmentId().substring(1))
+        ).thenComparing(
+                (AppointmentMedicine appointmentMedicine) -> Integer.parseInt(appointmentMedicine.getMedicineId().substring(1))
         ));
         customerFeedbacks = new TreeSet<>(Comparator.comparingInt(
                 customerFeedback -> Integer.parseInt(customerFeedback.getId().substring(1))
@@ -207,29 +209,67 @@ public final class Database {
         Database.saveRecords(managers, managerFile);
     }
 
-    public static void removeStaff(String staffId) {
+    public static void removeStaff(String staffId, boolean removeAllDependencies) {
         staffs.removeIf(staff -> staff.getId().equals(staffId));
         Database.saveRecords(staffs, staffFile);
+        if (removeAllDependencies) {
+            removeCustomerFeedbackWithNonManagerEmployeeId(staffId);
+        }
+    }
+
+    public static void removeStaff(String staffId) {
+        removeStaff(staffId, true);
+    }
+
+    public static void removeDoctor(String doctorId, boolean removeAllDependencies) {
+        doctors.removeIf(doctor -> doctor.getId().equals(doctorId));
+        Database.saveRecords(doctors, doctorFile);
+        if (removeAllDependencies) {
+            removeCustomerFeedbackWithNonManagerEmployeeId(doctorId);
+            removeAppointmentWithDoctorId(doctorId);
+        }
     }
 
     public static void removeDoctor(String doctorId) {
-        doctors.removeIf(doctor -> doctor.getId().equals(doctorId));
-        Database.saveRecords(doctors, doctorFile);
+        removeDoctor(doctorId, true);
+    }
+
+    public static void removeCustomer(String customerId, boolean removeAllDependencies) {
+        customers.removeIf(customer -> customer.getId().equals(customerId));
+        Database.saveRecords(customers, customerFile);
+        if (removeAllDependencies) {
+            removeAppointmentWithCustomerId(customerId);
+            removeCustomerFeedbackWithCustomerId(customerId);
+        }
     }
 
     public static void removeCustomer(String customerId) {
-        customers.removeIf(customer -> customer.getId().equals(customerId));
-        Database.saveRecords(customers, customerFile);
+        removeCustomer(customerId, true);
+    }
+
+    public static void removeAppointment(String appointmentId, boolean removeAllDependencies) {
+        appointments.removeIf(appointment -> appointment.getId().equals(appointmentId));
+        Database.saveRecords(appointments, appointmentFile);
+        if (removeAllDependencies) {
+            removeAppointmentMedicineWithAppointmentId(appointmentId);
+            removeInvoiceWithAppointmentId(appointmentId);
+        }
     }
 
     public static void removeAppointment(String appointmentId) {
-        appointments.removeIf(appointment -> appointment.getId().equals(appointmentId));
-        Database.saveRecords(appointments, appointmentFile);
+        removeAppointment(appointmentId, true);
+    }
+
+    public static void removeMedicine(String medicineId, boolean removeAllDependencies) {
+        medicines.removeIf(medicine -> medicine.getId().equals(medicineId));
+        Database.saveRecords(medicines, medicineFile);
+        if (removeAllDependencies) {
+            removeAppointmentMedicineWithMedicineId(medicineId);
+        }
     }
 
     public static void removeMedicine(String medicineId) {
-        medicines.removeIf(medicine -> medicine.getId().equals(medicineId));
-        Database.saveRecords(medicines, medicineFile);
+        removeMedicine(medicineId, true);
     }
 
     public static void removeAppointmentMedicine(String appointmentId, String medicineId) {
@@ -373,6 +413,100 @@ public final class Database {
             allMedicineNames.add(medicine.getName());
         }
         return allMedicineNames;
+    }
+
+    public static Set<String> getAllAppointmentIdOfDoctor(String doctorId) {
+        Set<String> allAppointmentIdOfDoctor = new LinkedHashSet<>();
+        for (Appointment appointment: appointments) {
+            if (appointment.getDoctorId().equals(doctorId)) {
+                allAppointmentIdOfDoctor.add(appointment.getId());
+            }
+        }
+        return allAppointmentIdOfDoctor;
+    }
+
+    public static Set<String> getAllAppointmentIdOfCustomer(String customerId) {
+        Set<String> allAppointmentIdOfCustomer = new LinkedHashSet<>();
+        for (Appointment appointment: appointments) {
+            if (appointment.getCustomerId().equals(customerId)) {
+                allAppointmentIdOfCustomer.add(appointment.getId());
+            }
+        }
+        return allAppointmentIdOfCustomer;
+    }
+
+    public static Set<String> getAllCustomerFeedbackIdOfNonManagerEmployee(String nonManagerEmployeeId) {
+        Set<String> allCustomerFeedbackIdOfNonManagerEmployee = new LinkedHashSet<>();
+        for (CustomerFeedback customerFeedback: customerFeedbacks) {
+            if (customerFeedback.getNonManagerEmployeeId().equals(nonManagerEmployeeId)) {
+                allCustomerFeedbackIdOfNonManagerEmployee.add(customerFeedback.getId());
+            }
+        }
+        return allCustomerFeedbackIdOfNonManagerEmployee;
+    }
+
+    public static Set<String> getAllCustomerFeedbackIdOfCustomer(String customerId) {
+        Set<String> allCustomerFeedbackIdOfCustomer = new LinkedHashSet<>();
+        for (CustomerFeedback customerFeedback: customerFeedbacks) {
+            if (customerFeedback.getCustomerId().equals(customerId)) {
+                allCustomerFeedbackIdOfCustomer.add(customerFeedback.getId());
+            }
+        }
+        return allCustomerFeedbackIdOfCustomer;
+    }
+
+    public static double getTotalMedicineChargesOfAppointment(String appointmentId) {
+        double totalMedicineChargesOfAppointment = 0;
+        for (AppointmentMedicine appointmentMedicine: appointmentMedicines) {
+            if (appointmentMedicine.getAppointmentId().equals(appointmentId)) {
+                Medicine medicineForAppointment = getMedicine(appointmentMedicine.getMedicineId());
+                totalMedicineChargesOfAppointment += medicineForAppointment.getCharge();
+            }
+        }
+        return totalMedicineChargesOfAppointment;
+    }
+
+    public static void removeAppointmentWithCustomerId(String customerId) {
+        for (Appointment appointment: appointments) {
+            if (appointment.getCustomerId().equals(customerId)) {
+                removeAppointment(appointment.getId());
+            }
+        }
+        Database.saveRecords(appointments, appointmentFile);
+    }
+
+    public static void removeAppointmentWithDoctorId(String doctorId) {
+        for (Appointment appointment: appointments) {
+            if (appointment.getCustomerId().equals(doctorId)) {
+                removeAppointment(appointment.getId());
+            }
+        }
+        Database.saveRecords(appointments, appointmentFile);
+    }
+
+    public static void removeAppointmentMedicineWithAppointmentId(String appointmentId) {
+        appointmentMedicines.removeIf(appointmentMedicine -> appointmentMedicine.getAppointmentId().equals(appointmentId));
+        Database.saveRecords(appointmentMedicines, appointmentMedicineFile);
+    }
+
+    public static void removeAppointmentMedicineWithMedicineId(String medicineId) {
+        appointmentMedicines.removeIf(appointmentMedicine -> appointmentMedicine.getMedicineId().equals(medicineId));
+        Database.saveRecords(appointmentMedicines, appointmentMedicineFile);
+    }
+
+    public static void removeCustomerFeedbackWithCustomerId(String customerId) {
+        customerFeedbacks.removeIf(customerFeedback -> customerFeedback.getCustomerId().equals(customerId));
+        Database.saveRecords(customerFeedbacks, customerFeedbackFile);
+    }
+
+    public static void removeCustomerFeedbackWithNonManagerEmployeeId(String nonManagerEmployeeId) {
+        customerFeedbacks.removeIf(customerFeedback -> customerFeedback.getNonManagerEmployeeId().equals(nonManagerEmployeeId));
+        Database.saveRecords(customerFeedbacks, customerFeedbackFile);
+    }
+
+    public static void removeInvoiceWithAppointmentId(String appointmentId) {
+        invoices.removeIf(invoice -> invoice.getAppointmentId().equals(appointmentId));
+        Database.saveRecords(invoices, invoiceFile);
     }
 
     private static void populateFromRecords(InstantiatableFromRecord instantiatableFromRecord, File inputFile) {

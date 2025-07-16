@@ -56,13 +56,13 @@ public class Medicine implements Savable {
     public void setName(String name) {
         checkName(name);
         this.name = name;
-        Database.removeMedicine(this.id);
+        Database.removeMedicine(this.id, false);
         Database.addMedicine(this);
     }
 
     public void setCharge(double charge) {
         checkCharge(charge);
-        Database.removeMedicine(this.id);
+        Database.removeMedicine(this.id, false);
         Database.addMedicine(this);
         this.charge = charge;
     }
