@@ -20,14 +20,14 @@ public class Customer extends User {
     }
 
     public Customer(String name, String email, String password, double apWallet) {
-        this(Identifiable.createId('C'), name, email, password, apWallet);
+        this(IdCreator.createId('C'), name, email, password, apWallet);
     }
 
     public Set<List<String>> getAllMyAppointmentRecords() {
         Set<List<String>> allMyAppointmentRecords = new LinkedHashSet<>();
         for (String appointmentId: Database.getAllAppointmentIdOfCustomer(this.id)) {
             Appointment appointment = Database.getAppointment(appointmentId);
-            List<String> appointmentRecord = appointment.createRecord();
+            List<String> appointmentRecord = appointment.createDbRecord();
             appointmentRecord.add(String.valueOf(appointment.getTotalCharge()));
             allMyAppointmentRecords.add(appointmentRecord);
         }
@@ -37,7 +37,7 @@ public class Customer extends User {
     public Set<List<String>> getAllMyCustomerFeedbackRecords() {
         Set<List<String>> allMyCustomerFeedbackRecords = new LinkedHashSet<>();
         for (String customerFeedbackId: Database.getAllCustomerFeedbackIdOfCustomer(this.getId())) {
-            allMyCustomerFeedbackRecords.add(Database.getCustomerFeedback(customerFeedbackId).createRecord());
+            allMyCustomerFeedbackRecords.add(Database.getCustomerFeedback(customerFeedbackId).createDbRecord());
         }
         return allMyCustomerFeedbackRecords;
     }
@@ -45,14 +45,14 @@ public class Customer extends User {
     public Set<List<String>> getAllNonManagerEmployeeRecords() {
         Set<List<String>> allNonManagerEmployeeRecords = new LinkedHashSet<>();
         for (String staffId: Database.getAllStaffId()) {
-            List<String> staffRecords = Database.getStaff(staffId).createRecord();
+            List<String> staffRecords = Database.getStaff(staffId).createDbRecord();
             staffRecords.removeLast();
             staffRecords.removeLast();
             staffRecords.add("Staff");
             allNonManagerEmployeeRecords.add(staffRecords);
         }
         for (String doctorId: Database.getAllDoctorId()) {
-            List<String> doctorRecords = Database.getDoctor(doctorId).createRecord();
+            List<String> doctorRecords = Database.getDoctor(doctorId).createDbRecord();
             doctorRecords.removeLast();
             doctorRecords.removeLast();
             doctorRecords.add("Doctor");
@@ -112,7 +112,7 @@ public class Customer extends User {
         }
     }
 
-    public List<String> createRecord() {
+    public List<String> createDbRecord() {
         String dbId = this.id;
         String dbName = this.name;
         String dbEmail = this.email;
@@ -122,6 +122,13 @@ public class Customer extends User {
         return new ArrayList<>(Arrays.asList(
                 dbId, dbName, dbEmail, dbPassword, dbApWallet
         ));
+    }
+
+    @Override
+    public List<String> createPublicRecord() {
+        List<String> publicRecord = super.createPublicRecord();
+        publicRecord.add(String.valueOf(this.apWallet));
+        return publicRecord;
     }
 
     public static void createCustomerFromRecord(List<String> record) {

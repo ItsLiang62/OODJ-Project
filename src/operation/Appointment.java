@@ -2,12 +2,12 @@ package operation;
 
 import customExceptions.*;
 import database.Database;
+import database.IdCreator;
 import database.Identifiable;
-import database.Savable;
 
 import java.util.*;
 
-public class Appointment implements Savable {
+public class Appointment implements Identifiable {
     private String id;
     private String customerId;
     private String doctorId;
@@ -33,7 +33,7 @@ public class Appointment implements Savable {
 
 
     public Appointment(String customerId) {
-        this(Identifiable.createId('A'), customerId, null, null, 0.0, "Pending");
+        this(IdCreator.createId('A'), customerId, null, null, 0.0, "Pending");
     }
 
     public static void checkCustomerId(String customerId) {
@@ -121,7 +121,7 @@ public class Appointment implements Savable {
         Database.addAppointment(this);
     }
 
-    public List<String> createRecord() {
+    public List<String> createDbRecord() {
         String dbId = this.id;
         String dbCustomerId = this.customerId;
         String dbDoctorId = Objects.requireNonNullElse(doctorId, "NULL");
@@ -132,6 +132,10 @@ public class Appointment implements Savable {
         return new ArrayList<>(Arrays.asList(
                 dbId, dbCustomerId, dbDoctorId, dbDoctorFeedback, dbConsultationFee, dbStatus
         ));
+    }
+
+    public List<String> createPublicRecord() {
+        return this.createDbRecord();
     }
 
     public static void createAppointmentFromRecord(List<String> record) {

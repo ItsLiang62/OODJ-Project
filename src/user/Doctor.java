@@ -2,7 +2,7 @@ package user;
 
 import customExceptions.AppointmentDoesNotBelongToDoctorException;
 import database.Database;
-import database.Identifiable;
+import database.IdCreator;
 import operation.AppointmentMedicine;
 import operation.Appointment;
 
@@ -16,13 +16,13 @@ public class Doctor extends User {
     }
 
     public Doctor(String name, String email, String password) {
-        this(Identifiable.createId('D'), name, email, password);
+        this(IdCreator.createId('D'), name, email, password);
     }
 
     public Set<List<String>> getAllMyAppointmentRecords() {
         Set<List<String>> allMyAppointmentRecords = new LinkedHashSet<>();
         for (String appointmentId: Database.getAllAppointmentIdOfDoctor(this.id)) {
-            allMyAppointmentRecords.add(Database.getAppointment(appointmentId).createRecord());
+            allMyAppointmentRecords.add(Database.getAppointment(appointmentId).createDbRecord());
         }
         return allMyAppointmentRecords;
     }
@@ -30,7 +30,7 @@ public class Doctor extends User {
     public Set<List<String>> getAllMyCustomerFeedbackRecords() {
         Set<List<String>> allMyCustomerFeedbackRecords = new LinkedHashSet<>();
         for (String customerFeedbackId: Database.getAllCustomerFeedbackIdOfNonManagerEmployee(this.getId())) {
-            allMyCustomerFeedbackRecords.add(Database.getCustomerFeedback(customerFeedbackId).createRecord());
+            allMyCustomerFeedbackRecords.add(Database.getCustomerFeedback(customerFeedbackId).createDbRecord());
         }
         return allMyCustomerFeedbackRecords;
     }
@@ -38,7 +38,7 @@ public class Doctor extends User {
     public Set<List<String>> getAllMedicineRecords() {
         Set<List<String>> allMedicineRecords = new LinkedHashSet<>();
         for (String medicineId: Database.getAllMedicineId()){
-            allMedicineRecords.add(Database.getMedicine(medicineId).createRecord());
+            allMedicineRecords.add(Database.getMedicine(medicineId).createDbRecord());
         }
         return allMedicineRecords;
     }
@@ -69,33 +69,22 @@ public class Doctor extends User {
     @Override
     public void setName(String name) {
         super.setName(name);
-        Database.removeDoctor(this.id);
+        Database.removeDoctor(this.id, false);
         Database.addDoctor(this);
     }
 
     @Override
     public void setEmail(String email) {
         super.setEmail(email);
-        Database.removeDoctor(this.id);
+        Database.removeDoctor(this.id, false);
         Database.addDoctor(this);
     }
 
     @Override
     public void setPassword(String password) {
         super.setPassword(password);
-        Database.removeDoctor(this.id);
+        Database.removeDoctor(this.id, false);
         Database.addDoctor(this);
-    }
-
-    public List<String> createRecord() {
-        String dbId = this.id;
-        String dbName = this.name;
-        String dbEmail = this.email;
-        String dbPassword = this.password;
-
-        return new ArrayList<>(Arrays.asList(
-                dbId, dbName, dbEmail, dbPassword
-        ));
     }
 
     public static void createDoctorFromRecord(List<String> record) {

@@ -7,11 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import customExceptions.*;
-import database.Database;
-import database.Identifiable;
-import database.Savable;
+import database.*;
 
-public class Invoice implements Savable {
+public class Invoice implements Identifiable {
     private String id;
     private String appointmentId;
     private String paymentMethod;
@@ -28,7 +26,7 @@ public class Invoice implements Savable {
     }
 
     public Invoice(String appointmentId, String paymentMethod, String paymentDate) {
-        this(Identifiable.createId('I'), appointmentId, paymentMethod, paymentDate);
+        this(IdCreator.createId('I'), appointmentId, paymentMethod, paymentDate);
     }
 
     public static void checkAppointmentId(String appointmentId) {
@@ -42,13 +40,13 @@ public class Invoice implements Savable {
             throw new AppointmentNotCompletedException("--- appointmentId field of Invoice object points to an Appointment whose status is not Completed ---");
         }
         if (Database.getAllAppointmentIdInInvoices().contains(appointmentId)) {
-            throw new AppointmentAlreadyHasInvoiceException("--- appointmentId field of Invoice object points to an Appointment that already has another invoice ---");
+            throw new AppointmentAlreadyHasInvoiceException("Appointment that already has another invoice!");
         }
     }
 
     public static void checkPaymentMethod(String paymentMethod) {
         if (!Arrays.asList(new String[] {"Cash", "Debit", "Credit", "Digital Wallet"}).contains(paymentMethod)) {
-            throw new InvalidPaymentMethodException("--- paymentMethod field of Invoice object must be either Cash, Debit, Credit or Digital Wallet ---");
+            throw new InvalidPaymentMethodException("Payment method must be either Cash, Debit, Credit or Digital Wallet!");
         }
     }
 
@@ -57,7 +55,7 @@ public class Invoice implements Savable {
     public String getPaymentMethod() { return this.paymentMethod; }
     public String getPaymentDate() { return this.paymentDate.toString(); }
 
-    public List<String> createRecord() {
+    public List<String> createDbRecord() {
         String dbId = this.id;
         String dbAppointmentId = this.appointmentId;
         String dbPaymentMethod = this.paymentMethod;
@@ -66,6 +64,10 @@ public class Invoice implements Savable {
         return new ArrayList<>(Arrays.asList(
                 dbId, dbAppointmentId, dbPaymentMethod, dbPaymentDate
         ));
+    }
+
+    public List<String> createPublicRecord() {
+        return this.createDbRecord();
     }
 
     public static void createInvoiceFromRecord(List<String> record) {

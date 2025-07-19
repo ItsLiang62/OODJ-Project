@@ -8,13 +8,10 @@ import java.util.regex.Pattern;
 
 import customExceptions.InvalidMedicineNameException;
 import customExceptions.NegativeValueRejectedException;
-import customExceptions.NullOrEmptyValueRejectedException;
 import customExceptions.RecordAlreadyInDatabaseException;
-import database.Database;
-import database.Identifiable;
-import database.Savable;
+import database.*;
 
-public class Medicine implements Savable {
+public class Medicine implements Identifiable {
     private String id;
     private String name;
     private double charge;
@@ -29,23 +26,23 @@ public class Medicine implements Savable {
     }
 
     public Medicine(String name, double charge) {
-        this(Identifiable.createId('P'), name, charge);
+        this(IdCreator.createId('P'), name, charge);
     }
 
     public static void checkName(String name) {
         Pattern namePattern = Pattern.compile("^([A-Z][A-Za-z0-9()/-]*(\\s([0-9()/-]|[A-Z])[A-Za-z0-9()/-]*)*)$");
         Matcher nameMatcher = namePattern.matcher(name);
         if (!nameMatcher.matches()) {
-            throw new InvalidMedicineNameException("--- name field of Medicine object is invalid ---");
+            throw new InvalidMedicineNameException("Invalid Medicine Name!");
         }
         if (Database.getAllMedicineNames().contains(name)) {
-            throw new RecordAlreadyInDatabaseException("--- name field of Medicine object is being used by another Medicine ---");
+            throw new RecordAlreadyInDatabaseException("Medicine name already exists!");
         }
     }
 
     public static void checkCharge(double charge) {
         if (charge < 0) {
-            throw new NegativeValueRejectedException("--- charge field of Medicine object must be equal or more than 0 ---");
+            throw new NegativeValueRejectedException("Medicine charge must be equal or more than 0!");
         }
     }
 
@@ -67,7 +64,7 @@ public class Medicine implements Savable {
         this.charge = charge;
     }
 
-    public List<String> createRecord() {
+    public List<String> createDbRecord() {
         String dbId = this.id;
         String dbName = this.name;
         String dbCharge = String.valueOf(this.charge);
@@ -75,6 +72,10 @@ public class Medicine implements Savable {
         return new ArrayList<>(Arrays.asList(
                 dbId, dbName, dbCharge
         ));
+    }
+
+    public List<String> createPublicRecord() {
+        return this.createDbRecord();
     }
 
     public static void createMedicineFromRecord(List<String> record) {

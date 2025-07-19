@@ -2,15 +2,13 @@ package operation;
 
 import customExceptions.InvalidForeignKeyValueException;
 import customExceptions.NullOrEmptyValueRejectedException;
-import database.Database;
-import database.Identifiable;
-import database.Savable;
+import database.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class CustomerFeedback implements Savable {
+public class CustomerFeedback implements Identifiable {
     private final String id;
     private String customerId;
     private String nonManagerEmployeeId;
@@ -29,7 +27,7 @@ public class CustomerFeedback implements Savable {
     }
 
     public CustomerFeedback(String customerId, String nonManagerEmployeeId, String content) {
-        this(Identifiable.createId('F'), customerId, nonManagerEmployeeId, content);
+        this(IdCreator.createId('F'), customerId, nonManagerEmployeeId, content);
 
     }
 
@@ -69,7 +67,7 @@ public class CustomerFeedback implements Savable {
         }
     }
 
-    public List<String> createRecord() {
+    public List<String> createDbRecord() {
         String dbCustomerId = this.customerId;
         String dbTargetEmployeeId = this.nonManagerEmployeeId;
         String dbContent = this.content;
@@ -77,6 +75,10 @@ public class CustomerFeedback implements Savable {
         return new ArrayList<>(Arrays.asList(
                 this.id, dbCustomerId, dbTargetEmployeeId, dbContent
         ));
+    }
+
+    public List<String> createPublicRecord() {
+        return this.createDbRecord();
     }
 
     public static void createCustomerFeedbackFromRecord(List<String> record) {

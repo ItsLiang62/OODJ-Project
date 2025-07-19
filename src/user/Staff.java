@@ -1,9 +1,7 @@
 package user;
 
-import customExceptions.InsufficientApWalletException;
-import customExceptions.NegativeValueRejectedException;
 import database.Database;
-import database.Identifiable;
+import database.IdCreator;
 import operation.Appointment;
 import operation.Invoice;
 
@@ -17,29 +15,19 @@ public class Staff extends User {
     }
 
     public Staff(String name, String email, String password) {
-        this(Identifiable.createId('S'), name, email, password);
+        this(IdCreator.createId('S'), name, email, password);
     }
 
-    public void createCustomer(String name, String email, String password, double apWallet) {
-        new Customer(name, email, password, apWallet);
-    }
+    public void createCustomer(String name, String email, String password, double apWallet) { new Customer(name, email, password, apWallet); }
 
-    public Customer getCustomerWithId(String customerId) {
+    public Customer getCustomerById(String customerId) {
         return Database.getCustomer(customerId);
     }
 
-    public Customer getCustomerWithEmail(String customerEmail) {
-        String customerId = Database.getUserIdWithEmail(customerEmail);
-        return Database.getCustomer(customerId);
-    }
+    public Set<List<String>> getAllCustomerPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllCustomerId(), Database::getCustomer); }
 
-    public void removeCustomerWithId(String customerId) {
-        Database.removeCustomer(customerId);
-    }
-
-    public void removeCustomerWithEmail(String customerEmail) {
-        String customerId = Database.getUserIdWithEmail(customerEmail);
-        Database.removeCustomer(customerId);
+    public void removeCustomerById(String customerId) {
+        Database.removeCustomer(customerId, true);
     }
 
     public void createAppointmentForCustomer(String customerId) {
@@ -85,17 +73,6 @@ public class Staff extends User {
         super.setPassword(password);
         Database.removeStaff(this.id, false);
         Database.addStaff(this);
-    }
-
-    public List<String> createRecord() {
-        String dbId = this.id;
-        String dbName = this.name;
-        String dbEmail = this.email;
-        String dbPassword = this.password;
-
-        return new ArrayList<>(Arrays.asList(
-                dbId, dbName, dbEmail, dbPassword
-        ));
     }
 
     public static void createStaffFromRecord(List<String> record) {

@@ -1,2 +1,3 @@
 S001,Kieran,kieran@gmail.com,777
 S002,Justin,justin@gmail.com,666
+S003,Xiao Ming,xiao@gmail.com,xiao@gmail.com

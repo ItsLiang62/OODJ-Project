@@ -10,7 +10,7 @@ import customExceptions.NullOrEmptyValueRejectedException;
 import customExceptions.RepeatedPrescriptionForAppointmentException;
 import database.*;
 
-public class AppointmentMedicine implements Savable {
+public class AppointmentMedicine implements Entity {
 
     private String appointmentId;
     private String medicineId;
@@ -79,7 +79,7 @@ public class AppointmentMedicine implements Savable {
         }
     }
 
-    public List<String> createRecord() {
+    public List<String> createDbRecord() {
         String dbAppointmentId = this.appointmentId;
         String dbMedicineId = this.medicineId;
         String dbTargetSymptom = this.targetSymptom;
@@ -87,6 +87,10 @@ public class AppointmentMedicine implements Savable {
         return new ArrayList<>(Arrays.asList(
                 dbAppointmentId, dbMedicineId, dbTargetSymptom
         ));
+    }
+
+    public List<String> createPublicRecord() {
+        return this.createDbRecord();
     }
 
     public static void createAppointmentMedicineFromRecord(List<String> record) {

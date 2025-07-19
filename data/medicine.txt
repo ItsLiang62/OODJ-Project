@@ -1,1 +1,1 @@
-P002,Pills,5.0
+P002,Panadol,25.0

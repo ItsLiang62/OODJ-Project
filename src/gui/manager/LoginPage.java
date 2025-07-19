@@ -1,10 +1,9 @@
-package gui;
+package gui.manager;
 
 import customExceptions.EmailNotFoundException;
 import database.Database;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -31,6 +30,7 @@ public class LoginPage extends JFrame implements ActionListener {
         this.setTitle("Login Page");
         this.setSize(700, 500);
         this.setLayout(new BorderLayout());
+        this.setLocationRelativeTo(null);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -70,6 +70,7 @@ public class LoginPage extends JFrame implements ActionListener {
 
         this.statusLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         loginPanel.add(this.statusLabel);
+        loginPanel.add(Box.createRigidArea(new Dimension(0, 40)));
 
         this.add(titlePanel, BorderLayout.NORTH);
         this.add(credentialPanel, BorderLayout.CENTER);
@@ -84,7 +85,7 @@ public class LoginPage extends JFrame implements ActionListener {
         String password = String.valueOf(passwordField.getPassword());
         String userId;
         try {
-            userId = Database.getUserIdWithEmail(email);
+            userId = Database.getUserIdByEmail(email);
         } catch (EmailNotFoundException exception) {
             statusLabel.setForeground(Color.RED);
             statusLabel.setText("Email is not registered. Please contact the manager if you think this is a mistake.");
@@ -93,37 +94,40 @@ public class LoginPage extends JFrame implements ActionListener {
         switch (userId.charAt(0)) {
             case 'M':
                 if (!password.equals(Database.getManager(userId).getPassword())) {
+                    statusLabel.setForeground(Color.RED);
                     statusLabel.setText("Password incorrect. Login failed.");
-                    return;
                 } else {
-                    statusLabel.setText("Login successful.");
-                    return;
+                    JOptionPane.showMessageDialog(this, "Login successful!");
+                    SwingUtilities.invokeLater(() -> new ManagerMainPage(Database.getManager(userId)));
+                    this.dispose();
                 }
+                return;
             case 'S':
                 if (!password.equals(Database.getStaff(userId).getPassword())) {
+                    statusLabel.setForeground(Color.RED);
                     statusLabel.setText("Password incorrect. Login failed.");
-                    return;
                 } else {
                     statusLabel.setText("Login successful.");
-                    return;
                 }
+                return;
             case 'D':
                 if (!password.equals(Database.getDoctor(userId).getPassword())) {
+                    statusLabel.setForeground(Color.RED);
                     statusLabel.setText("Password incorrect. Login failed.");
-                    return;
                 } else {
                     statusLabel.setText("Login successful.");
-                    return;
                 }
+                return;
             case 'C':
                 if (!password.equals(Database.getCustomer(userId).getPassword())) {
+                    statusLabel.setForeground(Color.RED);
                     statusLabel.setText("Password incorrect. Login failed.");
-                    return;
                 } else {
                     statusLabel.setText("Login successful.");
-                    return;
                 }
+                return;
             default:
+                statusLabel.setForeground(Color.RED);
                 statusLabel.setText("Email points to an invalid User ID.");
         }
     }

@@ -1,8 +1,6 @@
 package user;
 
 import database.*;
-import operation.Appointment;
-import operation.CustomerFeedback;
 import operation.Medicine;
 
 import java.util.*;
@@ -15,7 +13,7 @@ public class Manager extends User {
     }
 
     public Manager(String name, String email, String password) {
-        this(Identifiable.createId('M'), name, email, password);
+        this(IdCreator.createId('M'), name, email, password);
     }
 
     public void createManager(String name, String email, String password) {
@@ -30,100 +28,113 @@ public class Manager extends User {
         new Doctor(name, email, password);
     }
 
-    public Manager getManagerWithId(String managerId) {
+    public Manager getManagerById(String managerId) {
         return Database.getManager(managerId);
     }
 
-    public Manager getManagerWithEmail(String managerEmail) {
-        String managerId = Database.getUserIdWithEmail(managerEmail);
+    public Manager getManagerByEmail(String managerEmail) {
+        String managerId = Database.getUserIdByEmail(managerEmail);
         return Database.getManager(managerId);
     }
 
-    public Staff getStaffWithId(String staffId) {
+    public Staff getStaffById(String staffId) {
         return Database.getStaff(staffId);
     }
 
-    public Staff getStaffWithEmail(String staffEmail) {
-        String staffId = Database.getUserIdWithEmail(staffEmail);
+    public Staff getStaffByEmail(String staffEmail) {
+        String staffId = Database.getUserIdByEmail(staffEmail);
         return Database.getStaff(staffId);
     }
 
-    public Doctor getDoctorWithId(String doctorId) {
+    public Doctor getDoctorById(String doctorId) {
         return Database.getDoctor(doctorId);
     }
 
-    public Doctor getDoctorWithEmail(String doctorEmail) {
-        String doctorId = Database.getUserIdWithEmail(doctorEmail);
+    public Doctor getDoctorByEmail(String doctorEmail) {
+        String doctorId = Database.getUserIdByEmail(doctorEmail);
         return Database.getDoctor(doctorId);
     }
 
-    public void removeManagerWithId(String managerId) {
+    public void updateManager(String managerId, String newName, String newEmail, String newPassword) {
+        Manager manager = Database.getManager(managerId);
+        Database.removeManager(managerId);
+        try {
+            new Manager(managerId, newName, newEmail, newPassword);
+        } catch (RuntimeException e) {
+            Database.removeManager(managerId);
+            new Manager(managerId, manager.getName(), manager.getEmail(), manager.getPassword());
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    public void updateStaff(String staffId, String newName, String newEmail, String newPassword) {
+        Staff staff = Database.getStaff(staffId);
+        Database.removeStaff(staffId, false);
+        try {
+            new Staff(staffId, newName, newEmail, newPassword);
+        } catch (RuntimeException e) {
+            Database.removeStaff(staffId, false);
+            new Staff(staffId, staff.getName(), staff.getEmail(), staff.getPassword());
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    public void updateDoctor(String doctorId, String newName, String newEmail, String newPassword) {
+        Doctor doctor = Database.getDoctor(doctorId);
+        Database.removeDoctor(doctorId, false);
+        try {
+            new Doctor(doctorId, newName, newEmail, newPassword);
+        } catch (RuntimeException e) {
+            Database.removeDoctor(doctorId, false);
+            new Doctor(doctorId, doctor.getName(), doctor.getEmail(), doctor.getPassword());
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    public void removeManagerById(String managerId) {
         if (!managerId.equals(this.id)) {
             Database.removeManager(managerId);
         }
     }
 
-    public void removeManagerWithEmail(String managerEmail) {
-        if (!managerEmail.equals(this.email)) {
-            String managerId = Database.getUserIdWithEmail(managerEmail);
-            Database.removeManager(managerId);
-        }
-    }
+    public void removeStaffById(String staffId) { Database.removeStaff(staffId, true); }
 
-    public void removeStaffWithId(String staffId) {
-        Database.removeStaff(staffId);
-    }
+    public void removeDoctorById(String doctorId) { Database.removeDoctor(doctorId, true); }
 
-    public void removeStaffWithEmail(String staffEmail) {
-        String staffId = Database.getUserIdWithEmail(staffEmail);
-        Database.removeStaff(staffId);
-    }
+    public Set<List<String>> getAllAppointmentPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllAppointmentId(), Database::getAppointment); }
 
-    public void removeDoctorWithId(String doctorId) {
-        Database.removeDoctor(doctorId);
-    }
+    public Set<List<String>> getAllCustomerFeedbackPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllCustomerFeedbackId(), Database::getCustomerFeedback); }
 
-    public void removeDoctorWithEmail(String doctorEmail) {
-        String doctorId = Database.getUserIdWithEmail(doctorEmail);
-        Database.removeDoctor(doctorId);
-    }
+    public Set<List<String>> getAllManagerPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllManagerId(), Database::getManager); }
 
-    public Set<List<String>> getAllAppointmentRecords() {
-        Set<List<String>> allAppointmentRecords = new LinkedHashSet<>();
-        for (String appointmentId: Database.getAllAppointmentId()) {
-            allAppointmentRecords.add(Database.getAppointment(appointmentId).createRecord());
-        }
-        return allAppointmentRecords;
-    }
+    public Set<List<String>> getAllStaffPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllStaffId(), Database::getStaff); }
 
-    public Set<List<String>> getAllCustomerFeedbackRecords() {
-        Set<List<String>> allCustomerFeedbackRecords = new LinkedHashSet<>();
-        for (String customerFeedbackId: Database.getAllCustomerFeedbackId()) {
-            allCustomerFeedbackRecords.add(Database.getCustomerFeedback(customerFeedbackId).createRecord());
-        }
-        return allCustomerFeedbackRecords;
-    }
+    public Set<List<String>> getAllDoctorPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllDoctorId(), Database::getDoctor); }
+
+    public Set<List<String>> getAllMedicinePublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllMedicineId(), Database::getMedicine); }
+
 
     public void addMedicine(String medicineName, double medicineCharge) {
         new Medicine(medicineName, medicineCharge);
     }
 
     public void removeMedicine(String medicineId) {
-        Database.removeMedicine(medicineId);
+        Database.removeMedicine(medicineId, true);
     }
 
-    public List<String> createRecord() {
-        String dbId = this.id;
-        String dbName = this.name;
-        String dbEmail = this.email;
-        String dbPassword = this.password;
-
-        return new ArrayList<>(Arrays.asList(
-                dbId, dbName, dbEmail, dbPassword
-        ));
+    public void updateMedicine(String medicineId, String newName, double newCharge) {
+        Medicine medicine = Database.getMedicine(medicineId);
+        Database.removeMedicine(medicineId, false); // remove medicine record without removing dependencies
+        try {
+            new Medicine(medicineId, newName, newCharge);
+        } catch (RuntimeException e) {
+            Database.removeDoctor(medicineId, false); // remove newly added invalid medicine record
+            new Medicine(medicineId, medicine.getName(), medicine.getCharge()); // add back original medicine record
+            throw new RuntimeException(e.getMessage()); // throw error due to invalid new medicine record
+        }
     }
 
-    public static void createManagerFromRecord(List<String> record) {
+    public static void createManagerFromDbRecord(List<String> record) {
         String managerId = record.getFirst();
         String managerName = record.get(1);
         String managerEmail = record.get(2);
