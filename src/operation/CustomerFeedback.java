@@ -23,7 +23,6 @@ public class CustomerFeedback implements Identifiable {
         this.customerId = customerId;
         this.nonManagerEmployeeId = nonManagerEmployeeId;
         this.content = content;
-        Database.addCustomerFeedback(this);
     }
 
     public CustomerFeedback(String customerId, String nonManagerEmployeeId, String content) {
@@ -87,6 +86,7 @@ public class CustomerFeedback implements Identifiable {
         String customerFeedbackTargetEmployeeId = record.get(2);
         String customerFeedbackContent = record.getLast();
 
-        new CustomerFeedback(customerFeedbackId, customerFeedbackCustomerId, customerFeedbackTargetEmployeeId, customerFeedbackContent);
+        CustomerFeedback customerFeedback = new CustomerFeedback(customerFeedbackId, customerFeedbackCustomerId, customerFeedbackTargetEmployeeId, customerFeedbackContent);
+        Database.addCustomerFeedback(customerFeedback);
     }
 }

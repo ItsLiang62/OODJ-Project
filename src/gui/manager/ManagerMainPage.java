@@ -67,6 +67,7 @@ public class ManagerMainPage extends JFrame {
         gbc.gridy = 2;
         centerPanel.add(this.viewCustomerFeedbacksButton, gbc);
         gbc.gridy = 3;
+        this.manageMedicinesButton.addActionListener(this.new ManageMedicinesButtonListener());
         centerPanel.add(this.manageReportsButton, gbc);
         gbc.gridy = 4;
         centerPanel.add(this.manageMedicinesButton, gbc);
@@ -86,6 +87,14 @@ public class ManagerMainPage extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             SwingUtilities.invokeLater(() -> new EmployeeListPage(ManagerMainPage.this.managerUser));
+            ManagerMainPage.this.dispose();
+        }
+    }
+
+    private class ManageMedicinesButtonListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            SwingUtilities.invokeLater(() -> new MedicineListPage(ManagerMainPage.this.managerUser));
             ManagerMainPage.this.dispose();
         }
     }

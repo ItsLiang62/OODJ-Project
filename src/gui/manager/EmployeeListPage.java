@@ -1,7 +1,9 @@
 package gui.manager;
 
 import database.Database;
+import user.Doctor;
 import user.Manager;
+import user.Staff;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
@@ -217,15 +219,18 @@ public class EmployeeListPage extends JFrame {
                 try {
                     switch (Objects.requireNonNull(role)) {
                         case "Manager":
-                            EmployeeListPage.this.managerUser.createManager(name, email, email);
+                            Manager newManager = new Manager(name, email, email); // initial user password will be the email itself, user can change the password later
+                            EmployeeListPage.this.managerUser.addManager(newManager);
                             JOptionPane.showMessageDialog(null, "Successfully added new manager account", "Employee Created Successfully", JOptionPane.PLAIN_MESSAGE);
                             break;
                         case "Staff":
-                            EmployeeListPage.this.managerUser.createStaff(name, email, email);
+                            Staff newStaff = new Staff(name, email, email);
+                            EmployeeListPage.this.managerUser.addStaff(newStaff);
                             JOptionPane.showMessageDialog(null, "Successfully created new staff account", "Employee Added Successfully", JOptionPane.PLAIN_MESSAGE);
                             break;
                         case "Doctor":
-                            EmployeeListPage.this.managerUser.createDoctor(name, email, email);
+                            Doctor newDoctor = new Doctor(name, email, email);
+                            EmployeeListPage.this.managerUser.addDoctor(newDoctor);
                             JOptionPane.showMessageDialog(null, "Successfully created new doctor account", "Employee Added Successfully", JOptionPane.PLAIN_MESSAGE);
                             break;
                         default:
@@ -264,18 +269,21 @@ public class EmployeeListPage extends JFrame {
                     switch (id.charAt(0)) {
                         case 'M':
                             password = Database.getManager(id).getPassword();
-                            managerUser.updateManager(id, newName, newEmail, password);
-                            JOptionPane.showMessageDialog(null, "Successfully edited manager account", "Employee Updated Successfully", JOptionPane.PLAIN_MESSAGE);
+                            Manager newManager = new Manager(id, newName, newEmail, password);
+                            managerUser.updateManager(newManager);
+                            JOptionPane.showMessageDialog(null, "Successfully edited manager information", "Employee Updated Successfully", JOptionPane.PLAIN_MESSAGE);
                             break;
                         case 'S':
                             password = Database.getStaff(id).getPassword();
-                            managerUser.updateStaff(id, newName, newEmail, password);
-                            JOptionPane.showMessageDialog(null, "Successfully edited staff account", "Employee Updated Successfully", JOptionPane.PLAIN_MESSAGE);
+                            Staff newStaff = new Staff(id, newName, newEmail, password);
+                            managerUser.updateStaff(newStaff);
+                            JOptionPane.showMessageDialog(null, "Successfully edited staff information", "Employee Updated Successfully", JOptionPane.PLAIN_MESSAGE);
                             break;
                         case 'D':
                             password = Database.getDoctor(id).getPassword();
-                            managerUser.updateDoctor(id, newName, newEmail, password);
-                            JOptionPane.showMessageDialog(null, "Successfully edited doctor account", "Employee Updated Successfully", JOptionPane.PLAIN_MESSAGE);
+                            Doctor newDoctor = new Doctor(id, newName, newEmail, password);
+                            managerUser.updateDoctor(newDoctor);
+                            JOptionPane.showMessageDialog(null, "Successfully edited doctor information", "Employee Updated Successfully", JOptionPane.PLAIN_MESSAGE);
                             break;
                         default:
                             JOptionPane.showMessageDialog(null, "Could not recognize employee ID", "Employee ID Not Found Error", JOptionPane.ERROR_MESSAGE);
@@ -298,14 +306,15 @@ public class EmployeeListPage extends JFrame {
                     switch (id.charAt(0)) {
                         case 'M':
                             managerUser.removeManagerById(id);
+                            break;
                         case 'S':
                             managerUser.removeStaffById(id);
+                            break;
                         case 'D':
                             managerUser.removeDoctorById(id);
-                            JOptionPane.showMessageDialog(null, "Successfully deleted employee account", "Employee Deleted Successfully", JOptionPane.PLAIN_MESSAGE);
-
+                            break;
                     }
-
+                    JOptionPane.showMessageDialog(null, "Successfully deleted employee record", "Employee Deleted Successfully", JOptionPane.PLAIN_MESSAGE);
                 }
             }
         }

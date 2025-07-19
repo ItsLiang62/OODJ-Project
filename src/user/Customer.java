@@ -16,7 +16,6 @@ public class Customer extends User {
         super(id, name, email, password);
         checkApWallet(apWallet);
         this.apWallet = apWallet;
-        Database.addCustomer(this);
     }
 
     public Customer(String name, String email, String password, double apWallet) {
@@ -70,9 +69,10 @@ public class Customer extends User {
         new CustomerFeedback(this.id, nonManagerEmployeeId, content);
     }
 
-    public void payWithApWallet(double amount) {
+    public void payForAppointment(Appointment appointment) {
+        double amount = appointment.getConsultationFee() + Database.getTotalMedicineChargesOfAppointment(appointment.getId());
         if (this.apWallet < amount) {
-            throw new InsufficientApWalletException("--- Customer does not have enough in ApWallet to pay for appointment ---");
+            throw new InsufficientApWalletException("Customer does not have enough in ApWallet to pay for appointment!");
         }
         this.apWallet -= amount;
         Database.removeCustomer(this.id, false);
@@ -108,7 +108,7 @@ public class Customer extends User {
 
     public static void checkApWallet(double apWallet) {
         if (apWallet < 0) {
-            throw new NegativeValueRejectedException("--- apWallet field of Customer object must be equal or more than 0 ---");
+            throw new NegativeValueRejectedException("ApWallet of customer must be equal or more than 0!");
         }
     }
 
@@ -138,6 +138,7 @@ public class Customer extends User {
         String customerPassword = record.get(3);
         double customerApWallet = Double.parseDouble(record.getLast());
 
-        new Customer(customerId, customerName, customerEmail, customerPassword, customerApWallet);
+        Customer customer = new Customer(customerId, customerName, customerEmail, customerPassword, customerApWallet);
+        Database.addCustomer(customer);
     }
 }

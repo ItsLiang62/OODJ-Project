@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.*;
 
 import java.io.FileWriter;
+import java.util.stream.Collectors;
 
 public final class Database {
 
@@ -153,7 +154,7 @@ public final class Database {
         }
         throw new IdNotFoundException("Could not find AppointmentMedicine with the given appointmentId and medicineId!");
     }
-    
+
     // remove
 
     public static <T extends Identifiable> void removeFrom(Set<T> identifiableSet, String id, File resultOutputFile) {
@@ -287,10 +288,10 @@ public final class Database {
 
     public static Set<String> getAllMedicineNames() { return getAllFieldValueOf(medicines, Medicine::getName); }
 
-    private static <T extends Identifiable> Set<String> getAllIdOfWhereCondition(Set<T> identifiableSet, String id, FieldValueReturner<T> fieldValueReturner) {
+    private static <T extends Identifiable> Set<String> getAllIdOfWhereCondition(Set<T> identifiableSet, String fieldValue, FieldValueReturner<T> fieldValueReturner) {
         Set<String> allIdOfWhereCondition = new LinkedHashSet<>();
         for (T identifiable: identifiableSet) {
-            if (fieldValueReturner.getFieldValue(identifiable).equals(id)) {
+            if (fieldValueReturner.getFieldValue(identifiable).equals(fieldValue)) {
                 allIdOfWhereCondition.add(identifiable.getId());
             }
         }
@@ -304,6 +305,16 @@ public final class Database {
     public static Set<String> getAllCustomerFeedbackIdOfNonManagerEmployee(String nonManagerEmployeeId) { return getAllIdOfWhereCondition(customerFeedbacks, nonManagerEmployeeId, CustomerFeedback::getNonManagerEmployeeId); }
 
     public static Set<String> getAllCustomerFeedbackIdOfCustomer(String customerId) { return getAllIdOfWhereCondition(customerFeedbacks, customerId, CustomerFeedback::getCustomerId); }
+
+    public static Set<String> getAllInvoicesOfCustomer(String customerId) {
+        Set<String> allAppointmentIdInInvoices = getAllAppointmentIdInInvoices();
+        Set<String> allAppointmentIdOfCustomer = getAllAppointmentIdOfCustomer(customerId);
+        Set<String> allAppointmentIdOfCustomerWithInvoice = new HashSet<>(allAppointmentIdInInvoices);
+        allAppointmentIdOfCustomerWithInvoice.retainAll(allAppointmentIdOfCustomer);
+        return getAllInvoiceId().stream().filter(
+                invoiceId -> allAppointmentIdOfCustomerWithInvoice.contains(Database.getInvoice(invoiceId).getAppointmentId())
+        ).collect(Collectors.toSet());
+    }
 
     public static double getTotalMedicineChargesOfAppointment(String appointmentId) {
         double totalMedicineChargesOfAppointment = 0;

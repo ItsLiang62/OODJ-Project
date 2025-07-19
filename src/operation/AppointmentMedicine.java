@@ -23,8 +23,6 @@ public class AppointmentMedicine implements Entity {
         checkPrescriptionUniqueness(appointmentId, medicineId);
         this.appointmentId = appointmentId;
         this.medicineId = medicineId;
-        this.targetSymptom = targetSymptom;
-        Database.addAppointmentMedicine(this);
     }
 
     public AppointmentMedicine(String appointmentId, String medicineId, String targetSymptom) {
@@ -98,6 +96,7 @@ public class AppointmentMedicine implements Entity {
         String medicineId = record.get(1);
         String targetSymptom = record.getLast();
 
-        new AppointmentMedicine(appointmentId, medicineId, targetSymptom);
+        AppointmentMedicine appointmentMedicine = new AppointmentMedicine(appointmentId, medicineId, targetSymptom);
+        Database.addAppointmentMedicine(appointmentMedicine);
     }
 }

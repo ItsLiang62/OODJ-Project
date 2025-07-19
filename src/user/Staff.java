@@ -11,7 +11,6 @@ public class Staff extends User {
 
     public Staff(String id, String name, String email, String password) {
         super(id, name, email, password);
-        Database.addStaff(this);
     }
 
     public Staff(String name, String email, String password) {
@@ -39,19 +38,14 @@ public class Staff extends User {
         appointment.setDoctorId(doctorId);
     }
 
-    public void markAppointmentAsCompleted(String appointmentId) {
+    public void collectPaymentAndGenerateInvoice(String appointmentId, String paymentMethod) {
         Appointment appointment = Database.getAppointment(appointmentId);
-        appointment.setStatusToCompleted();
-    }
-
-    public void collectPaymentAndGenerateInvoice(String appointmentId, String paymentMethod, String paymentDate) {
-        Appointment appointment = Database.getAppointment(appointmentId);
-        double appointmentConsultationFee = appointment.getConsultationFee();
-        double appointmentMedicineCharges = appointment.getTotalMedicineCharges();
         Customer customerOfAppointment = Database.getCustomer(appointment.getCustomerId());
-        customerOfAppointment.payWithApWallet(appointmentConsultationFee + appointmentMedicineCharges);
+        customerOfAppointment.payForAppointment(appointment);
 
-        new Invoice(appointmentId, paymentMethod, paymentDate);
+        Invoice invoice = new Invoice(appointmentId, paymentMethod);
+        Database.addInvoice(invoice);
+        appointment.setStatusToCompleted();
     }
 
     @Override
@@ -81,6 +75,7 @@ public class Staff extends User {
         String staffEmail = record.get(2);
         String staffPassword = record.getLast();
 
-        new Staff(staffId, staffName, staffEmail, staffPassword);
+        Staff staff = new Staff(staffId, staffName, staffEmail, staffPassword);
+        Database.addStaff(staff);
     }
 }

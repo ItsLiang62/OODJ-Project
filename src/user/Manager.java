@@ -9,28 +9,41 @@ public class Manager extends User {
 
     public Manager(String id, String name, String email, String password) {
         super(id, name, email, password);
-        Database.addManager(this);
     }
 
     public Manager(String name, String email, String password) {
         this(IdCreator.createId('M'), name, email, password);
     }
 
-    public void createManager(String name, String email, String password) {
-        new Manager(name, email, password);
+    public void addManager(Manager newManager) {
+        checkName(newManager.getName());
+        checkEmail(newManager.getEmail());
+        checkPassword(newManager.getPassword());
+        // Verify manager validity in case user did not enter constructor instantiated Manager
+        Database.addManager(newManager);
     }
 
-    public void createStaff(String name, String email, String password) {
-        new Staff(name, email, password);
+    public void addStaff(Staff newStaff) {
+        checkName(newStaff.getName());
+        checkEmail(newStaff.getEmail());
+        checkPassword(newStaff.getPassword());
+        Database.addStaff(newStaff);
     }
 
-    public void createDoctor(String name, String email, String password) {
-        new Doctor(name, email, password);
+    public void addDoctor(Doctor newDoctor) {
+        checkName(newDoctor.getName());
+        checkEmail(newDoctor.getEmail());
+        checkPassword(newDoctor.getPassword());
+        Database.addDoctor(newDoctor);
     }
 
-    public Manager getManagerById(String managerId) {
-        return Database.getManager(managerId);
+    public void addMedicine(Medicine newMedicine) {
+        Medicine.checkName(newMedicine.getName());
+        Medicine.checkCharge(newMedicine.getCharge());
+        Database.addMedicine(newMedicine);
     }
+
+    public Manager getManagerById(String managerId) { return Database.getManager(managerId); }
 
     public Manager getManagerByEmail(String managerEmail) {
         String managerId = Database.getUserIdByEmail(managerEmail);
@@ -55,40 +68,24 @@ public class Manager extends User {
         return Database.getDoctor(doctorId);
     }
 
-    public void updateManager(String managerId, String newName, String newEmail, String newPassword) {
-        Manager manager = Database.getManager(managerId);
-        Database.removeManager(managerId);
-        try {
-            new Manager(managerId, newName, newEmail, newPassword);
-        } catch (RuntimeException e) {
-            Database.removeManager(managerId);
-            new Manager(managerId, manager.getName(), manager.getEmail(), manager.getPassword());
-            throw new RuntimeException(e.getMessage());
-        }
+    public void updateManager(Manager newManager) { // expects a valid manager
+        Database.removeManager(newManager.getId());
+        Database.addManager(newManager);
     }
 
-    public void updateStaff(String staffId, String newName, String newEmail, String newPassword) {
-        Staff staff = Database.getStaff(staffId);
-        Database.removeStaff(staffId, false);
-        try {
-            new Staff(staffId, newName, newEmail, newPassword);
-        } catch (RuntimeException e) {
-            Database.removeStaff(staffId, false);
-            new Staff(staffId, staff.getName(), staff.getEmail(), staff.getPassword());
-            throw new RuntimeException(e.getMessage());
-        }
+    public void updateStaff(Staff newStaff) {
+        Database.removeStaff(newStaff.getId(), false);
+        Database.addStaff(newStaff);
     }
 
-    public void updateDoctor(String doctorId, String newName, String newEmail, String newPassword) {
-        Doctor doctor = Database.getDoctor(doctorId);
-        Database.removeDoctor(doctorId, false);
-        try {
-            new Doctor(doctorId, newName, newEmail, newPassword);
-        } catch (RuntimeException e) {
-            Database.removeDoctor(doctorId, false);
-            new Doctor(doctorId, doctor.getName(), doctor.getEmail(), doctor.getPassword());
-            throw new RuntimeException(e.getMessage());
-        }
+    public void updateDoctor(Doctor newDoctor) {
+        Database.removeDoctor(newDoctor.getId(), false);
+        Database.addDoctor(newDoctor);
+    }
+
+    public void updateMedicine(Medicine newMedicine) {
+        Database.removeMedicine(newMedicine.getId(), false);
+        Database.addMedicine(newMedicine);
     }
 
     public void removeManagerById(String managerId) {
@@ -113,25 +110,8 @@ public class Manager extends User {
 
     public Set<List<String>> getAllMedicinePublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllMedicineId(), Database::getMedicine); }
 
-
-    public void addMedicine(String medicineName, double medicineCharge) {
-        new Medicine(medicineName, medicineCharge);
-    }
-
     public void removeMedicine(String medicineId) {
         Database.removeMedicine(medicineId, true);
-    }
-
-    public void updateMedicine(String medicineId, String newName, double newCharge) {
-        Medicine medicine = Database.getMedicine(medicineId);
-        Database.removeMedicine(medicineId, false); // remove medicine record without removing dependencies
-        try {
-            new Medicine(medicineId, newName, newCharge);
-        } catch (RuntimeException e) {
-            Database.removeDoctor(medicineId, false); // remove newly added invalid medicine record
-            new Medicine(medicineId, medicine.getName(), medicine.getCharge()); // add back original medicine record
-            throw new RuntimeException(e.getMessage()); // throw error due to invalid new medicine record
-        }
     }
 
     public static void createManagerFromDbRecord(List<String> record) {
@@ -140,7 +120,8 @@ public class Manager extends User {
         String managerEmail = record.get(2);
         String managerPassword = record.getLast();
 
-        new Manager(managerId, managerName, managerEmail, managerPassword);
+        Manager manager = new Manager(managerId, managerName, managerEmail, managerPassword);
+        Database.addManager(manager);
     }
 
     @Override

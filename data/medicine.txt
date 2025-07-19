@@ -1,1 +1,2 @@
 P002,Panadol,25.0
+P003,Fever Meds,20.0

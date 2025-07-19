@@ -77,13 +77,14 @@ public class Appointment implements Identifiable {
     public double getTotalCharge() {
         return getConsultationFee() + getTotalMedicineCharges();
     }
+
     public void setDoctorId(String doctorId) {
         if (this.status.equals("Completed")) {
-            throw new AppointmentCompletedException("--- Appointment was completed and is not subject to any modification ---");
+            throw new AppointmentCompletedException("Appointment was completed and is not subject to any modification.");
         }
         checkDoctorId(doctorId);
         this.doctorId = doctorId;
-        if (doctorId == null) {
+        if (this.doctorId == null) { // Unassign a doctor
             this.status = "Pending";
         } else {
             this.status = "Confirmed";
@@ -94,7 +95,7 @@ public class Appointment implements Identifiable {
 
     public void setDoctorFeedback(String doctorFeedback) {
         if (this.status.equals("Completed")) {
-            throw new AppointmentCompletedException("--- Appointment was completed and is not subject to any modification ---");
+            throw new AppointmentCompletedException("Appointment was completed and is not subject to any modification.");
         }
         this.doctorFeedback = doctorFeedback;
         Database.removeAppointment(this.id, false);
@@ -103,7 +104,7 @@ public class Appointment implements Identifiable {
 
     public void setConsultationFee(double consultationFee) {
         if (this.status.equals("Completed")) {
-            throw new AppointmentCompletedException("--- Appointment was completed and is not subject to any modification ---");
+            throw new AppointmentCompletedException("Appointment was completed and is not subject to any modification.");
         }
         checkConsultationFee(consultationFee);
         this.consultationFee = consultationFee;
@@ -112,8 +113,11 @@ public class Appointment implements Identifiable {
     }
 
     public void setStatusToCompleted() {
+        if (this.status.equals("Completed")) {
+            throw new AppointmentCompletedException("Appointment is already completed.");
+        }
         if (this.doctorId == null || !this.status.equals("Confirmed")) {
-            throw new AppointmentNotCompletableException("--- Appointment is not completable. Make sure the appointment is confirmed and has a valid doctor ID ---");
+            throw new AppointmentNotCompletableException("Appointment is not completable. Make sure the appointment is confirmed and has a valid doctor ID.");
         } else {
             this.status = "Completed";
         }
@@ -156,8 +160,9 @@ public class Appointment implements Identifiable {
         double appointmentConsultationFee = Double.parseDouble(record.get(4));
         String appointmentStatus = record.getLast();
 
-        new Appointment(appointmentId, appointmentCustomerId, appointmentDoctorId,
+        Appointment appointment = new Appointment(appointmentId, appointmentCustomerId, appointmentDoctorId,
                 appointmentDoctorFeedback, appointmentConsultationFee, appointmentStatus
         );
+        Database.addAppointment(appointment);
     }
 }

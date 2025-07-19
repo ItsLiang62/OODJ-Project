@@ -13,34 +13,32 @@ public class Invoice implements Identifiable {
     private String id;
     private String appointmentId;
     private String paymentMethod;
-    private LocalDate paymentDate;
+    private LocalDate creationDate;
 
-    public Invoice(String id, String appointmentId, String paymentMethod, String paymentDate) {
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
+
+    public Invoice(String id, String appointmentId, String paymentMethod, LocalDate creationDate) {
         checkAppointmentId(appointmentId);
         checkPaymentMethod(paymentMethod);
         this.id = id;
         this.appointmentId = appointmentId;
         this.paymentMethod = paymentMethod;
-        this.paymentDate = LocalDate.parse(paymentDate, DateTimeFormatter.ofPattern("d/M/yyyy"));
-        Database.addInvoice(this);;
+        this.creationDate = creationDate;
     }
 
-    public Invoice(String appointmentId, String paymentMethod, String paymentDate) {
-        this(IdCreator.createId('I'), appointmentId, paymentMethod, paymentDate);
+    public Invoice(String appointmentId, String paymentMethod) {
+        this(IdCreator.createId('I'), appointmentId, paymentMethod, LocalDate.now());
     }
 
     public static void checkAppointmentId(String appointmentId) {
         if (appointmentId == null || appointmentId.isBlank()) {
-            throw new NullOrEmptyValueRejectedException("--- appointmentId field of Invoice object must not be null ---");
+            throw new NullOrEmptyValueRejectedException("Appointment ID of invoice must not be empty!");
         }
         if (!Database.getAllAppointmentId().contains(appointmentId)) {
-            throw new InvalidForeignKeyValueException("--- appointmentId field of Invoice object does not have a primary key reference ---");
-        }
-        if (!Database.getAppointment(appointmentId).getStatus().equals("Completed")) {
-            throw new AppointmentNotCompletedException("--- appointmentId field of Invoice object points to an Appointment whose status is not Completed ---");
+            throw new InvalidForeignKeyValueException("Appointment ID does not exist!");
         }
         if (Database.getAllAppointmentIdInInvoices().contains(appointmentId)) {
-            throw new AppointmentAlreadyHasInvoiceException("Appointment that already has another invoice!");
+            throw new AppointmentAlreadyHasInvoiceException("Appointment already has an invoice!");
         }
     }
 
@@ -53,16 +51,16 @@ public class Invoice implements Identifiable {
     public String getId() { return this.id; }
     public String getAppointmentId() { return this.appointmentId; }
     public String getPaymentMethod() { return this.paymentMethod; }
-    public String getPaymentDate() { return this.paymentDate.toString(); }
+    public String getCreationDate() { return this.creationDate.format(formatter); }
 
     public List<String> createDbRecord() {
         String dbId = this.id;
         String dbAppointmentId = this.appointmentId;
         String dbPaymentMethod = this.paymentMethod;
-        String dbPaymentDate = this.paymentDate.format(DateTimeFormatter.ofPattern("d/M/yyyy"));
+        String dbCreationDate = this.creationDate.format(formatter);
 
         return new ArrayList<>(Arrays.asList(
-                dbId, dbAppointmentId, dbPaymentMethod, dbPaymentDate
+                dbId, dbAppointmentId, dbPaymentMethod, dbCreationDate
         ));
     }
 
@@ -74,8 +72,9 @@ public class Invoice implements Identifiable {
         String invoiceId = record.getFirst();
         String invoiceAppointmentId = record.get(1);
         String invoicePaymentMethod = record.get(2);
-        String invoicePaymentDate = record.getLast();
+        String invoiceCreationDate = record.getLast();
 
-        new Invoice(invoiceId, invoiceAppointmentId, invoicePaymentMethod, invoicePaymentDate);
+        Invoice invoice = new Invoice(invoiceId, invoiceAppointmentId, invoicePaymentMethod, LocalDate.parse(invoiceCreationDate));
+        Database.addInvoice(invoice);
     }
 }

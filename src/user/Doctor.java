@@ -12,7 +12,6 @@ public class Doctor extends User {
 
     public Doctor(String id, String name, String email, String password) {
         super(id, name, email, password);;
-        Database.addDoctor(this);
     }
 
     public Doctor(String name, String email, String password) {
@@ -93,6 +92,7 @@ public class Doctor extends User {
         String doctorEmail = record.get(2);
         String doctorPassword = record.getLast();
 
-        new Doctor(doctorId, doctorName, doctorEmail, doctorPassword);
+        Doctor doctor = new Doctor(doctorId, doctorName, doctorEmail, doctorPassword);
+        Database.addDoctor(doctor);
     }
 }

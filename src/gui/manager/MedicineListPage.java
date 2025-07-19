@@ -5,6 +5,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 
+import operation.Medicine;
 import user.*;
 
 import java.awt.*;
@@ -184,7 +185,8 @@ public class MedicineListPage extends JFrame {
                     return;
                 }
                 try {
-                    MedicineListPage.this.managerUser.addMedicine(name, charge);
+                    Medicine newMedicine = new Medicine(name, charge);
+                    MedicineListPage.this.managerUser.addMedicine(newMedicine);
                     JOptionPane.showMessageDialog(null, "Successfully added medicine to inventory", "Medicine Created Successfully", JOptionPane.PLAIN_MESSAGE);
                 } catch (RuntimeException exception) {
                     JOptionPane.showMessageDialog(null, exception.getMessage(), "Input Error", JOptionPane.ERROR_MESSAGE);
@@ -220,7 +222,8 @@ public class MedicineListPage extends JFrame {
                 }
 
                 try {
-                    managerUser.updateMedicine(id, newName, newCharge);
+                    Medicine newMedicine = new Medicine(id, newName, newCharge);
+                    managerUser.updateMedicine(newMedicine);
                     JOptionPane.showMessageDialog(null, "Successfully edited medicine information", "Medicine Updated Successfully", JOptionPane.PLAIN_MESSAGE);
                 } catch (RuntimeException exception) {
                     JOptionPane.showMessageDialog(null, exception.getMessage(), "Input error", JOptionPane.ERROR_MESSAGE);

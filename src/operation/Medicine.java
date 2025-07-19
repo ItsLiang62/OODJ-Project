@@ -22,7 +22,6 @@ public class Medicine implements Identifiable {
         this.id = id;
         this.name = name;
         this.charge = charge;
-        Database.addMedicine(this);
     }
 
     public Medicine(String name, double charge) {
@@ -83,6 +82,7 @@ public class Medicine implements Identifiable {
         String medicineName = record.get(1);
         double medicineCharge = Double.parseDouble(record.getLast());
 
-        new Medicine(medicineId, medicineName, medicineCharge);
+        Medicine medicine = new Medicine(medicineId, medicineName, medicineCharge);
+        Database.addMedicine(medicine);
     }
 }
