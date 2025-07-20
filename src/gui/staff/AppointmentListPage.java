@@ -4,6 +4,7 @@ import gui.helper.ListenerHelper;
 import gui.helper.PageDesigner;
 import gui.helper.TableHelper;
 import operation.Appointment;
+import operation.Invoice;
 import user.Staff;
 
 import javax.swing.*;
@@ -23,7 +24,6 @@ public class AppointmentListPage extends JFrame {
     private final JButton loadButton = new JButton("Load");
     private final JButton addButton = new JButton("Add");
     private final JButton assignDoctorButton = new JButton("Assign Doctor");
-    private final JButton completeButton = new JButton("Mark as Complete");
     private final JButton collectPaymentButton = new JButton("Collect Payment");
     private final JButton deleteButton = new JButton("Delete");
     private final JButton backButton = new JButton("Back");
@@ -39,14 +39,17 @@ public class AppointmentListPage extends JFrame {
         loadButton.addActionListener(this.new LoadButtonListener());
         addButton.addActionListener(this.new AddButtonListener());
         assignDoctorButton.addActionListener(this.new AssignDoctorButtonListener());
+        collectPaymentButton.addActionListener(this.new CollectPaymentButtonListener());
+        deleteButton.addActionListener(this.new DeleteButtonListener());
+        backButton.addActionListener(this.new BackButtonListener());
 
         assignDoctorButton.setEnabled(false);
-        completeButton.setEnabled(false);
         collectPaymentButton.setEnabled(false);
         deleteButton.setEnabled(false);
 
+        this.setTitle("Appointment List Page");
         JButton[] loadPanelButtons = {loadButton};
-        JButton[] operatePanelButtons = {addButton, assignDoctorButton, completeButton, collectPaymentButton, deleteButton};
+        JButton[] operatePanelButtons = {addButton, assignDoctorButton, collectPaymentButton, deleteButton};
         PageDesigner.displayBorderLayoutListPage(this, titleLabel, loadPanelButtons, operatePanelButtons, backButton, scrollPane);
     }
 
@@ -56,7 +59,6 @@ public class AppointmentListPage extends JFrame {
             if (!e.getValueIsAdjusting()) {
                 boolean hasSelectedRow = appointmentTable.getSelectedRow() != -1;
                 assignDoctorButton.setEnabled(hasSelectedRow);
-                completeButton.setEnabled(hasSelectedRow);
                 collectPaymentButton.setEnabled(hasSelectedRow);
                 deleteButton.setEnabled(hasSelectedRow);
             }
@@ -67,7 +69,7 @@ public class AppointmentListPage extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             List<Object[]> appointmentRecords = TableHelper.asListOfObjectArray(staffUser.getAllAppointmentPublicRecords());
-            JButton[] operatePanelButtonsToDisable = {assignDoctorButton, completeButton, collectPaymentButton, deleteButton};
+            JButton[] operatePanelButtonsToDisable = {assignDoctorButton, collectPaymentButton, deleteButton};
             ListenerHelper.loadButtonClicked(tableModel, appointmentRecords, operatePanelButtonsToDisable);
         }
     }
@@ -112,7 +114,7 @@ public class AppointmentListPage extends JFrame {
                 staffUser.getAllDoctorPublicRecords().forEach(
                         record -> doctorIdName.add(record.getFirst() + " " + record.get(1))
                 );
-                JLabel doctorLabel = new JLabel("Doctor:");
+                JLabel doctorLabel = new JLabel(String.format("Doctor for %s", id));
                 JComboBox<String> doctorComboBox = new JComboBox<>(doctorIdName.toArray(new String[0]));
 
                 JPanel panel = ListenerHelper.getCustomUserInputPanel(new Component[] {doctorComboBox}, new JLabel[] {doctorLabel});
@@ -130,6 +132,59 @@ public class AppointmentListPage extends JFrame {
                     }
                 }
             }
+        }
+    }
+
+    private class CollectPaymentButtonListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            int row = appointmentTable.getSelectedRow();
+
+            if (row != -1) {
+
+                String id = (String) tableModel.getValueAt(row, 0);
+                Appointment appointment = staffUser.getAppointmentById(id);
+                String customerId = appointment.getCustomerId();
+                double consultationFee = appointment.getConsultationFee();
+                double medicineCharges = appointment.getTotalMedicineCharges();
+
+                int confirm = JOptionPane.showConfirmDialog(
+                        null, String.format("Customer %s to pay for RM%.2f consultation fee and RM%.2f medicine charges. Proceed?", customerId, consultationFee, medicineCharges), "Confirm Payment Collection", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE
+                );
+
+                if (confirm == JOptionPane.OK_OPTION) {
+                    try {
+                        staffUser.collectPayment(id);
+                        Invoice newInvoice = new Invoice(id);
+                        staffUser.addInvoice(newInvoice);
+                        JOptionPane.showMessageDialog(null, "Payment Successful. Invoice created for appointment.", "Payment Successful", JOptionPane.PLAIN_MESSAGE);
+                    } catch (RuntimeException ex) {
+                        JOptionPane.showMessageDialog(null, ex.getMessage(), "Unexpected Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
+        }
+    }
+
+    private class DeleteButtonListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            int row = appointmentTable.getSelectedRow();
+            if (row != -1) {
+                String id = (String) tableModel.getValueAt(row, 0);
+                int confirm = JOptionPane.showConfirmDialog(null, String.format("Are you sure you want to delete the appointment %s and all of its references?", id), "Confirm Delete", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE);
+                if (confirm == JOptionPane.YES_NO_OPTION) {
+                    staffUser.removeAppointmentById(id);
+                    JOptionPane.showMessageDialog(null, "Successfully deleted appointment", "Appointment Deleted Successfully", JOptionPane.PLAIN_MESSAGE);
+                }
+            }
+        }
+    }
+
+    private class BackButtonListener implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+            SwingUtilities.invokeLater(() -> new StaffMainPage(AppointmentListPage.this.staffUser));
+            AppointmentListPage.this.dispose();
         }
     }
 }

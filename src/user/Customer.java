@@ -1,5 +1,6 @@
 package user;
 
+import customExceptions.AppointmentCompletedException;
 import customExceptions.InsufficientApWalletException;
 import customExceptions.NegativeValueRejectedException;
 import database.*;
@@ -72,9 +73,12 @@ public class Customer extends User {
     }
 
     public void payForAppointment(Appointment appointment) {
+        if (appointment.getStatus().equals("Completed")) {
+            throw new AppointmentCompletedException("Appointment is already paid by customer and marked as completed.");
+        }
         double amount = appointment.getConsultationFee() + Database.getTotalMedicineChargesOfAppointment(appointment.getId());
         if (this.apWallet < amount) {
-            throw new InsufficientApWalletException("Customer does not have enough in ApWallet to pay for appointment!");
+            throw new InsufficientApWalletException("Customer does not have enough in AP Wallet to pay for appointment!");
         }
         this.apWallet -= amount;
         Database.removeCustomer(this.id, false);

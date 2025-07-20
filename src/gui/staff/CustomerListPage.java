@@ -116,9 +116,9 @@ public class CustomerListPage extends JFrame {
             int row = customerTable.getSelectedRow();
             if (row != -1) {
                 String id = (String) tableModel.getValueAt(row, 0);
-                int confirm = JOptionPane.showConfirmDialog(null, String.format("Are you sure you want to delete the account of customer %s?", id), "Confirm Delete", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE);
+                int confirm = JOptionPane.showConfirmDialog(null, String.format("Are you sure you want to delete the account of customer %s and all of its references?", id), "Confirm Delete", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE);
                 if (confirm == JOptionPane.YES_NO_OPTION) {
-                    staffUser.removeCustomer(id);
+                    staffUser.removeCustomerById(id);
                     JOptionPane.showMessageDialog(null, "Successfully deleted customer", "Customer Deleted Successfully", JOptionPane.PLAIN_MESSAGE);
                 }
             }

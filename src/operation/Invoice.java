@@ -11,23 +11,20 @@ import database.*;
 
 public class Invoice implements Identifiable {
     private String id;
-    private String appointmentId;
-    private String paymentMethod;
+    private String appointmentId;;
     private LocalDate creationDate;
 
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
 
-    public Invoice(String id, String appointmentId, String paymentMethod, LocalDate creationDate) {
+    public Invoice(String id, String appointmentId, LocalDate creationDate) {
         checkAppointmentId(appointmentId);
-        checkPaymentMethod(paymentMethod);
         this.id = id;
         this.appointmentId = appointmentId;
-        this.paymentMethod = paymentMethod;
         this.creationDate = creationDate;
     }
 
-    public Invoice(String appointmentId, String paymentMethod) {
-        this(IdCreator.createId('I'), appointmentId, paymentMethod, LocalDate.now());
+    public Invoice(String appointmentId) {
+        this(IdCreator.createId('I'), appointmentId, LocalDate.now());
     }
 
     public static void checkAppointmentId(String appointmentId) {
@@ -42,25 +39,17 @@ public class Invoice implements Identifiable {
         }
     }
 
-    public static void checkPaymentMethod(String paymentMethod) {
-        if (!Arrays.asList(new String[] {"Cash", "Debit", "Credit", "Digital Wallet"}).contains(paymentMethod)) {
-            throw new InvalidPaymentMethodException("Payment method must be either Cash, Debit, Credit or Digital Wallet!");
-        }
-    }
-
     public String getId() { return this.id; }
     public String getAppointmentId() { return this.appointmentId; }
-    public String getPaymentMethod() { return this.paymentMethod; }
     public String getCreationDate() { return this.creationDate.format(formatter); }
 
     public List<String> createDbRecord() {
         String dbId = this.id;
         String dbAppointmentId = this.appointmentId;
-        String dbPaymentMethod = this.paymentMethod;
         String dbCreationDate = this.creationDate.format(formatter);
 
         return new ArrayList<>(Arrays.asList(
-                dbId, dbAppointmentId, dbPaymentMethod, dbCreationDate
+                dbId, dbAppointmentId, dbCreationDate
         ));
     }
 
@@ -71,10 +60,9 @@ public class Invoice implements Identifiable {
     public static void createInvoiceFromRecord(List<String> record) {
         String invoiceId = record.getFirst();
         String invoiceAppointmentId = record.get(1);
-        String invoicePaymentMethod = record.get(2);
         String invoiceCreationDate = record.getLast();
 
-        Invoice invoice = new Invoice(invoiceId, invoiceAppointmentId, invoicePaymentMethod, LocalDate.parse(invoiceCreationDate, formatter));
+        Invoice invoice = new Invoice(invoiceId, invoiceAppointmentId, LocalDate.parse(invoiceCreationDate, formatter));
         Database.addInvoice(invoice);
     }
 }

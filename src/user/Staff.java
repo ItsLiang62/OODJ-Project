@@ -37,11 +37,17 @@ public class Staff extends User {
         Database.addAppointment(newAppointment);
     }
 
-    public void removeCustomer(String customerId) { Database.removeCustomer(customerId, true); }
+    public void addInvoice(Invoice newInvoice) {
+        Invoice.checkAppointmentId(newInvoice.getAppointmentId());
+        Database.addInvoice(newInvoice);
+    }
+
 
     public Customer getCustomerById(String customerId) {
         return Database.getCustomer(customerId);
     }
+
+    public Appointment getAppointmentById(String appointmentId) { return Database.getAppointment(appointmentId); }
 
     public Set<List<String>> getAllCustomerPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllCustomerId(), Database::getCustomer); }
 
@@ -53,22 +59,17 @@ public class Staff extends User {
         Database.removeCustomer(customerId, true);
     }
 
-    public void createAppointmentForCustomer(String customerId) {
-        new Appointment(customerId);
-    }
+    public void removeAppointmentById(String appointmentId) { Database.removeAppointment(appointmentId, true); }
 
     public void assignDoctorToAppointment(String appointmentId, String doctorId) {
         Appointment appointment = Database.getAppointment(appointmentId);
         appointment.setDoctorId(doctorId);
     }
 
-    public void collectPaymentAndGenerateInvoice(String appointmentId, String paymentMethod) {
+    public void collectPayment(String appointmentId) {
         Appointment appointment = Database.getAppointment(appointmentId);
         Customer customerOfAppointment = Database.getCustomer(appointment.getCustomerId());
         customerOfAppointment.payForAppointment(appointment);
-
-        Invoice invoice = new Invoice(appointmentId, paymentMethod);
-        Database.addInvoice(invoice);
         appointment.setStatusToCompleted();
     }
 
