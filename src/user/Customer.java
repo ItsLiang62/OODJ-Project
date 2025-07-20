@@ -18,9 +18,11 @@ public class Customer extends User {
         this.apWallet = apWallet;
     }
 
-    public Customer(String name, String email, String password, double apWallet) {
-        this(IdCreator.createId('C'), name, email, password, apWallet);
+    public Customer(String name, String email) {
+        this(IdCreator.createId('C'), name, email, email, 0);
     }
+
+    public double getApWallet() { return this.apWallet; }
 
     public Set<List<String>> getAllMyAppointmentRecords() {
         Set<List<String>> allMyAppointmentRecords = new LinkedHashSet<>();

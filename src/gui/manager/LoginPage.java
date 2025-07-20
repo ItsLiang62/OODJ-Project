@@ -2,6 +2,7 @@ package gui.manager;
 
 import customExceptions.EmailNotFoundException;
 import database.Database;
+import gui.staff.StaffMainPage;
 
 import javax.swing.*;
 import java.awt.*;
@@ -107,7 +108,9 @@ public class LoginPage extends JFrame implements ActionListener {
                     statusLabel.setForeground(Color.RED);
                     statusLabel.setText("Password incorrect. Login failed.");
                 } else {
-                    statusLabel.setText("Login successful.");
+                    JOptionPane.showMessageDialog(this, "Login successful!");
+                    SwingUtilities.invokeLater(() -> new StaffMainPage(Database.getStaff(userId)));
+                    this.dispose();
                 }
                 return;
             case 'D':

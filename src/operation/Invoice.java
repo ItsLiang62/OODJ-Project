@@ -15,7 +15,7 @@ public class Invoice implements Identifiable {
     private String paymentMethod;
     private LocalDate creationDate;
 
-    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
 
     public Invoice(String id, String appointmentId, String paymentMethod, LocalDate creationDate) {
         checkAppointmentId(appointmentId);
@@ -74,7 +74,7 @@ public class Invoice implements Identifiable {
         String invoicePaymentMethod = record.get(2);
         String invoiceCreationDate = record.getLast();
 
-        Invoice invoice = new Invoice(invoiceId, invoiceAppointmentId, invoicePaymentMethod, LocalDate.parse(invoiceCreationDate));
+        Invoice invoice = new Invoice(invoiceId, invoiceAppointmentId, invoicePaymentMethod, LocalDate.parse(invoiceCreationDate, formatter));
         Database.addInvoice(invoice);
     }
 }

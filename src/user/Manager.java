@@ -11,8 +11,8 @@ public class Manager extends User {
         super(id, name, email, password);
     }
 
-    public Manager(String name, String email, String password) {
-        this(IdCreator.createId('M'), name, email, password);
+    public Manager(String name, String email) {
+        this(IdCreator.createId('M'), name, email, email);
     }
 
     public void addManager(Manager newManager) {

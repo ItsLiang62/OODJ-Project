@@ -13,17 +13,41 @@ public class Staff extends User {
         super(id, name, email, password);
     }
 
-    public Staff(String name, String email, String password) {
-        this(IdCreator.createId('S'), name, email, password);
+    public Staff(String name, String email) {
+        this(IdCreator.createId('S'), name, email, email);
     }
 
-    public void createCustomer(String name, String email, String password, double apWallet) { new Customer(name, email, password, apWallet); }
+    public void addCustomer(Customer newCustomer) {
+        checkName(newCustomer.getName());
+        checkEmail(newCustomer.getEmail());
+        checkPassword(newCustomer.getPassword());
+        Database.addCustomer(newCustomer);
+    }
+
+    public void updateCustomer(Customer newCustomer) {
+        Database.removeCustomer(newCustomer.getId(), false);
+        Database.addCustomer(newCustomer);
+    }
+
+    public void addAppointment(Appointment newAppointment) {
+        Appointment.checkCustomerId(newAppointment.getCustomerId());
+        Appointment.checkDoctorId(newAppointment.getDoctorId());
+        Appointment.checkConsultationFee(newAppointment.getConsultationFee());
+        Appointment.checkStatus(newAppointment.getStatus());
+        Database.addAppointment(newAppointment);
+    }
+
+    public void removeCustomer(String customerId) { Database.removeCustomer(customerId, true); }
 
     public Customer getCustomerById(String customerId) {
         return Database.getCustomer(customerId);
     }
 
     public Set<List<String>> getAllCustomerPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllCustomerId(), Database::getCustomer); }
+
+    public Set<List<String>> getAllAppointmentPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllAppointmentId(), Database::getAppointment); }
+
+    public Set<List<String>> getAllDoctorPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllDoctorId(), Database::getDoctor); }
 
     public void removeCustomerById(String customerId) {
         Database.removeCustomer(customerId, true);

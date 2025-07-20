@@ -41,7 +41,7 @@ public class Appointment implements Identifiable {
             throw new NullOrEmptyValueRejectedException("--- customerId field of Appointment object must not be null or empty ---");
         }
         if (!Database.getAllCustomerId().contains(customerId)) {
-            throw new InvalidForeignKeyValueException("--- customerId field of Appointment object does not have a primary key reference ---");
+            throw new InvalidForeignKeyValueException("Customer ID does not exist!");
         }
     }
 
@@ -80,7 +80,7 @@ public class Appointment implements Identifiable {
 
     public void setDoctorId(String doctorId) {
         if (this.status.equals("Completed")) {
-            throw new AppointmentCompletedException("Appointment was completed and is not subject to any modification.");
+            throw new AppointmentCompletedException("Appointment is completed and is not subject to any modification.");
         }
         checkDoctorId(doctorId);
         this.doctorId = doctorId;
@@ -95,7 +95,7 @@ public class Appointment implements Identifiable {
 
     public void setDoctorFeedback(String doctorFeedback) {
         if (this.status.equals("Completed")) {
-            throw new AppointmentCompletedException("Appointment was completed and is not subject to any modification.");
+            throw new AppointmentCompletedException("Appointment is completed and is not subject to any modification.");
         }
         this.doctorFeedback = doctorFeedback;
         Database.removeAppointment(this.id, false);
@@ -104,7 +104,7 @@ public class Appointment implements Identifiable {
 
     public void setConsultationFee(double consultationFee) {
         if (this.status.equals("Completed")) {
-            throw new AppointmentCompletedException("Appointment was completed and is not subject to any modification.");
+            throw new AppointmentCompletedException("Appointment is completed and is not subject to any modification.");
         }
         checkConsultationFee(consultationFee);
         this.consultationFee = consultationFee;

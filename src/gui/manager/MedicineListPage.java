@@ -5,19 +5,20 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 
+import gui.helper.ListenerHelper;
+import gui.helper.PageDesigner;
+import gui.helper.TableHelper;
 import operation.Medicine;
 import user.*;
 
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
 import java.util.List;
 
 public class MedicineListPage extends JFrame {
     private Manager managerUser;
 
-    private final JLabel title = new JLabel("Manage Medicine");
+    private final JLabel titleLabel = new JLabel("Manage Medicines");
     private final JButton loadButton = new JButton("Load");
     private final JButton addButton = new JButton("Add");
     private final JButton editButton = new JButton("Edit");
@@ -30,99 +31,25 @@ public class MedicineListPage extends JFrame {
     public MedicineListPage(Manager managerUser) {
         this.managerUser = managerUser;
 
-        this.medicineTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        this.medicineTable.getSelectionModel().addListSelectionListener(this.new TableRowSelectionListener());
-        this.medicineTable.setPreferredScrollableViewportSize(new Dimension(600, 200));
-        this.medicineTable.setFillsViewportHeight(true);
+        TableHelper.configureToRecommendedSettings(medicineTable, this.new TableRowSelectionListener());
 
-        setTitle("Medicines List Page");
-        setSize(700, 600);
-        setLayout(new BorderLayout());
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        GridBagConstraints gbc = new GridBagConstraints();
-
-        // Adding panels to EmployeeListPage (BorderLayout)
-        JPanel northPanel = new JPanel(new GridBagLayout());
-        JPanel centerPanel = new JPanel(new GridBagLayout());
-        JPanel southPanel = new JPanel(new GridBagLayout());
-
-        this.add(northPanel, BorderLayout.NORTH);
-        this.add(centerPanel, BorderLayout.CENTER);
-        this.add(southPanel, BorderLayout.SOUTH);
-
-        // Adding panels to northPanel (GridBagLayout)
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.anchor = GridBagConstraints.CENTER;
-        gbc.gridx = 0;
-
-        JPanel backPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        JPanel loadPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-
-        gbc.gridy = 0;
-        northPanel.add(backPanel, gbc);
-        gbc.gridy = 1;
-        northPanel.add(titlePanel, gbc);
-        gbc.gridy = 2;
-        northPanel.add(loadPanel, gbc);
-
-        // Adding panels to centerPanel (GridBagLayout)
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.anchor = GridBagConstraints.CENTER;
-        gbc.gridx = 0;
-
-        gbc.gridy = 0;
-        centerPanel.add(this.scrollPane, gbc);
-
-        // Adding panels to southPanel (GridBagLayout)
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.anchor = GridBagConstraints.CENTER;
-        gbc.gridx = 0;
-
-        JPanel operatePanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
-        JPanel fillerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 10));
-
-        gbc.gridy = 0;
-        southPanel.add(operatePanel, gbc);
-        gbc.gridy = 1;
-        southPanel.add(fillerPanel, gbc);
-
-        // Add components to backPanel (FlowLayout)
-        this.backButton.addActionListener(this.new BackButtonListener());
-        backPanel.add(this.backButton);
-
-        // Add components to titlePanel (FlowLayout)
-        titlePanel.add(this.title);
-
-        // Add components to loadPanel (FlowLayout)
         this.loadButton.addActionListener(this.new LoadButtonListener());
-        loadPanel.add(this.loadButton);
-
-        // Add components to operatePanel (FlowLayout)
         this.addButton.addActionListener(this.new AddButtonListener());
         this.editButton.addActionListener(this.new EditButtonListener());
         this.deleteButton.addActionListener(this.new DeleteButtonListener());
+        this.backButton.addActionListener(this.new BackButtonListener());
+
         this.editButton.setEnabled(false);
         this.deleteButton.setEnabled(false);
-        operatePanel.add(this.addButton);
-        operatePanel.add(this.editButton);
-        operatePanel.add(this.deleteButton);
 
-        this.setVisible(true);
+        JButton[] loadPanelButtons = {loadButton};
+        JButton[] operatePanelButtons = {addButton, editButton, deleteButton};
+
+        this.setTitle("Medicine List Page");
+        PageDesigner.displayBorderLayoutListPage(this, titleLabel, loadPanelButtons, operatePanelButtons, backButton, scrollPane);
     }
 
-    private Object[][] getMedicineRecords() {
-        List<Object[]> allObjects = new ArrayList<>();
-        for (List<String> objectRecord: managerUser.getAllMedicinePublicRecords()) {
-            allObjects.add(objectRecord.toArray()); // String array is Object array
-        }
-        return allObjects.toArray(new Object[0][]);
-    }
+    private List<Object[]> getMedicineRecords() { return TableHelper.asListOfObjectArray(managerUser.getAllMedicinePublicRecords()); }
 
     private class TableRowSelectionListener implements ListSelectionListener {
         @Override
@@ -138,12 +65,8 @@ public class MedicineListPage extends JFrame {
     private class LoadButtonListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            MedicineListPage.this.tableModel.setRowCount(0);
-            for (Object[] medicineRecord: MedicineListPage.this.getMedicineRecords()) {
-                MedicineListPage.this.tableModel.addRow(medicineRecord);
-            }
-            MedicineListPage.this.editButton.setEnabled(false);
-            MedicineListPage.this.deleteButton.setEnabled(false);
+            JButton[] operatePanelButtonsToDisable = {editButton, deleteButton};
+            ListenerHelper.loadButtonClicked(tableModel, getMedicineRecords(), operatePanelButtonsToDisable);
         }
     }
 
@@ -153,25 +76,13 @@ public class MedicineListPage extends JFrame {
             JTextField nameField = new JTextField(15);
             JTextField chargeField = new JTextField(15);
 
-            JPanel panel = new JPanel(new GridBagLayout());
-            GridBagConstraints gbc = new GridBagConstraints();
-            gbc.insets = new Insets(5, 5, 5, 5);
+            JLabel nameLabel = new JLabel("Name:");
+            JLabel chargeLabel = new JLabel("Charge:");
 
-            gbc.anchor = GridBagConstraints.EAST;
-            gbc.gridx = 0;
+            JTextField[] textFields = {nameField, chargeField};
+            JLabel[] labels = {nameLabel, chargeLabel};
 
-            gbc.gridy = 0;
-            panel.add(new JLabel("Name:"), gbc);
-            gbc.gridy = 1;
-            panel.add(new JLabel("Charge:"), gbc);
-
-            gbc.anchor = GridBagConstraints.CENTER;
-            gbc.gridx = 1;
-
-            gbc.gridy = 0;
-            panel.add(nameField, gbc);
-            gbc.gridy = 1;
-            panel.add(chargeField, gbc);
+            JPanel panel = ListenerHelper.getCustomUserInputPanel(textFields, labels);
 
             int result = JOptionPane.showConfirmDialog(null, panel, "Add New Medicine", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 

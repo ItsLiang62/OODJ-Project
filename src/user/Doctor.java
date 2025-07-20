@@ -14,8 +14,8 @@ public class Doctor extends User {
         super(id, name, email, password);;
     }
 
-    public Doctor(String name, String email, String password) {
-        this(IdCreator.createId('D'), name, email, password);
+    public Doctor(String name, String email) {
+        this(IdCreator.createId('D'), name, email, email);
     }
 
     public Set<List<String>> getAllMyAppointmentRecords() {

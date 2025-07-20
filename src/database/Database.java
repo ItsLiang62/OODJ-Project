@@ -343,10 +343,14 @@ public final class Database {
     }
 
     private static <T extends Identifiable> void removeRootDependenciesFrom(Set<T> rootSet, String foreignKeyId, FieldValueReturner<T> fieldValueReturner, IdentifiableRemover identifiableRemover, File resultOutputFile) {
+        List<T> rootsToRemove = new ArrayList<>();
         for (T root: rootSet) {
             if (fieldValueReturner.getFieldValue(root).equals(foreignKeyId)) {
-                identifiableRemover.removeIdentifiable(root.getId(), true);
+                rootsToRemove.add(root);
             }
+        }
+        for (T root: rootsToRemove) {
+            identifiableRemover.removeIdentifiable(root.getId(), true);
         }
         Database.saveRecords(rootSet, resultOutputFile);
     }
