@@ -47,7 +47,8 @@ Thumbs.db
 *.ear
 
 ### Misc ###
-data/*.txt
+/data
+/data/*.txt
 *.txt
 *.bak
 *.swp
