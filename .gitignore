@@ -47,8 +47,7 @@ Thumbs.db
 *.ear
 
 ### Misc ###
-data
-.txt
+*.txt
 *.bak
 *.swp
 release.properties
