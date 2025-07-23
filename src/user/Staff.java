@@ -1,9 +1,7 @@
 package user;
 
-import customExceptions.InsufficientApWalletException;
-import customExceptions.NegativeValueRejectedException;
 import database.Database;
-import database.Identifiable;
+import database.IdCreator;
 import operation.Appointment;
 import operation.Invoice;
 
@@ -13,57 +11,66 @@ public class Staff extends User {
 
     public Staff(String id, String name, String email, String password) {
         super(id, name, email, password);
-        Database.addStaff(this);
     }
 
-    public Staff(String name, String email, String password) {
-        this(Identifiable.createId('S'), name, email, password);
+    public Staff(String name, String email) {
+        this(IdCreator.createId('S'), name, email, email);
     }
 
-    public void createCustomer(String name, String email, String password, double apWallet) {
-        new Customer(name, email, password, apWallet);
+    public void addCustomer(Customer newCustomer) {
+        checkName(newCustomer.getName());
+        checkEmail(newCustomer.getEmail());
+        checkPassword(newCustomer.getPassword());
+        Database.addCustomer(newCustomer);
     }
 
-    public Customer getCustomerWithId(String customerId) {
+    public void updateCustomer(Customer newCustomer) {
+        Database.removeCustomer(newCustomer.getId(), false);
+        Database.addCustomer(newCustomer);
+    }
+
+    public void addAppointment(Appointment newAppointment) {
+        Appointment.checkCustomerId(newAppointment.getCustomerId());
+        Appointment.checkDoctorId(newAppointment.getDoctorId());
+        Appointment.checkConsultationFee(newAppointment.getConsultationFee());
+        Appointment.checkStatus(newAppointment.getStatus());
+        Database.addAppointment(newAppointment);
+    }
+
+    public void addInvoice(Invoice newInvoice) {
+        Invoice.checkAppointmentId(newInvoice.getAppointmentId());
+        Database.addInvoice(newInvoice);
+    }
+
+
+    public Customer getCustomerById(String customerId) {
         return Database.getCustomer(customerId);
     }
 
-    public Customer getCustomerWithEmail(String customerEmail) {
-        String customerId = Database.getUserIdWithEmail(customerEmail);
-        return Database.getCustomer(customerId);
+    public Appointment getAppointmentById(String appointmentId) { return Database.getAppointment(appointmentId); }
+
+    public Set<List<String>> getAllCustomerPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllCustomerId(), Database::getCustomer); }
+
+    public Set<List<String>> getAllAppointmentPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllAppointmentId(), Database::getAppointment); }
+
+    public Set<List<String>> getAllDoctorPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllDoctorId(), Database::getDoctor); }
+
+    public void removeCustomerById(String customerId) {
+        Database.removeCustomer(customerId, true);
     }
 
-    public void removeCustomerWithId(String customerId) {
-        Database.removeCustomer(customerId);
-    }
-
-    public void removeCustomerWithEmail(String customerEmail) {
-        String customerId = Database.getUserIdWithEmail(customerEmail);
-        Database.removeCustomer(customerId);
-    }
-
-    public void createAppointmentForCustomer(String customerId) {
-        new Appointment(customerId);
-    }
+    public void removeAppointmentById(String appointmentId) { Database.removeAppointment(appointmentId, true); }
 
     public void assignDoctorToAppointment(String appointmentId, String doctorId) {
         Appointment appointment = Database.getAppointment(appointmentId);
         appointment.setDoctorId(doctorId);
     }
 
-    public void markAppointmentAsCompleted(String appointmentId) {
+    public void collectPayment(String appointmentId) {
         Appointment appointment = Database.getAppointment(appointmentId);
-        appointment.setStatusToCompleted();
-    }
-
-    public void collectPaymentAndGenerateInvoice(String appointmentId, String paymentMethod, String paymentDate) {
-        Appointment appointment = Database.getAppointment(appointmentId);
-        double appointmentConsultationFee = appointment.getConsultationFee();
-        double appointmentMedicineCharges = appointment.getTotalMedicineCharges();
         Customer customerOfAppointment = Database.getCustomer(appointment.getCustomerId());
-        customerOfAppointment.payWithApWallet(appointmentConsultationFee + appointmentMedicineCharges);
-
-        new Invoice(appointmentId, paymentMethod, paymentDate);
+        customerOfAppointment.payForAppointment(appointment);
+        appointment.setStatusToCompleted();
     }
 
     @Override
@@ -87,23 +94,13 @@ public class Staff extends User {
         Database.addStaff(this);
     }
 
-    public List<String> createRecord() {
-        String dbId = this.id;
-        String dbName = this.name;
-        String dbEmail = this.email;
-        String dbPassword = this.password;
-
-        return new ArrayList<>(Arrays.asList(
-                dbId, dbName, dbEmail, dbPassword
-        ));
-    }
-
     public static void createStaffFromRecord(List<String> record) {
         String staffId = record.getFirst();
         String staffName = record.get(1);
         String staffEmail = record.get(2);
         String staffPassword = record.getLast();
 
-        new Staff(staffId, staffName, staffEmail, staffPassword);
+        Staff staff = new Staff(staffId, staffName, staffEmail, staffPassword);
+        Database.addStaff(staff);
     }
 }

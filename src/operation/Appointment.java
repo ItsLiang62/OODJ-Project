@@ -2,12 +2,12 @@ package operation;
 
 import customExceptions.*;
 import database.Database;
+import database.IdCreator;
 import database.Identifiable;
-import database.Savable;
 
 import java.util.*;
 
-public class Appointment implements Savable {
+public class Appointment implements Identifiable {
     private String id;
     private String customerId;
     private String doctorId;
@@ -33,33 +33,33 @@ public class Appointment implements Savable {
 
 
     public Appointment(String customerId) {
-        this(Identifiable.createId('A'), customerId, null, null, 0.0, "Pending");
+        this(IdCreator.createId('A'), customerId, null, null, 0.0, "Pending");
     }
 
     public static void checkCustomerId(String customerId) {
         if (customerId == null || customerId.isBlank()) {
-            throw new NullOrEmptyValueRejectedException("--- customerId field of Appointment object must not be null or empty ---");
+            throw new NullOrEmptyValueRejectedException("Customer ID of appointment object must not be null or empty!");
         }
         if (!Database.getAllCustomerId().contains(customerId)) {
-            throw new InvalidForeignKeyValueException("--- customerId field of Appointment object does not have a primary key reference ---");
+            throw new InvalidForeignKeyValueException("Customer ID does not exist!");
         }
     }
 
     public static void checkDoctorId(String doctorId) {
         if (doctorId != null && !Database.getAllDoctorId().contains(doctorId)) {
-            throw new InvalidForeignKeyValueException("--- doctorId field of Appointment object does not have a primary key reference ---");
+            throw new InvalidForeignKeyValueException("Doctor ID of appointment does not exist!");
         }
     }
 
     public static void checkStatus(String status) {
         if (!Arrays.asList(new String[] {"Pending", "Confirmed", "Completed"}).contains(status)) {
-            throw new InvalidAppointmentStatusException("--- status field of Appointment object must be either Pending, Confirmed or Completed ---");
+            throw new InvalidAppointmentStatusException("Status of appointment must be either Pending, Confirmed or Completed!");
         }
     }
 
     public static void checkConsultationFee(double consultationFee) {
         if (consultationFee < 0) {
-            throw new NegativeValueRejectedException("--- consultationFee field of Appointment object must be equal or more than 0 ---");
+            throw new NegativeValueRejectedException("Consultation fee of appointment must be equal or more than 0!");
         }
     }
 
@@ -77,13 +77,14 @@ public class Appointment implements Savable {
     public double getTotalCharge() {
         return getConsultationFee() + getTotalMedicineCharges();
     }
+
     public void setDoctorId(String doctorId) {
         if (this.status.equals("Completed")) {
-            throw new AppointmentCompletedException("--- Appointment was completed and is not subject to any modification ---");
+            throw new AppointmentCompletedException("Appointment is completed and is not subject to any modification.");
         }
         checkDoctorId(doctorId);
         this.doctorId = doctorId;
-        if (doctorId == null) {
+        if (this.doctorId == null) { // Unassign a doctor
             this.status = "Pending";
         } else {
             this.status = "Confirmed";
@@ -94,7 +95,7 @@ public class Appointment implements Savable {
 
     public void setDoctorFeedback(String doctorFeedback) {
         if (this.status.equals("Completed")) {
-            throw new AppointmentCompletedException("--- Appointment was completed and is not subject to any modification ---");
+            throw new AppointmentCompletedException("Appointment is completed and is not subject to any modification.");
         }
         this.doctorFeedback = doctorFeedback;
         Database.removeAppointment(this.id, false);
@@ -103,7 +104,7 @@ public class Appointment implements Savable {
 
     public void setConsultationFee(double consultationFee) {
         if (this.status.equals("Completed")) {
-            throw new AppointmentCompletedException("--- Appointment was completed and is not subject to any modification ---");
+            throw new AppointmentCompletedException("Appointment is completed and is not subject to any modification.");
         }
         checkConsultationFee(consultationFee);
         this.consultationFee = consultationFee;
@@ -112,8 +113,11 @@ public class Appointment implements Savable {
     }
 
     public void setStatusToCompleted() {
+        if (this.status.equals("Completed")) {
+            throw new AppointmentCompletedException("Appointment is already completed.");
+        }
         if (this.doctorId == null || !this.status.equals("Confirmed")) {
-            throw new AppointmentNotCompletableException("--- Appointment is not completable. Make sure the appointment is confirmed and has a valid doctor ID ---");
+            throw new AppointmentNotCompletableException("Appointment is not completable. Make sure the appointment is confirmed and has a valid doctor ID.");
         } else {
             this.status = "Completed";
         }
@@ -121,7 +125,7 @@ public class Appointment implements Savable {
         Database.addAppointment(this);
     }
 
-    public List<String> createRecord() {
+    public List<String> createDbRecord() {
         String dbId = this.id;
         String dbCustomerId = this.customerId;
         String dbDoctorId = Objects.requireNonNullElse(doctorId, "NULL");
@@ -132,6 +136,10 @@ public class Appointment implements Savable {
         return new ArrayList<>(Arrays.asList(
                 dbId, dbCustomerId, dbDoctorId, dbDoctorFeedback, dbConsultationFee, dbStatus
         ));
+    }
+
+    public List<String> createPublicRecord() {
+        return this.createDbRecord();
     }
 
     public static void createAppointmentFromRecord(List<String> record) {
@@ -152,8 +160,9 @@ public class Appointment implements Savable {
         double appointmentConsultationFee = Double.parseDouble(record.get(4));
         String appointmentStatus = record.getLast();
 
-        new Appointment(appointmentId, appointmentCustomerId, appointmentDoctorId,
+        Appointment appointment = new Appointment(appointmentId, appointmentCustomerId, appointmentDoctorId,
                 appointmentDoctorFeedback, appointmentConsultationFee, appointmentStatus
         );
+        Database.addAppointment(appointment);
     }
 }

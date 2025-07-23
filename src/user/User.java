@@ -6,10 +6,13 @@ import customExceptions.NullOrEmptyValueRejectedException;
 import customExceptions.RecordAlreadyInDatabaseException;
 import database.*;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public abstract class User implements Savable {
+public abstract class User implements Identifiable {
     protected String id;
     protected String name;
     protected String email;
@@ -29,7 +32,7 @@ public abstract class User implements Savable {
         Pattern namePattern = Pattern.compile("^([A-Z][A-Za-z]*(\\s[A-Z][A-Za-z]*)*)$");
         Matcher nameMatcher = namePattern.matcher(name);
         if (!nameMatcher.matches()) {
-            throw new InvalidUserNameException("--- name field of User object is invalid ---");
+            throw new InvalidUserNameException("Invalid user name!");
         }
     }
 
@@ -37,16 +40,16 @@ public abstract class User implements Savable {
         Pattern emailPattern = Pattern.compile("^([\\w.+%-]+@[\\w.-]+\\.\\w{2,})$");
         Matcher emailMatcher = emailPattern.matcher(email);
         if (!emailMatcher.matches()) {
-            throw new InvalidEmailException("--- email field of User object must follow the correct email format ---");
+            throw new InvalidEmailException("Invalid email format!");
         }
         if (Database.getAllUserEmails().contains(email)) {
-            throw new RecordAlreadyInDatabaseException("--- email field of User object is being used by another User ---");
+            throw new RecordAlreadyInDatabaseException("Email is already in use by another user!");
         }
     }
 
     public static void checkPassword(String password) {
         if (password == null || password.isBlank()) {
-            throw new NullOrEmptyValueRejectedException("--- password field of User object must not be null or empty ---");
+            throw new NullOrEmptyValueRejectedException("Password must not be empty!");
         }
     }
 
@@ -68,5 +71,24 @@ public abstract class User implements Savable {
         this.password = password;
     }
 
-    //public abstract List<String> getProfileInfo();
+    public List<String> createDbRecord() {
+        String dbId = this.id;
+        String dbName = this.name;
+        String dbEmail = this.email;
+        String dbPassword = this.password;
+
+        return new ArrayList<>(Arrays.asList(
+                dbId, dbName, dbEmail, dbPassword
+        ));
+    }
+
+    public List<String> createPublicRecord() {
+        String id = this.id;
+        String name = this.name;
+        String email = this.email;
+
+        return new ArrayList<>(Arrays.asList(
+                id, name, email
+        ));
+    }
 }

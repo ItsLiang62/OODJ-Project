@@ -1,5 +1,6 @@
 package user;
 
+import customExceptions.AppointmentCompletedException;
 import customExceptions.InsufficientApWalletException;
 import customExceptions.NegativeValueRejectedException;
 import database.*;
@@ -16,18 +17,19 @@ public class Customer extends User {
         super(id, name, email, password);
         checkApWallet(apWallet);
         this.apWallet = apWallet;
-        Database.addCustomer(this);
     }
 
-    public Customer(String name, String email, String password, double apWallet) {
-        this(Identifiable.createId('C'), name, email, password, apWallet);
+    public Customer(String name, String email) {
+        this(IdCreator.createId('C'), name, email, email, 0);
     }
+
+    public double getApWallet() { return this.apWallet; }
 
     public Set<List<String>> getAllMyAppointmentRecords() {
         Set<List<String>> allMyAppointmentRecords = new LinkedHashSet<>();
         for (String appointmentId: Database.getAllAppointmentIdOfCustomer(this.id)) {
             Appointment appointment = Database.getAppointment(appointmentId);
-            List<String> appointmentRecord = appointment.createRecord();
+            List<String> appointmentRecord = appointment.createDbRecord();
             appointmentRecord.add(String.valueOf(appointment.getTotalCharge()));
             allMyAppointmentRecords.add(appointmentRecord);
         }
@@ -37,7 +39,7 @@ public class Customer extends User {
     public Set<List<String>> getAllMyCustomerFeedbackRecords() {
         Set<List<String>> allMyCustomerFeedbackRecords = new LinkedHashSet<>();
         for (String customerFeedbackId: Database.getAllCustomerFeedbackIdOfCustomer(this.getId())) {
-            allMyCustomerFeedbackRecords.add(Database.getCustomerFeedback(customerFeedbackId).createRecord());
+            allMyCustomerFeedbackRecords.add(Database.getCustomerFeedback(customerFeedbackId).createDbRecord());
         }
         return allMyCustomerFeedbackRecords;
     }
@@ -45,34 +47,53 @@ public class Customer extends User {
     public Set<List<String>> getAllNonManagerEmployeeRecords() {
         Set<List<String>> allNonManagerEmployeeRecords = new LinkedHashSet<>();
         for (String staffId: Database.getAllStaffId()) {
-            List<String> staffRecords = Database.getStaff(staffId).createRecord();
-            staffRecords.removeLast();
-            staffRecords.removeLast();
-            staffRecords.add("Staff");
-            allNonManagerEmployeeRecords.add(staffRecords);
+            List<String> staffRecord = Database.getStaff(staffId).createPublicRecord();
+            staffRecord.removeLast();
+            staffRecord.add("Staff");
+            allNonManagerEmployeeRecords.add(staffRecord);
         }
         for (String doctorId: Database.getAllDoctorId()) {
-            List<String> doctorRecords = Database.getDoctor(doctorId).createRecord();
-            doctorRecords.removeLast();
-            doctorRecords.removeLast();
-            doctorRecords.add("Doctor");
-            allNonManagerEmployeeRecords.add(doctorRecords);
+            List<String> doctorRecord = Database.getDoctor(doctorId).createPublicRecord();
+            doctorRecord.removeLast();
+            doctorRecord.add("Doctor");
+            allNonManagerEmployeeRecords.add(doctorRecord);
         }
         return allNonManagerEmployeeRecords;
     }
 
+    public Set<List<String>> getAllMyPrescriptionRecords() {
+        Set<List<String>> allMyPrescriptionRecords = new LinkedHashSet<>();
+        for (List<String> prescriptionInfo: Database.getAllPrescriptionInfoOfCustomer(this.id)) {
+            allMyPrescriptionRecords.add(Database.getAppointmentMedicine(prescriptionInfo.getFirst(), prescriptionInfo.getLast()).createPublicRecord());
+        }
+        return allMyPrescriptionRecords;
+    }
+
+    public Set<List<String>> getAllMyInvoiceRecords() {
+        Set<List<String>> allMyInvoiceRecords = new LinkedHashSet<>();
+        for (String invoiceId: Database.getAllInvoiceIdOfCustomer(this.id)) {
+            allMyInvoiceRecords.add(Database.getInvoice(invoiceId).createPublicRecord());
+        }
+        return allMyInvoiceRecords;
+    }
+
     public void changeFeedbackContent(String customerFeedbackID, String content) {
         CustomerFeedback customerFeedback = Database.getCustomerFeedback(customerFeedbackID);
-        customerFeedback.setContent(content);
+        customerFeedback.setContent(content.trim());
     }
 
     public void provideFeedbackToNonManagerEmployee(String nonManagerEmployeeId, String content) {
-        new CustomerFeedback(this.id, nonManagerEmployeeId, content);
+        CustomerFeedback newCustomerFeedback = new CustomerFeedback(this.id, nonManagerEmployeeId, content.trim());
+        Database.addCustomerFeedback(newCustomerFeedback);
     }
 
-    public void payWithApWallet(double amount) {
+    public void payForAppointment(Appointment appointment) {
+        if (appointment.getStatus().equals("Completed")) {
+            throw new AppointmentCompletedException("Appointment is already paid by customer and marked as completed.");
+        }
+        double amount = appointment.getConsultationFee() + Database.getTotalMedicineChargesOfAppointment(appointment.getId());
         if (this.apWallet < amount) {
-            throw new InsufficientApWalletException("--- Customer does not have enough in ApWallet to pay for appointment ---");
+            throw new InsufficientApWalletException("Customer does not have enough in AP Wallet to pay for appointment!");
         }
         this.apWallet -= amount;
         Database.removeCustomer(this.id, false);
@@ -80,6 +101,9 @@ public class Customer extends User {
     }
 
     public void topUpApWallet(double amount) {
+        if (amount < 0) {
+            throw new NegativeValueRejectedException("Cannot top up ApWallet with a negative amount!");
+        }
         this.apWallet += amount;
         Database.removeCustomer(this.id, false);
         Database.addCustomer(this);
@@ -108,11 +132,11 @@ public class Customer extends User {
 
     public static void checkApWallet(double apWallet) {
         if (apWallet < 0) {
-            throw new NegativeValueRejectedException("--- apWallet field of Customer object must be equal or more than 0 ---");
+            throw new NegativeValueRejectedException("ApWallet of customer must be equal or more than 0!");
         }
     }
 
-    public List<String> createRecord() {
+    public List<String> createDbRecord() {
         String dbId = this.id;
         String dbName = this.name;
         String dbEmail = this.email;
@@ -124,6 +148,13 @@ public class Customer extends User {
         ));
     }
 
+    @Override
+    public List<String> createPublicRecord() {
+        List<String> publicRecord = super.createPublicRecord();
+        publicRecord.add(String.valueOf(this.apWallet));
+        return publicRecord;
+    }
+
     public static void createCustomerFromRecord(List<String> record) {
         String customerId = record.getFirst();
         String customerName = record.get(1);
@@ -131,6 +162,7 @@ public class Customer extends User {
         String customerPassword = record.get(3);
         double customerApWallet = Double.parseDouble(record.getLast());
 
-        new Customer(customerId, customerName, customerEmail, customerPassword, customerApWallet);
+        Customer customer = new Customer(customerId, customerName, customerEmail, customerPassword, customerApWallet);
+        Database.addCustomer(customer);
     }
 }

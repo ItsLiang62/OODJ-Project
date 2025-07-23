@@ -1,8 +1,6 @@
 package user;
 
 import database.*;
-import operation.Appointment;
-import operation.CustomerFeedback;
 import operation.Medicine;
 
 import java.util.*;
@@ -11,125 +9,119 @@ public class Manager extends User {
 
     public Manager(String id, String name, String email, String password) {
         super(id, name, email, password);
-        Database.addManager(this);
     }
 
-    public Manager(String name, String email, String password) {
-        this(Identifiable.createId('M'), name, email, password);
+    public Manager(String name, String email) {
+        this(IdCreator.createId('M'), name, email, email);
     }
 
-    public void createManager(String name, String email, String password) {
-        new Manager(name, email, password);
+    public void addManager(Manager newManager) {
+        checkName(newManager.getName());
+        checkEmail(newManager.getEmail());
+        checkPassword(newManager.getPassword());
+        // Verify manager validity in case user did not enter constructor instantiated Manager
+        Database.addManager(newManager);
     }
 
-    public void createStaff(String name, String email, String password) {
-        new Staff(name, email, password);
+    public void addStaff(Staff newStaff) {
+        checkName(newStaff.getName());
+        checkEmail(newStaff.getEmail());
+        checkPassword(newStaff.getPassword());
+        Database.addStaff(newStaff);
     }
 
-    public void createDoctor(String name, String email, String password) {
-        new Doctor(name, email, password);
+    public void addDoctor(Doctor newDoctor) {
+        checkName(newDoctor.getName());
+        checkEmail(newDoctor.getEmail());
+        checkPassword(newDoctor.getPassword());
+        Database.addDoctor(newDoctor);
     }
 
-    public Manager getManagerWithId(String managerId) {
+    public void addMedicine(Medicine newMedicine) {
+        Medicine.checkName(newMedicine.getName());
+        Medicine.checkCharge(newMedicine.getCharge());
+        Database.addMedicine(newMedicine);
+    }
+
+    public Manager getManagerById(String managerId) { return Database.getManager(managerId); }
+
+    public Manager getManagerByEmail(String managerEmail) {
+        String managerId = Database.getUserIdByEmail(managerEmail);
         return Database.getManager(managerId);
     }
 
-    public Manager getManagerWithEmail(String managerEmail) {
-        String managerId = Database.getUserIdWithEmail(managerEmail);
-        return Database.getManager(managerId);
-    }
-
-    public Staff getStaffWithId(String staffId) {
+    public Staff getStaffById(String staffId) {
         return Database.getStaff(staffId);
     }
 
-    public Staff getStaffWithEmail(String staffEmail) {
-        String staffId = Database.getUserIdWithEmail(staffEmail);
+    public Staff getStaffByEmail(String staffEmail) {
+        String staffId = Database.getUserIdByEmail(staffEmail);
         return Database.getStaff(staffId);
     }
 
-    public Doctor getDoctorWithId(String doctorId) {
+    public Doctor getDoctorById(String doctorId) {
         return Database.getDoctor(doctorId);
     }
 
-    public Doctor getDoctorWithEmail(String doctorEmail) {
-        String doctorId = Database.getUserIdWithEmail(doctorEmail);
+    public Doctor getDoctorByEmail(String doctorEmail) {
+        String doctorId = Database.getUserIdByEmail(doctorEmail);
         return Database.getDoctor(doctorId);
     }
 
-    public void removeManagerWithId(String managerId) {
+    public void updateManager(Manager newManager) { // expects a valid manager
+        Database.removeManager(newManager.getId());
+        Database.addManager(newManager);
+    }
+
+    public void updateStaff(Staff newStaff) {
+        Database.removeStaff(newStaff.getId(), false);
+        Database.addStaff(newStaff);
+    }
+
+    public void updateDoctor(Doctor newDoctor) {
+        Database.removeDoctor(newDoctor.getId(), false);
+        Database.addDoctor(newDoctor);
+    }
+
+    public void updateMedicine(Medicine newMedicine) {
+        Database.removeMedicine(newMedicine.getId(), false);
+        Database.addMedicine(newMedicine);
+    }
+
+    public void removeManagerById(String managerId) {
         if (!managerId.equals(this.id)) {
             Database.removeManager(managerId);
         }
     }
 
-    public void removeManagerWithEmail(String managerEmail) {
-        if (!managerEmail.equals(this.email)) {
-            String managerId = Database.getUserIdWithEmail(managerEmail);
-            Database.removeManager(managerId);
-        }
-    }
+    public void removeStaffById(String staffId) { Database.removeStaff(staffId, true); }
 
-    public void removeStaffWithId(String staffId) {
-        Database.removeStaff(staffId);
-    }
+    public void removeDoctorById(String doctorId) { Database.removeDoctor(doctorId, true); }
 
-    public void removeStaffWithEmail(String staffEmail) {
-        String staffId = Database.getUserIdWithEmail(staffEmail);
-        Database.removeStaff(staffId);
-    }
+    public Set<List<String>> getAllAppointmentPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllAppointmentId(), Database::getAppointment); }
 
-    public void removeDoctorWithId(String doctorId) {
-        Database.removeDoctor(doctorId);
-    }
+    public Set<List<String>> getAllCustomerFeedbackPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllCustomerFeedbackId(), Database::getCustomerFeedback); }
 
-    public void removeDoctorWithEmail(String doctorEmail) {
-        String doctorId = Database.getUserIdWithEmail(doctorEmail);
-        Database.removeDoctor(doctorId);
-    }
+    public Set<List<String>> getAllManagerPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllManagerId(), Database::getManager); }
 
-    public Set<List<String>> getAllAppointmentRecords() {
-        Set<List<String>> allAppointmentRecords = new LinkedHashSet<>();
-        for (String appointmentId: Database.getAllAppointmentId()) {
-            allAppointmentRecords.add(Database.getAppointment(appointmentId).createRecord());
-        }
-        return allAppointmentRecords;
-    }
+    public Set<List<String>> getAllStaffPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllStaffId(), Database::getStaff); }
 
-    public Set<List<String>> getAllCustomerFeedbackRecords() {
-        Set<List<String>> allCustomerFeedbackRecords = new LinkedHashSet<>();
-        for (String customerFeedbackId: Database.getAllCustomerFeedbackId()) {
-            allCustomerFeedbackRecords.add(Database.getCustomerFeedback(customerFeedbackId).createRecord());
-        }
-        return allCustomerFeedbackRecords;
-    }
+    public Set<List<String>> getAllDoctorPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllDoctorId(), Database::getDoctor); }
 
-    public void addMedicine(String medicineName, double medicineCharge) {
-        new Medicine(medicineName, medicineCharge);
-    }
+    public Set<List<String>> getAllMedicinePublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllMedicineId(), Database::getMedicine); }
 
     public void removeMedicine(String medicineId) {
-        Database.removeMedicine(medicineId);
+        Database.removeMedicine(medicineId, true);
     }
 
-    public List<String> createRecord() {
-        String dbId = this.id;
-        String dbName = this.name;
-        String dbEmail = this.email;
-        String dbPassword = this.password;
-
-        return new ArrayList<>(Arrays.asList(
-                dbId, dbName, dbEmail, dbPassword
-        ));
-    }
-
-    public static void createManagerFromRecord(List<String> record) {
+    public static void createManagerFromDbRecord(List<String> record) {
         String managerId = record.getFirst();
         String managerName = record.get(1);
         String managerEmail = record.get(2);
         String managerPassword = record.getLast();
 
-        new Manager(managerId, managerName, managerEmail, managerPassword);
+        Manager manager = new Manager(managerId, managerName, managerEmail, managerPassword);
+        Database.addManager(manager);
     }
 
     @Override

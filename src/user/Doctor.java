@@ -2,7 +2,7 @@ package user;
 
 import customExceptions.AppointmentDoesNotBelongToDoctorException;
 import database.Database;
-import database.Identifiable;
+import database.IdCreator;
 import operation.AppointmentMedicine;
 import operation.Appointment;
 
@@ -12,17 +12,16 @@ public class Doctor extends User {
 
     public Doctor(String id, String name, String email, String password) {
         super(id, name, email, password);;
-        Database.addDoctor(this);
     }
 
-    public Doctor(String name, String email, String password) {
-        this(Identifiable.createId('D'), name, email, password);
+    public Doctor(String name, String email) {
+        this(IdCreator.createId('D'), name, email, email);
     }
 
     public Set<List<String>> getAllMyAppointmentRecords() {
         Set<List<String>> allMyAppointmentRecords = new LinkedHashSet<>();
         for (String appointmentId: Database.getAllAppointmentIdOfDoctor(this.id)) {
-            allMyAppointmentRecords.add(Database.getAppointment(appointmentId).createRecord());
+            allMyAppointmentRecords.add(Database.getAppointment(appointmentId).createPublicRecord());
         }
         return allMyAppointmentRecords;
     }
@@ -30,7 +29,7 @@ public class Doctor extends User {
     public Set<List<String>> getAllMyCustomerFeedbackRecords() {
         Set<List<String>> allMyCustomerFeedbackRecords = new LinkedHashSet<>();
         for (String customerFeedbackId: Database.getAllCustomerFeedbackIdOfNonManagerEmployee(this.getId())) {
-            allMyCustomerFeedbackRecords.add(Database.getCustomerFeedback(customerFeedbackId).createRecord());
+            allMyCustomerFeedbackRecords.add(Database.getCustomerFeedback(customerFeedbackId).createPublicRecord());
         }
         return allMyCustomerFeedbackRecords;
     }
@@ -38,21 +37,30 @@ public class Doctor extends User {
     public Set<List<String>> getAllMedicineRecords() {
         Set<List<String>> allMedicineRecords = new LinkedHashSet<>();
         for (String medicineId: Database.getAllMedicineId()){
-            allMedicineRecords.add(Database.getMedicine(medicineId).createRecord());
+            allMedicineRecords.add(Database.getMedicine(medicineId).createPublicRecord());
         }
         return allMedicineRecords;
     }
 
+    public Set<List<String>> getAllMyPrescriptionRecords() {
+        Set<List<String>> allMyPrescriptionRecords = new LinkedHashSet<>();
+        for (List<String> prescriptionInfo: Database.getAllPrescriptionInfoOfDoctor(this.id)) {
+            allMyPrescriptionRecords.add(Database.getAppointmentMedicine(prescriptionInfo.getFirst(), prescriptionInfo.getLast()).createPublicRecord());
+        }
+        return allMyPrescriptionRecords;
+    }
+
     public void prescribeMedicine(String appointmentId, String medicineId, String targetSymptom) {
         if (!Database.getAllAppointmentIdOfDoctor(this.id).contains(appointmentId)) {
-            throw new AppointmentDoesNotBelongToDoctorException("--- Failed to set prescribe medicine for appointment. Appointment does not belong to doctor ---");
+            throw new AppointmentDoesNotBelongToDoctorException("Failed to prescribe medicine for appointment. Appointment does not belong to doctor");
         }
-        new AppointmentMedicine(appointmentId, medicineId, targetSymptom, true);
+        AppointmentMedicine newAppointmentMedicine = new AppointmentMedicine(appointmentId, medicineId, targetSymptom.trim(), true);
+        Database.addAppointmentMedicine(newAppointmentMedicine);
     }
 
     public void setConsultationFee(String appointmentId, double consultationFee) {
         if (!Database.getAllAppointmentIdOfDoctor(this.id).contains(appointmentId)) {
-            throw new AppointmentDoesNotBelongToDoctorException("--- Failed to set consultation fee for appointment. Appointment does not belong to doctor ---");
+            throw new AppointmentDoesNotBelongToDoctorException("Failed to set consultation fee for appointment. Appointment does not belong to doctor");
         }
         Appointment appointment = Database.getAppointment(appointmentId);
         appointment.setConsultationFee(consultationFee);
@@ -60,42 +68,31 @@ public class Doctor extends User {
 
     public void provideFeedback(String appointmentId, String feedback) {
         if (!Database.getAllAppointmentIdOfDoctor(this.id).contains(appointmentId)) {
-            throw new AppointmentDoesNotBelongToDoctorException("--- Failed to set feedback for customer of appointment. Appointment does not belong to doctor ---");
+            throw new AppointmentDoesNotBelongToDoctorException("Failed to set feedback for customer of appointment. Appointment does not belong to doctor!");
         }
         Appointment appointment = Database.getAppointment(appointmentId);
-        appointment.setDoctorFeedback(feedback);
+        appointment.setDoctorFeedback(feedback.trim());
     }
 
     @Override
     public void setName(String name) {
         super.setName(name);
-        Database.removeDoctor(this.id);
+        Database.removeDoctor(this.id, false);
         Database.addDoctor(this);
     }
 
     @Override
     public void setEmail(String email) {
         super.setEmail(email);
-        Database.removeDoctor(this.id);
+        Database.removeDoctor(this.id, false);
         Database.addDoctor(this);
     }
 
     @Override
     public void setPassword(String password) {
         super.setPassword(password);
-        Database.removeDoctor(this.id);
+        Database.removeDoctor(this.id, false);
         Database.addDoctor(this);
-    }
-
-    public List<String> createRecord() {
-        String dbId = this.id;
-        String dbName = this.name;
-        String dbEmail = this.email;
-        String dbPassword = this.password;
-
-        return new ArrayList<>(Arrays.asList(
-                dbId, dbName, dbEmail, dbPassword
-        ));
     }
 
     public static void createDoctorFromRecord(List<String> record) {
@@ -104,6 +101,7 @@ public class Doctor extends User {
         String doctorEmail = record.get(2);
         String doctorPassword = record.getLast();
 
-        new Doctor(doctorId, doctorName, doctorEmail, doctorPassword);
+        Doctor doctor = new Doctor(doctorId, doctorName, doctorEmail, doctorPassword);
+        Database.addDoctor(doctor);
     }
 }

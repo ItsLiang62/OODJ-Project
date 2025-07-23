@@ -1,2 +1,0 @@
-S001,Kieran,kieran@gmail.com,777
-S002,Justin,justin@gmail.com,666

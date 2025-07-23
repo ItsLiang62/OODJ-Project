@@ -2,15 +2,13 @@ package operation;
 
 import customExceptions.InvalidForeignKeyValueException;
 import customExceptions.NullOrEmptyValueRejectedException;
-import database.Database;
-import database.Identifiable;
-import database.Savable;
+import database.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class CustomerFeedback implements Savable {
+public class CustomerFeedback implements Identifiable {
     private final String id;
     private String customerId;
     private String nonManagerEmployeeId;
@@ -25,11 +23,10 @@ public class CustomerFeedback implements Savable {
         this.customerId = customerId;
         this.nonManagerEmployeeId = nonManagerEmployeeId;
         this.content = content;
-        Database.addCustomerFeedback(this);
     }
 
     public CustomerFeedback(String customerId, String nonManagerEmployeeId, String content) {
-        this(Identifiable.createId('F'), customerId, nonManagerEmployeeId, content);
+        this(IdCreator.createId('F'), customerId, nonManagerEmployeeId, content);
 
     }
 
@@ -47,29 +44,29 @@ public class CustomerFeedback implements Savable {
 
     public static void checkCustomerId(String customerId) {
         if (customerId == null || customerId.isBlank()) {
-            throw new NullOrEmptyValueRejectedException("--- customerId field of CustomerFeedback object must not be null or empty ---");
+            throw new NullOrEmptyValueRejectedException("Customer ID of customer feedback must not be null or empty!");
         }
         if (!Database.getAllCustomerId().contains(customerId)) {
-            throw new InvalidForeignKeyValueException("--- customerId field of CustomerFeedback object does not have a primary key reference ---");
+            throw new InvalidForeignKeyValueException("Customer ID of CustomerFeedback does not exist!");
         }
     }
 
     public static void checkNonManagerEmployeeId(String nonManagerEmployeeId) {
         if (nonManagerEmployeeId == null || nonManagerEmployeeId.isBlank()) {
-            throw new NullOrEmptyValueRejectedException("--- nonManagerEmployeeId field of CustomerFeedback object must not be null or empty ---");
+            throw new NullOrEmptyValueRejectedException("Non-manager employee ID of customer feedback must not be null or empty!");
         }
         if (!Database.getAllStaffId().contains(nonManagerEmployeeId) && !Database.getAllDoctorId().contains(nonManagerEmployeeId)) {
-            throw new InvalidForeignKeyValueException("--- nonManagerEmployeeId field of CustomerFeedback object does not have a primary key reference ---");
+            throw new InvalidForeignKeyValueException("Non-manager employee ID of customer feedback object does not exist!");
         }
     }
 
     public static void checkContent(String content) {
         if (content == null || content.isBlank()) {
-            throw new NullOrEmptyValueRejectedException("--- content field of CustomerFeedback object must not be null or empty ---");
+            throw new NullOrEmptyValueRejectedException("Customer feedback content must not be null or empty!");
         }
     }
 
-    public List<String> createRecord() {
+    public List<String> createDbRecord() {
         String dbCustomerId = this.customerId;
         String dbTargetEmployeeId = this.nonManagerEmployeeId;
         String dbContent = this.content;
@@ -79,12 +76,17 @@ public class CustomerFeedback implements Savable {
         ));
     }
 
+    public List<String> createPublicRecord() {
+        return this.createDbRecord();
+    }
+
     public static void createCustomerFeedbackFromRecord(List<String> record) {
         String customerFeedbackId = record.getFirst();
         String customerFeedbackCustomerId = record.get(1);
         String customerFeedbackTargetEmployeeId = record.get(2);
         String customerFeedbackContent = record.getLast();
 
-        new CustomerFeedback(customerFeedbackId, customerFeedbackCustomerId, customerFeedbackTargetEmployeeId, customerFeedbackContent);
+        CustomerFeedback customerFeedback = new CustomerFeedback(customerFeedbackId, customerFeedbackCustomerId, customerFeedbackTargetEmployeeId, customerFeedbackContent);
+        Database.addCustomerFeedback(customerFeedback);
     }
 }
