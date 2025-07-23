@@ -1,1 +1,3 @@
-A003,C002,D003,NULL,0.0,Confirmed
+A004,C003,D001,NULL,0.0,Confirmed
+A005,C002,D003,NULL,0.0,Confirmed
+A003,C002,D003,Rest,50.0,Completed

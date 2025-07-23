@@ -47,29 +47,44 @@ public class Customer extends User {
     public Set<List<String>> getAllNonManagerEmployeeRecords() {
         Set<List<String>> allNonManagerEmployeeRecords = new LinkedHashSet<>();
         for (String staffId: Database.getAllStaffId()) {
-            List<String> staffRecords = Database.getStaff(staffId).createDbRecord();
-            staffRecords.removeLast();
-            staffRecords.removeLast();
-            staffRecords.add("Staff");
-            allNonManagerEmployeeRecords.add(staffRecords);
+            List<String> staffRecord = Database.getStaff(staffId).createPublicRecord();
+            staffRecord.removeLast();
+            staffRecord.add("Staff");
+            allNonManagerEmployeeRecords.add(staffRecord);
         }
         for (String doctorId: Database.getAllDoctorId()) {
-            List<String> doctorRecords = Database.getDoctor(doctorId).createDbRecord();
-            doctorRecords.removeLast();
-            doctorRecords.removeLast();
-            doctorRecords.add("Doctor");
-            allNonManagerEmployeeRecords.add(doctorRecords);
+            List<String> doctorRecord = Database.getDoctor(doctorId).createPublicRecord();
+            doctorRecord.removeLast();
+            doctorRecord.add("Doctor");
+            allNonManagerEmployeeRecords.add(doctorRecord);
         }
         return allNonManagerEmployeeRecords;
     }
 
+    public Set<List<String>> getAllMyPrescriptionRecords() {
+        Set<List<String>> allMyPrescriptionRecords = new LinkedHashSet<>();
+        for (List<String> prescriptionInfo: Database.getAllPrescriptionInfoOfCustomer(this.id)) {
+            allMyPrescriptionRecords.add(Database.getAppointmentMedicine(prescriptionInfo.getFirst(), prescriptionInfo.getLast()).createPublicRecord());
+        }
+        return allMyPrescriptionRecords;
+    }
+
+    public Set<List<String>> getAllMyInvoiceRecords() {
+        Set<List<String>> allMyInvoiceRecords = new LinkedHashSet<>();
+        for (String invoiceId: Database.getAllInvoiceIdOfCustomer(this.id)) {
+            allMyInvoiceRecords.add(Database.getInvoice(invoiceId).createPublicRecord());
+        }
+        return allMyInvoiceRecords;
+    }
+
     public void changeFeedbackContent(String customerFeedbackID, String content) {
         CustomerFeedback customerFeedback = Database.getCustomerFeedback(customerFeedbackID);
-        customerFeedback.setContent(content);
+        customerFeedback.setContent(content.trim());
     }
 
     public void provideFeedbackToNonManagerEmployee(String nonManagerEmployeeId, String content) {
-        new CustomerFeedback(this.id, nonManagerEmployeeId, content);
+        CustomerFeedback newCustomerFeedback = new CustomerFeedback(this.id, nonManagerEmployeeId, content.trim());
+        Database.addCustomerFeedback(newCustomerFeedback);
     }
 
     public void payForAppointment(Appointment appointment) {
@@ -86,6 +101,9 @@ public class Customer extends User {
     }
 
     public void topUpApWallet(double amount) {
+        if (amount < 0) {
+            throw new NegativeValueRejectedException("Cannot top up ApWallet with a negative amount!");
+        }
         this.apWallet += amount;
         Database.removeCustomer(this.id, false);
         Database.addCustomer(this);

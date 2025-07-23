@@ -84,7 +84,7 @@ public class AppointmentListPage extends JFrame {
             JLabel customerLabel = new JLabel("Customer:");
             JComboBox<String> customerComboBox = new JComboBox<>(customerIdName.toArray(new String[0]));
 
-            JPanel panel = ListenerHelper.getCustomUserInputPanel(new Component[] {customerComboBox}, new JLabel[] {customerLabel});
+            JPanel panel = ListenerHelper.getCustomizedUserInputPanel(new Component[] {customerComboBox}, new JLabel[] {customerLabel});
 
             int result = JOptionPane.showConfirmDialog(null, panel, "Create Appointment for Customer", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
@@ -117,7 +117,7 @@ public class AppointmentListPage extends JFrame {
                 JLabel doctorLabel = new JLabel(String.format("Doctor for %s", id));
                 JComboBox<String> doctorComboBox = new JComboBox<>(doctorIdName.toArray(new String[0]));
 
-                JPanel panel = ListenerHelper.getCustomUserInputPanel(new Component[] {doctorComboBox}, new JLabel[] {doctorLabel});
+                JPanel panel = ListenerHelper.getCustomizedUserInputPanel(new Component[] {doctorComboBox}, new JLabel[] {doctorLabel});
 
                 int result = JOptionPane.showConfirmDialog(null, panel, "Assign Doctor to Appointment", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 

@@ -13,18 +13,20 @@ public class Invoice implements Identifiable {
     private String id;
     private String appointmentId;;
     private LocalDate creationDate;
+    private double totalAmount;
 
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
 
-    public Invoice(String id, String appointmentId, LocalDate creationDate) {
+    public Invoice(String id, String appointmentId, LocalDate creationDate, double totalAmount) {
         checkAppointmentId(appointmentId);
         this.id = id;
         this.appointmentId = appointmentId;
         this.creationDate = creationDate;
+        this.totalAmount = totalAmount;
     }
 
     public Invoice(String appointmentId) {
-        this(IdCreator.createId('I'), appointmentId, LocalDate.now());
+        this(IdCreator.createId('I'), appointmentId, LocalDate.now(), Database.getAppointment(appointmentId).getTotalCharge());
     }
 
     public static void checkAppointmentId(String appointmentId) {
@@ -47,9 +49,10 @@ public class Invoice implements Identifiable {
         String dbId = this.id;
         String dbAppointmentId = this.appointmentId;
         String dbCreationDate = this.creationDate.format(formatter);
+        String dbTotalCharge = String.valueOf(this.totalAmount);
 
         return new ArrayList<>(Arrays.asList(
-                dbId, dbAppointmentId, dbCreationDate
+                dbId, dbAppointmentId, dbCreationDate, dbTotalCharge
         ));
     }
 
@@ -60,9 +63,10 @@ public class Invoice implements Identifiable {
     public static void createInvoiceFromRecord(List<String> record) {
         String invoiceId = record.getFirst();
         String invoiceAppointmentId = record.get(1);
-        String invoiceCreationDate = record.getLast();
+        String invoiceCreationDate = record.get(2);
+        double invoiceTotalCharge = Double.parseDouble(record.getLast());
 
-        Invoice invoice = new Invoice(invoiceId, invoiceAppointmentId, LocalDate.parse(invoiceCreationDate, formatter));
+        Invoice invoice = new Invoice(invoiceId, invoiceAppointmentId, LocalDate.parse(invoiceCreationDate, formatter), invoiceTotalCharge);
         Database.addInvoice(invoice);
     }
 }

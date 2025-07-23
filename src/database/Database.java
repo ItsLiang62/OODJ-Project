@@ -306,7 +306,31 @@ public final class Database {
 
     public static Set<String> getAllCustomerFeedbackIdOfCustomer(String customerId) { return getAllIdOfWhereCondition(customerFeedbacks, customerId, CustomerFeedback::getCustomerId); }
 
-    public static Set<String> getAllInvoicesOfCustomer(String customerId) {
+    public static Set<List<String>> getAllPrescriptionInfoOfDoctor(String doctorId) {
+        Set<List<String>> allPrescriptionInfoOfDoctor = new LinkedHashSet<>();
+        for (String appointmentId: Database.getAllAppointmentIdOfDoctor(doctorId)) {
+            for (List<String> prescriptionInfo: Database.getAllPrescriptionInfo()) {
+                if (prescriptionInfo.getFirst().equals(appointmentId)) {
+                    allPrescriptionInfoOfDoctor.add(prescriptionInfo);
+                }
+            }
+        }
+        return allPrescriptionInfoOfDoctor;
+    }
+
+    public static Set<List<String>> getAllPrescriptionInfoOfCustomer(String customerId) {
+        Set<List<String>> allPrescriptionInfoOfCustomer = new LinkedHashSet<>();
+        for (String appointmentId: Database.getAllAppointmentIdOfCustomer(customerId)) {
+            for (List<String> prescriptionInfo: Database.getAllPrescriptionInfo()) {
+                if (prescriptionInfo.getFirst().equals(appointmentId)) {
+                    allPrescriptionInfoOfCustomer.add(prescriptionInfo);
+                }
+            }
+        }
+        return allPrescriptionInfoOfCustomer;
+    }
+
+    public static Set<String> getAllInvoiceIdOfCustomer(String customerId) {
         Set<String> allAppointmentIdInInvoices = getAllAppointmentIdInInvoices();
         Set<String> allAppointmentIdOfCustomer = getAllAppointmentIdOfCustomer(customerId);
         Set<String> allAppointmentIdOfCustomerWithInvoice = new HashSet<>(allAppointmentIdInInvoices);

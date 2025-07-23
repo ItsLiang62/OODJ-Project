@@ -103,7 +103,7 @@ public class EmployeeListPage extends JFrame {
             Component[] inputFields = {positionComboBox, nameField, emailField};
             JLabel[] labels = {positionLabel, nameLabel, emailLabel};
 
-            JPanel panel = ListenerHelper.getCustomUserInputPanel(inputFields, labels);
+            JPanel panel = ListenerHelper.getCustomizedUserInputPanel(inputFields, labels);
 
             int result = JOptionPane.showConfirmDialog(
                     null, panel, "Add New Employee", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE

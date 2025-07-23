@@ -7,15 +7,15 @@ import java.util.Arrays;
 import java.util.Collection;
 
 public final class ListenerHelper {
-    public static void loadButtonClicked(DefaultTableModel tableModel, Collection<Object[]> records, JButton[] operatePanelButtonsToDisable) {
+    public static void loadButtonClicked(DefaultTableModel tableModel, Collection<Object[]> records, JButton[] buttonsToDisable) {
         tableModel.setRowCount(0);
         for (Object[] record: records) {
             tableModel.addRow(record);
         }
-        Arrays.stream(operatePanelButtonsToDisable).forEach(button -> button.setEnabled(false));
+        Arrays.stream(buttonsToDisable).forEach(button -> button.setEnabled(false));
     }
 
-    public static JPanel getCustomUserInputPanel(Component[] inputFields, JLabel[] labels) {
+    public static JPanel getCustomizedUserInputPanel(Component[] inputFields, JLabel[] labels) {
 
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();

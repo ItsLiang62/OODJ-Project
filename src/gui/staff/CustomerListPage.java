@@ -60,7 +60,7 @@ public class CustomerListPage extends JFrame {
             JTextField[] textFields = {nameField, emailField};
             JLabel[] labels = {nameLabel, emailLabel};
 
-            JPanel panel = ListenerHelper.getCustomUserInputPanel(textFields, labels);
+            JPanel panel = ListenerHelper.getCustomizedUserInputPanel(textFields, labels);
 
             int result = JOptionPane.showConfirmDialog(null, panel, "Add New Customer", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 

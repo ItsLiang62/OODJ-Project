@@ -38,7 +38,7 @@ public class Appointment implements Identifiable {
 
     public static void checkCustomerId(String customerId) {
         if (customerId == null || customerId.isBlank()) {
-            throw new NullOrEmptyValueRejectedException("--- customerId field of Appointment object must not be null or empty ---");
+            throw new NullOrEmptyValueRejectedException("Customer ID of appointment object must not be null or empty!");
         }
         if (!Database.getAllCustomerId().contains(customerId)) {
             throw new InvalidForeignKeyValueException("Customer ID does not exist!");
@@ -47,19 +47,19 @@ public class Appointment implements Identifiable {
 
     public static void checkDoctorId(String doctorId) {
         if (doctorId != null && !Database.getAllDoctorId().contains(doctorId)) {
-            throw new InvalidForeignKeyValueException("--- doctorId field of Appointment object does not have a primary key reference ---");
+            throw new InvalidForeignKeyValueException("Doctor ID of appointment does not exist!");
         }
     }
 
     public static void checkStatus(String status) {
         if (!Arrays.asList(new String[] {"Pending", "Confirmed", "Completed"}).contains(status)) {
-            throw new InvalidAppointmentStatusException("--- status field of Appointment object must be either Pending, Confirmed or Completed ---");
+            throw new InvalidAppointmentStatusException("Status of appointment must be either Pending, Confirmed or Completed!");
         }
     }
 
     public static void checkConsultationFee(double consultationFee) {
         if (consultationFee < 0) {
-            throw new NegativeValueRejectedException("--- consultationFee field of Appointment object must be equal or more than 0 ---");
+            throw new NegativeValueRejectedException("Consultation fee of appointment must be equal or more than 0!");
         }
     }
 

@@ -82,7 +82,7 @@ public class MedicineListPage extends JFrame {
             JTextField[] textFields = {nameField, chargeField};
             JLabel[] labels = {nameLabel, chargeLabel};
 
-            JPanel panel = ListenerHelper.getCustomUserInputPanel(textFields, labels);
+            JPanel panel = ListenerHelper.getCustomizedUserInputPanel(textFields, labels);
 
             int result = JOptionPane.showConfirmDialog(null, panel, "Add New Medicine", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
