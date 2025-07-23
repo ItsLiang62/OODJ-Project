@@ -44,25 +44,25 @@ public class CustomerFeedback implements Identifiable {
 
     public static void checkCustomerId(String customerId) {
         if (customerId == null || customerId.isBlank()) {
-            throw new NullOrEmptyValueRejectedException("--- customerId field of CustomerFeedback object must not be null or empty ---");
+            throw new NullOrEmptyValueRejectedException("Customer ID of customer feedback must not be null or empty!");
         }
         if (!Database.getAllCustomerId().contains(customerId)) {
-            throw new InvalidForeignKeyValueException("--- customerId field of CustomerFeedback object does not have a primary key reference ---");
+            throw new InvalidForeignKeyValueException("Customer ID of CustomerFeedback does not exist!");
         }
     }
 
     public static void checkNonManagerEmployeeId(String nonManagerEmployeeId) {
         if (nonManagerEmployeeId == null || nonManagerEmployeeId.isBlank()) {
-            throw new NullOrEmptyValueRejectedException("--- nonManagerEmployeeId field of CustomerFeedback object must not be null or empty ---");
+            throw new NullOrEmptyValueRejectedException("Non-manager employee ID of customer feedback must not be null or empty!");
         }
         if (!Database.getAllStaffId().contains(nonManagerEmployeeId) && !Database.getAllDoctorId().contains(nonManagerEmployeeId)) {
-            throw new InvalidForeignKeyValueException("--- nonManagerEmployeeId field of CustomerFeedback object does not have a primary key reference ---");
+            throw new InvalidForeignKeyValueException("Non-manager employee ID of customer feedback object does not exist!");
         }
     }
 
     public static void checkContent(String content) {
         if (content == null || content.isBlank()) {
-            throw new NullOrEmptyValueRejectedException("--- content field of CustomerFeedback object must not be null or empty ---");
+            throw new NullOrEmptyValueRejectedException("Customer feedback content must not be null or empty!");
         }
     }
 

@@ -1,3 +1,0 @@
-D001,Palmer,palmer@gmail.com,555
-D002,Harley Rihanna,harley@gmail.com,123
-D003,Powell,powell@gmail.com,powell@gmail.com

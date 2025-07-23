@@ -1,2 +1,0 @@
-C002,Ye,ye@gmail.com,111,25.0
-C003,Owen,owen@gmail.com,owen@gmail.com,100.0

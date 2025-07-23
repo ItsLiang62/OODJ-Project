@@ -1,3 +1,0 @@
-M001,Anderson,anderson@gmail.com,999
-M002,Lawson,lawson@mail.com,888
-M003,Joshua,josh@gmail.com,josh@gmail.com
