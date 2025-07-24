@@ -183,7 +183,12 @@ public final class Database {
         Database.saveRecords(identifiableSet, resultOutputFile);
     }
 
-    public static void removeManager(String managerId) { removeFrom(managers, managerId, managerFile); }
+    public static void removeManager(String managerId) {
+        if (managerId.equals("M001")) {
+            throw new RootManagerUnmodifiableException("Root manager is unmodifiable!");
+        }
+        removeFrom(managers, managerId, managerFile);
+    }
 
     public static void removeStaff(String staffId, boolean removeAllDependencies) {
         removeFrom(staffs, staffId, managerFile);

@@ -197,18 +197,22 @@ public class EmployeeListPage extends JFrame {
                 String id = (String) tableModel.getValueAt(row, 0);
                 int confirm = JOptionPane.showConfirmDialog(null, String.format("Are you sure you want to delete the account of employee %s", id), "Confirm Delete", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE);
                 if (confirm == JOptionPane.YES_NO_OPTION) {
-                    switch (id.charAt(0)) {
-                        case 'M':
-                            managerUser.removeManagerById(id);
-                            break;
-                        case 'S':
-                            managerUser.removeStaffById(id);
-                            break;
-                        case 'D':
-                            managerUser.removeDoctorById(id);
-                            break;
+                    try {
+                        switch (id.charAt(0)) {
+                            case 'M':
+                                managerUser.removeManagerById(id);
+                                break;
+                            case 'S':
+                                managerUser.removeStaffById(id);
+                                break;
+                            case 'D':
+                                managerUser.removeDoctorById(id);
+                                break;
+                        }
+                        JOptionPane.showMessageDialog(null, "Successfully deleted employee record", "Employee Deleted Successfully", JOptionPane.PLAIN_MESSAGE);
+                    } catch (RuntimeException exception) {
+                        JOptionPane.showMessageDialog(null, exception.getMessage(), "Deletion Failed", JOptionPane.ERROR_MESSAGE);
                     }
-                    JOptionPane.showMessageDialog(null, "Successfully deleted employee record", "Employee Deleted Successfully", JOptionPane.PLAIN_MESSAGE);
                 }
             }
         }
