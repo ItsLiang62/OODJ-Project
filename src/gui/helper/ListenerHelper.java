@@ -12,7 +12,9 @@ public final class ListenerHelper {
         for (Object[] record: records) {
             tableModel.addRow(record);
         }
-        Arrays.stream(buttonsToDisable).forEach(button -> button.setEnabled(false));
+        if (buttonsToDisable != null) {
+            Arrays.stream(buttonsToDisable).forEach(button -> button.setEnabled(false));
+        }
     }
 
     public static JPanel getCustomizedUserInputPanel(Component[] inputFields, JLabel[] labels) {

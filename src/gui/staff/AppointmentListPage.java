@@ -78,14 +78,19 @@ public class AppointmentListPage extends JFrame {
             int result = JOptionPane.showConfirmDialog(null, panel, "Create Appointment for Customer", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
             if (result == JOptionPane.OK_OPTION) {
-                String customerId = ((String) (Objects.requireNonNull(customerComboBox.getSelectedItem()))).substring(0, 4);
-                System.out.println(customerId);
+                String customerId;
+                try {
+                    customerId = ((String) (Objects.requireNonNull(customerComboBox.getSelectedItem()))).substring(0, 4);
+                } catch (NullPointerException ex) {
+                    JOptionPane.showMessageDialog(null, "No customer is selected!", "Failed to Create Appointment", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
                 try {
                     Appointment newAppointment = new Appointment(customerId);
                     staffUser.addAppointment(newAppointment);
                     JOptionPane.showMessageDialog(null, "Successfully created appointment for customer", "Appointment Created Successfully", JOptionPane.PLAIN_MESSAGE);
                 } catch (RuntimeException ex) {
-                    JOptionPane.showMessageDialog(null, ex.getMessage(), "Unexpected error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(null, ex.getMessage(), "Unexpected Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         }
@@ -111,10 +116,15 @@ public class AppointmentListPage extends JFrame {
                 int result = JOptionPane.showConfirmDialog(null, panel, "Assign Doctor to Appointment", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
                 if (result == JOptionPane.OK_OPTION) {
-                    String newDoctorId = ((String) Objects.requireNonNull(doctorComboBox.getSelectedItem())).substring(0, 4);
-
+                    String doctorId;
                     try {
-                        staffUser.assignDoctorToAppointment(id, newDoctorId);
+                        doctorId = ((String) (Objects.requireNonNull(doctorComboBox.getSelectedItem()))).substring(0, 4);
+                    } catch (NullPointerException ex) {
+                        JOptionPane.showMessageDialog(null, "No doctor is selected!", "Failed to Assign Doctor", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                    try {
+                        staffUser.assignDoctorToAppointment(id, doctorId);
                         JOptionPane.showMessageDialog(null, "Successfully assigned doctor to appointment", "Appointment Updated Successfully", JOptionPane.PLAIN_MESSAGE);
                     } catch (RuntimeException ex) {
                         JOptionPane.showMessageDialog(null, ex.getMessage(), "Unexpected Error", JOptionPane.ERROR_MESSAGE);

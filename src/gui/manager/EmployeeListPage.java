@@ -78,17 +78,6 @@ public class EmployeeListPage extends JFrame {
         }
     }
 
-    private class TableRowSelectionListener implements ListSelectionListener {
-        @Override
-        public void valueChanged(ListSelectionEvent e) {
-            if (!e.getValueIsAdjusting()) {
-                boolean hasSelectedRow = employeeTable.getSelectedRow() != -1;
-                editButton.setEnabled(hasSelectedRow);
-                deleteButton.setEnabled(hasSelectedRow);
-            }
-        }
-    }
-
     private class AddButtonListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
