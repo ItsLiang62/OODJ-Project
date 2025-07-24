@@ -1,5 +1,6 @@
 package user;
 
+import customExceptions.SelfDeletionUnsupportedException;
 import database.*;
 import operation.Medicine;
 
@@ -91,6 +92,8 @@ public class Manager extends User {
     public void removeManagerById(String managerId) {
         if (!managerId.equals(this.id)) {
             Database.removeManager(managerId);
+        } else {
+            throw new SelfDeletionUnsupportedException("Cannot delete yourself!");
         }
     }
 
