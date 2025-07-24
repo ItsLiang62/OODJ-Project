@@ -18,7 +18,7 @@ public final class TableHelper {
 
     public static void configureToPreferredSettings(JTable table, int width, int height, JButton[] buttonsToDisable) {
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        table.getSelectionModel().addListSelectionListener(new TableHelper.TableRowSelectionListener(buttonsToDisable));
+        table.getSelectionModel().addListSelectionListener(new TableHelper.TableRowSelectionListener(table, buttonsToDisable));
         table.setPreferredScrollableViewportSize(new Dimension(width, height));
         table.setFillsViewportHeight(true);
     }
@@ -28,15 +28,16 @@ public final class TableHelper {
         public JButton[] buttonsToDisable;
         public JTable table;
 
-        public TableRowSelectionListener(JButton[] buttonsToDisable) {
+        public TableRowSelectionListener(JTable table, JButton[] buttonsToDisable) {
+            this.table = table;
             this.buttonsToDisable = buttonsToDisable;
         }
         @Override
         public void valueChanged(ListSelectionEvent e) {
             if (!e.getValueIsAdjusting()) {
-                boolean hasSelectedRow = table.getSelectedRow() != -1;
-                if (buttonsToDisable != null) {
-                    Arrays.stream(buttonsToDisable).forEach(button -> button.setEnabled(hasSelectedRow));
+                boolean hasSelectedRow = this.table.getSelectedRow() != -1;
+                if (this.buttonsToDisable != null) {
+                    Arrays.stream(this.buttonsToDisable).forEach(button -> button.setEnabled(hasSelectedRow));
                 }
             }
         }

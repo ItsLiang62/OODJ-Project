@@ -138,7 +138,6 @@ public class CustomerListPage extends JFrame {
         this.deleteButton.addActionListener(this.new DeleteButtonListener());
         this.backButton.addActionListener(this.new BackButtonListener());
 
-        this.setTitle("Customer List Page");
-        PageDesigner.displayBorderLayoutListPage(this, titleLabel, loadPanelButtons, operatePanelButtons, backButton, scrollPane);
+        PageDesigner.displayBorderLayoutListPage(this, "Manage Customers", titleLabel, loadPanelButtons, operatePanelButtons, backButton, scrollPane);
     }
 }

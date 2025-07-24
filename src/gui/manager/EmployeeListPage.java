@@ -54,8 +54,7 @@ public class EmployeeListPage extends JFrame {
         this.editButton.setEnabled(false);
         this.deleteButton.setEnabled(false);
 
-        this.setTitle("Employee List Page");
-        PageDesigner.displayBorderLayoutListPage(this, titleLabel, loadPanelButtons, operatePanelButtons, backButton, scrollPane);
+        PageDesigner.displayBorderLayoutListPage(this, "Manage Employees", titleLabel, loadPanelButtons, operatePanelButtons, backButton, scrollPane);
     }
 
     private List<Object[]> getEmployeeRecordsByType(String type) {

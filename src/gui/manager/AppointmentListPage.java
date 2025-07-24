@@ -21,8 +21,6 @@ public class AppointmentListPage extends JFrame {
         this.managerUser = managerUser;
 
         TableHelper.configureToPreferredSettings(appointmentTable, 600, 200, null);
-        PageDesigner.displayBorderLayoutListPage(this, titleLabel, null, null, backButton, scrollPane);
-
-        this.setTitle("View All Appointments");
+        PageDesigner.displayBorderLayoutListPage(this, "View All Appointments", titleLabel, null, null, backButton, scrollPane);
     }
 }

@@ -5,7 +5,8 @@ import java.awt.*;
 import java.util.Arrays;
 
 public final class PageDesigner {
-    public static void displayBorderLayoutListPage(JFrame frame, JLabel titleLabel, JButton[] loadPanelButtons, JButton[] operatePanelButtons, JButton backButton, JScrollPane scrollPane) {
+    public static void displayBorderLayoutListPage(JFrame frame, String title, JLabel titleLabel, JButton[] loadPanelButtons, JButton[] operatePanelButtons, JButton backButton, JScrollPane scrollPane) {
+        frame.setTitle(title);
         frame.setSize(700, 500);
         frame.setLayout(new BorderLayout());
         frame.setLocationRelativeTo(null);

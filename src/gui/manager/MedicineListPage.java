@@ -45,8 +45,7 @@ public class MedicineListPage extends JFrame {
         this.editButton.setEnabled(false);
         this.deleteButton.setEnabled(false);
 
-        this.setTitle("Medicine List Page");
-        PageDesigner.displayBorderLayoutListPage(this, titleLabel, loadPanelButtons, operatePanelButtons, backButton, scrollPane);
+        PageDesigner.displayBorderLayoutListPage(this, "Manage Medicines", titleLabel, loadPanelButtons, operatePanelButtons, backButton, scrollPane);
     }
 
     private List<Object[]> getMedicineRecords() { return TableHelper.asListOfObjectArray(managerUser.getAllMedicinePublicRecords()); }
