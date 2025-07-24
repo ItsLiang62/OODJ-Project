@@ -91,4 +91,8 @@ public abstract class User implements Identifiable {
                 id, name, email
         ));
     }
+
+    public static String[] getColumnNames() {
+        return new String[] {"ID", "Name", "Email"};
+    }
 }
