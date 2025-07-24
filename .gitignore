@@ -27,6 +27,9 @@ bin/
 nbactions.xml
 nb-configuration.xml
 build.xml
+build-impl.xml
+genfiles.properties
+nbbuild.xml
 
 ### VS Code ###
 .vscode/
@@ -58,3 +61,4 @@ pom.xml.tag
 manifest.mf
 *.orig
 *.rej
+/build/
