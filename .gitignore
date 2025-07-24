@@ -27,6 +27,9 @@ bin/
 nbactions.xml
 nb-configuration.xml
 build.xml
+build-impl.xml
+genfiles.properties
+nbbuild.xml
 
 ### VS Code ###
 .vscode/
@@ -47,6 +50,9 @@ Thumbs.db
 *.ear
 
 ### Misc ###
+/data
+/data/*.txt
+*.txt
 *.bak
 *.swp
 release.properties
@@ -55,3 +61,4 @@ pom.xml.tag
 manifest.mf
 *.orig
 *.rej
+/build/
