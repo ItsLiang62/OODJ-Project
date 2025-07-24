@@ -16,9 +16,9 @@ public final class TableHelper {
         return listOfObjectArray;
     }
 
-    public static void configureToPreferredSettings(JTable table, int width, int height, JButton[] buttonsToDisable) {
+    public static void configureToPreferredSettings(JTable table, int width, int height, JButton[] buttonsToDisableWithoutTableRowSelection) {
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        table.getSelectionModel().addListSelectionListener(new TableHelper.TableRowSelectionListener(table, buttonsToDisable));
+        table.getSelectionModel().addListSelectionListener(new TableHelper.TableRowSelectionListener(table, buttonsToDisableWithoutTableRowSelection));
         table.setPreferredScrollableViewportSize(new Dimension(width, height));
         table.setFillsViewportHeight(true);
     }

@@ -36,8 +36,9 @@ public class AppointmentListPage extends JFrame {
 
         JButton[] loadPanelButtons = {loadButton};
         JButton[] operatePanelButtons = {addButton, assignDoctorButton, collectPaymentButton, deleteButton};
+        JButton[] buttonsToDisableWithoutTableRowSelection = {assignDoctorButton, collectPaymentButton, deleteButton};
 
-        TableHelper.configureToPreferredSettings(appointmentTable, 600, 200, operatePanelButtons);
+        TableHelper.configureToPreferredSettings(appointmentTable, 600, 200, buttonsToDisableWithoutTableRowSelection);
 
         loadButton.addActionListener(this.new LoadButtonListener());
         addButton.addActionListener(this.new AddButtonListener());

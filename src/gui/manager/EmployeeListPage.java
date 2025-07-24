@@ -39,8 +39,9 @@ public class EmployeeListPage extends JFrame {
 
         JButton[] loadPanelButtons = {managersButton, staffsButton, doctorsButton};
         JButton[] operatePanelButtons = {addButton, editButton, deleteButton};
+        JButton[] buttonsToDisableWithoutTableRowSelection = {editButton, deleteButton};
 
-        TableHelper.configureToPreferredSettings(this.employeeTable, 600, 200, operatePanelButtons);
+        TableHelper.configureToPreferredSettings(this.employeeTable, 600, 200, buttonsToDisableWithoutTableRowSelection);
 
         EmployeeButtonListener ebl = this.new EmployeeButtonListener();
         this.managersButton.addActionListener(ebl);

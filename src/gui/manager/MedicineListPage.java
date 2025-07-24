@@ -31,10 +31,11 @@ public class MedicineListPage extends JFrame {
     public MedicineListPage(Manager managerUser) {
         JButton[] loadPanelButtons = {loadButton};
         JButton[] operatePanelButtons = {addButton, editButton, deleteButton};
+        JButton[] buttonsToDisableWithoutTableRowSelection = {editButton, deleteButton};
 
         this.managerUser = managerUser;
 
-        TableHelper.configureToPreferredSettings(medicineTable, 600, 200, operatePanelButtons);
+        TableHelper.configureToPreferredSettings(medicineTable, 600, 200, buttonsToDisableWithoutTableRowSelection);
 
         this.loadButton.addActionListener(this.new LoadButtonListener());
         this.addButton.addActionListener(this.new AddButtonListener());

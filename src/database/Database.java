@@ -12,16 +12,16 @@ import java.io.FileWriter;
 import java.util.stream.Collectors;
 
 public final class Database {
-
-    private final static File managerFile = new File("data/manager.txt");
-    private final static File staffFile = new File("data/staff.txt");
-    private final static File doctorFile = new File("data/doctor.txt");
-    private final static File customerFile = new File("data/customer.txt");
-    private final static File appointmentFile = new File("data/appointment.txt");
-    private final static File medicineFile = new File("data/medicine.txt");
-    private final static File appointmentMedicineFile = new File("data/appointmentmedicine.txt");
-    private final static File customerFeedbackFile = new File("data/customerFeedback.txt");
-    private final static File invoiceFile = new File("data/invoice.txt");
+    private final static String dataFolderPath = "data";
+    private final static File managerFile = new File(dataFolderPath + "/manager.txt");
+    private final static File staffFile = new File(dataFolderPath + "/staff.txt");
+    private final static File doctorFile = new File(dataFolderPath + "/doctor.txt");
+    private final static File customerFile = new File(dataFolderPath + "/customer.txt");
+    private final static File appointmentFile = new File(dataFolderPath + "/appointment.txt");
+    private final static File medicineFile = new File(dataFolderPath + "/medicine.txt");
+    private final static File appointmentMedicineFile = new File(dataFolderPath + "/appointmentmedicine.txt");
+    private final static File customerFeedbackFile = new File(dataFolderPath + "/customerFeedback.txt");
+    private final static File invoiceFile = new File(dataFolderPath + "/invoice.txt");
 
     private static Set<Manager> managers;
     private static Set<Staff> staffs;
@@ -34,6 +34,27 @@ public final class Database {
     private static Set<Invoice> invoices;
 
     static {
+        String rootManagerDbRecord = "M001,Root Manager,root@email.com,123";
+        try {
+            File dataFolder = new File(dataFolderPath);
+            if (!dataFolder.exists()) {
+                dataFolder.mkdirs();
+            }
+
+            for (File file: new File[] {managerFile, staffFile, doctorFile, customerFile, appointmentFile, medicineFile, appointmentMedicineFile, customerFeedbackFile, invoiceFile}) {
+                if (!file.exists()) {
+                    file.createNewFile();
+                }
+                if (file == managerFile && !new Scanner(file).hasNextLine()) {
+                    try (FileWriter managerFileWriter = new FileWriter(managerFile)) {
+                        managerFileWriter.write(rootManagerDbRecord);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e.getMessage());
+        }
+
         managers = new TreeSet<>(Comparator.comparingInt(
                 user -> Integer.parseInt(user.getId().substring(1))
         ));
@@ -434,19 +455,7 @@ public final class Database {
                 fileWriter.write(dbEntityRecords);
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException(e.getMessage());
         }
-    }
-
-    public static void save() {
-        saveRecords(managers, managerFile);
-        saveRecords(staffs, staffFile);
-        saveRecords(doctors, doctorFile);
-        saveRecords(customers, customerFile);
-        saveRecords(appointments, appointmentFile);
-        saveRecords(medicines, medicineFile);
-        saveRecords(appointmentMedicines, appointmentMedicineFile);
-        saveRecords(customerFeedbacks, customerFeedbackFile);
-        saveRecords(invoices, invoiceFile);
     }
 }

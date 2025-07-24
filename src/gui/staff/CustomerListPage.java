@@ -124,10 +124,11 @@ public class CustomerListPage extends JFrame {
     public CustomerListPage(Staff staffUser) {
         JButton[] loadPanelButtons = {loadButton};
         JButton[] operatePanelButtons = {addButton, editButton, deleteButton};
+        JButton[] buttonsToDisableWithoutTableRowSelection = {editButton, deleteButton};
 
         this.staffUser = staffUser;
 
-        TableHelper.configureToPreferredSettings(this.customerTable, 600, 200, operatePanelButtons);
+        TableHelper.configureToPreferredSettings(this.customerTable, 600, 200, buttonsToDisableWithoutTableRowSelection);
 
         this.editButton.setEnabled(false);
         this.deleteButton.setEnabled(false);
