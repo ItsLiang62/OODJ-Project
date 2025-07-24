@@ -50,8 +50,6 @@ public class AppointmentListPage extends JFrame {
         collectPaymentButton.setEnabled(false);
         deleteButton.setEnabled(false);
 
-        this.setTitle("Appointment List Page");
-
         PageDesigner.displayBorderLayoutListPage(this, "Manage Appointments", titleLabel, loadPanelButtons, operatePanelButtons, backButton, scrollPane);
     }
 
