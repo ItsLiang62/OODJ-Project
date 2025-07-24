@@ -37,7 +37,10 @@ public class EmployeeListPage extends JFrame {
     public EmployeeListPage(Manager managerUser) {
         this.managerUser = managerUser;
 
-        TableHelper.configureToRecommendedSettings(this.employeeTable, this.new TableRowSelectionListener());
+        JButton[] loadPanelButtons = {managersButton, staffsButton, doctorsButton};
+        JButton[] operatePanelButtons = {addButton, editButton, deleteButton};
+
+        TableHelper.configureToPreferredSettings(this.employeeTable, 600, 200, operatePanelButtons);
 
         EmployeeButtonListener ebl = this.new EmployeeButtonListener();
         this.managersButton.addActionListener(ebl);
@@ -50,9 +53,6 @@ public class EmployeeListPage extends JFrame {
 
         this.editButton.setEnabled(false);
         this.deleteButton.setEnabled(false);
-
-        JButton[] loadPanelButtons = {managersButton, staffsButton, doctorsButton};
-        JButton[] operatePanelButtons = {addButton, editButton, deleteButton};
 
         this.setTitle("Employee List Page");
         PageDesigner.displayBorderLayoutListPage(this, titleLabel, loadPanelButtons, operatePanelButtons, backButton, scrollPane);

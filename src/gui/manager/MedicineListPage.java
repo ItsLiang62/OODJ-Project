@@ -29,9 +29,12 @@ public class MedicineListPage extends JFrame {
     private final JScrollPane scrollPane = new JScrollPane(medicineTable);
 
     public MedicineListPage(Manager managerUser) {
+        JButton[] loadPanelButtons = {loadButton};
+        JButton[] operatePanelButtons = {addButton, editButton, deleteButton};
+
         this.managerUser = managerUser;
 
-        TableHelper.configureToRecommendedSettings(medicineTable, this.new TableRowSelectionListener());
+        TableHelper.configureToPreferredSettings(medicineTable, 600, 200, operatePanelButtons);
 
         this.loadButton.addActionListener(this.new LoadButtonListener());
         this.addButton.addActionListener(this.new AddButtonListener());
@@ -42,25 +45,11 @@ public class MedicineListPage extends JFrame {
         this.editButton.setEnabled(false);
         this.deleteButton.setEnabled(false);
 
-        JButton[] loadPanelButtons = {loadButton};
-        JButton[] operatePanelButtons = {addButton, editButton, deleteButton};
-
         this.setTitle("Medicine List Page");
         PageDesigner.displayBorderLayoutListPage(this, titleLabel, loadPanelButtons, operatePanelButtons, backButton, scrollPane);
     }
 
     private List<Object[]> getMedicineRecords() { return TableHelper.asListOfObjectArray(managerUser.getAllMedicinePublicRecords()); }
-
-    private class TableRowSelectionListener implements ListSelectionListener {
-        @Override
-        public void valueChanged(ListSelectionEvent e) {
-            if (!e.getValueIsAdjusting()) {
-                boolean hasSelectedRow = MedicineListPage.this.medicineTable.getSelectedRow() != -1;
-                MedicineListPage.this.editButton.setEnabled(hasSelectedRow);
-                MedicineListPage.this.deleteButton.setEnabled(hasSelectedRow);
-            }
-        }
-    }
 
     private class LoadButtonListener implements ActionListener {
         @Override

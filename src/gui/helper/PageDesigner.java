@@ -69,10 +69,15 @@ public final class PageDesigner {
         titlePanel.add(titleLabel);
 
         // Add components to loadPanel (FlowLayout)
-        Arrays.stream(loadPanelButtons).forEach(loadPanel::add);
+        if (loadPanelButtons != null) {
+            Arrays.stream(loadPanelButtons).forEach(loadPanel::add);
+        }
 
         // Add components to operatePanel (FlowLayout)
-        Arrays.stream(operatePanelButtons).forEach(operatePanel::add);
+        if (operatePanelButtons != null) {
+            Arrays.stream(operatePanelButtons).forEach(operatePanel::add);
+        }
+
 
         frame.setVisible(true);
     }
