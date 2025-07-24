@@ -142,6 +142,8 @@ public class Appointment implements Identifiable {
         return this.createDbRecord();
     }
 
+    public static String[] getColumnNames() { return new String[] {"Appointment ID", "Customer ID", "Doctor ID", "Doctor Feedback", "Consultation Fee", "Status"}; }
+
     public static void createAppointmentFromRecord(List<String> record) {
         String appointmentId = record.getFirst();
         String appointmentCustomerId = record.get(1);

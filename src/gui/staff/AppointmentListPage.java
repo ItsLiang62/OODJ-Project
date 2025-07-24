@@ -34,7 +34,10 @@ public class AppointmentListPage extends JFrame {
     public AppointmentListPage(Staff staffUser) {
         this.staffUser = staffUser;
 
-        TableHelper.configureToRecommendedSettings(appointmentTable, this.new TableRowSelectionListener());
+        JButton[] loadPanelButtons = {loadButton};
+        JButton[] operatePanelButtons = {addButton, assignDoctorButton, collectPaymentButton, deleteButton};
+
+        TableHelper.configureToPreferredSettings(appointmentTable, 600, 200, operatePanelButtons);
 
         loadButton.addActionListener(this.new LoadButtonListener());
         addButton.addActionListener(this.new AddButtonListener());
@@ -48,21 +51,8 @@ public class AppointmentListPage extends JFrame {
         deleteButton.setEnabled(false);
 
         this.setTitle("Appointment List Page");
-        JButton[] loadPanelButtons = {loadButton};
-        JButton[] operatePanelButtons = {addButton, assignDoctorButton, collectPaymentButton, deleteButton};
-        PageDesigner.displayBorderLayoutListPage(this, titleLabel, loadPanelButtons, operatePanelButtons, backButton, scrollPane);
-    }
 
-    private class TableRowSelectionListener implements ListSelectionListener {
-        @Override
-        public void valueChanged(ListSelectionEvent e) {
-            if (!e.getValueIsAdjusting()) {
-                boolean hasSelectedRow = appointmentTable.getSelectedRow() != -1;
-                assignDoctorButton.setEnabled(hasSelectedRow);
-                collectPaymentButton.setEnabled(hasSelectedRow);
-                deleteButton.setEnabled(hasSelectedRow);
-            }
-        }
+        PageDesigner.displayBorderLayoutListPage(this, titleLabel, loadPanelButtons, operatePanelButtons, backButton, scrollPane);
     }
 
     private class LoadButtonListener implements ActionListener {

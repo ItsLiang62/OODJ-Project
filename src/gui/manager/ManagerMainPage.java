@@ -24,6 +24,7 @@ public class ManagerMainPage extends JFrame {
         this.titleLabel = new JLabel(String.format("Welcome to Manager Main Page, Mr. %s", managerUser.getName()));
 
         this.manageEmployeesButton.addActionListener(this.new ManageEmployeesButtonListener());
+        this.viewAppointmentsButton.addActionListener(this.new ViewAppointmentsButtonListener());
         this.manageMedicinesButton.addActionListener(this.new ManageMedicinesButtonListener());
         this.backButton.addActionListener(this.new BackButtonListener());
 
@@ -42,6 +43,13 @@ public class ManagerMainPage extends JFrame {
         }
     }
 
+    private class ViewAppointmentsButtonListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            SwingUtilities.invokeLater(() -> new AppointmentListPage(ManagerMainPage.this.managerUser));
+            ManagerMainPage.this.dispose();
+        }
+    }
     private class ManageMedicinesButtonListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {

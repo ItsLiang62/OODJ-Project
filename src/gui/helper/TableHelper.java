@@ -1,12 +1,11 @@
 package gui.helper;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 import java.util.List;
-import java.util.Objects;
 
 public final class TableHelper {
     public static <T extends Collection<String>> List<Object[]> asListOfObjectArray(Collection<T> records) {
@@ -17,10 +16,29 @@ public final class TableHelper {
         return listOfObjectArray;
     }
 
-    public static void configureToRecommendedSettings(JTable table, ListSelectionListener listSelectionListener) {
+    public static void configureToPreferredSettings(JTable table, int width, int height, JButton[] buttonsToDisable) {
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        table.getSelectionModel().addListSelectionListener(listSelectionListener);
-        table.setPreferredScrollableViewportSize(new Dimension(600, 200));
+        table.getSelectionModel().addListSelectionListener(new TableHelper.TableRowSelectionListener(buttonsToDisable));
+        table.setPreferredScrollableViewportSize(new Dimension(width, height));
         table.setFillsViewportHeight(true);
+    }
+
+    // Do not need a TableHelper instance to instantiate this nested class
+    private static class TableRowSelectionListener implements ListSelectionListener {
+        public JButton[] buttonsToDisable;
+        public JTable table;
+
+        public TableRowSelectionListener(JButton[] buttonsToDisable) {
+            this.buttonsToDisable = buttonsToDisable;
+        }
+        @Override
+        public void valueChanged(ListSelectionEvent e) {
+            if (!e.getValueIsAdjusting()) {
+                boolean hasSelectedRow = table.getSelectedRow() != -1;
+                if (buttonsToDisable != null) {
+                    Arrays.stream(buttonsToDisable).forEach(button -> button.setEnabled(hasSelectedRow));
+                }
+            }
+        }
     }
 }

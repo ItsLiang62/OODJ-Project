@@ -92,6 +92,8 @@ public class AppointmentMedicine implements Entity {
         return this.createDbRecord();
     }
 
+    public static String[] getColumnNames() { return new String[] {"Appointment ID", "Medicine ID", "Target Symptom"}; }
+
     public static void createAppointmentMedicineFromRecord(List<String> record) {
         String appointmentId = record.getFirst();
         String medicineId = record.get(1);

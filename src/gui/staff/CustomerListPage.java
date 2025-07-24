@@ -29,17 +29,6 @@ public class CustomerListPage extends JFrame {
 
     private List<Object[]> getCustomerRecords() { return TableHelper.asListOfObjectArray(staffUser.getAllCustomerPublicRecords()); }
 
-    private class TableRowSelectionListener implements ListSelectionListener {
-        @Override
-        public void valueChanged(ListSelectionEvent e) {
-            if (!e.getValueIsAdjusting()) {
-                boolean hasSelectedRow = CustomerListPage.this.customerTable.getSelectedRow() != -1;
-                CustomerListPage.this.editButton.setEnabled(hasSelectedRow);
-                CustomerListPage.this.deleteButton.setEnabled(hasSelectedRow);
-            }
-        }
-    }
-
     private class LoadButtonListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -133,9 +122,12 @@ public class CustomerListPage extends JFrame {
     }
 
     public CustomerListPage(Staff staffUser) {
+        JButton[] loadPanelButtons = {loadButton};
+        JButton[] operatePanelButtons = {addButton, editButton, deleteButton};
+
         this.staffUser = staffUser;
 
-        TableHelper.configureToRecommendedSettings(this.customerTable, this.new TableRowSelectionListener());
+        TableHelper.configureToPreferredSettings(this.customerTable, 600, 200, operatePanelButtons);
 
         this.editButton.setEnabled(false);
         this.deleteButton.setEnabled(false);
@@ -145,9 +137,6 @@ public class CustomerListPage extends JFrame {
         this.editButton.addActionListener(this.new EditButtonListener());
         this.deleteButton.addActionListener(this.new DeleteButtonListener());
         this.backButton.addActionListener(this.new BackButtonListener());
-
-        JButton[] loadPanelButtons = {loadButton};
-        JButton[] operatePanelButtons = {addButton, editButton, deleteButton};
 
         this.setTitle("Customer List Page");
         PageDesigner.displayBorderLayoutListPage(this, titleLabel, loadPanelButtons, operatePanelButtons, backButton, scrollPane);
