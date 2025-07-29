@@ -6,6 +6,7 @@ import customExceptions.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.Array;
 import java.util.*;
 
 import java.io.FileWriter;
@@ -377,8 +378,8 @@ public final class Database {
         return totalMedicineChargesOfAppointment;
     }
 
-    public static Set<List<String>> getAllPublicRecordsOf(Set<String> idSet, IdentifiableReturner identifiableReturner) {
-        Set<List<String>> allPublicRecordsOf = new LinkedHashSet<>();
+    public static List<List<String>> getAllPublicRecordsOf(Set<String> idSet, IdentifiableReturner identifiableReturner) {
+        List<List<String>> allPublicRecordsOf = new ArrayList<>();
         for (String id: idSet) {
             allPublicRecordsOf.add(identifiableReturner.getIdentifiable(id).createPublicRecord());
         }

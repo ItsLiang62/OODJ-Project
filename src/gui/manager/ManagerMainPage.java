@@ -25,6 +25,7 @@ public class ManagerMainPage extends JFrame {
 
         this.manageEmployeesButton.addActionListener(this.new ManageEmployeesButtonListener());
         this.viewAppointmentsButton.addActionListener(this.new ViewAppointmentsButtonListener());
+        this.viewCustomerFeedbacksButton.addActionListener(this.new ViewCustomerFeedbacksButtonListener());
         this.manageMedicinesButton.addActionListener(this.new ManageMedicinesButtonListener());
         this.backButton.addActionListener(this.new BackButtonListener());
 
@@ -38,30 +39,39 @@ public class ManagerMainPage extends JFrame {
     private class ManageEmployeesButtonListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            SwingUtilities.invokeLater(() -> new EmployeeListPage(ManagerMainPage.this.managerUser));
-            ManagerMainPage.this.dispose();
+            SwingUtilities.invokeLater(() -> new ManageEmployeesPage(managerUser));
+            dispose();
         }
     }
 
     private class ViewAppointmentsButtonListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            SwingUtilities.invokeLater(() -> new AppointmentListPage(ManagerMainPage.this.managerUser));
-            ManagerMainPage.this.dispose();
+            SwingUtilities.invokeLater(() -> new ViewAppointmentsPage(managerUser));
+            dispose();
         }
     }
+
+    private class ViewCustomerFeedbacksButtonListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            SwingUtilities.invokeLater(() -> new ViewCustomerFeedbacksPage(managerUser));
+            dispose();
+        }
+    }
+
     private class ManageMedicinesButtonListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            SwingUtilities.invokeLater(() -> new MedicineListPage(ManagerMainPage.this.managerUser));
-            ManagerMainPage.this.dispose();
+            SwingUtilities.invokeLater(() -> new ManageMedicinesPage(managerUser));
+            dispose();
         }
     }
 
     private class BackButtonListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             SwingUtilities.invokeLater(LoginPage::new);
-            ManagerMainPage.this.dispose();
+            dispose();
         }
     }
 }

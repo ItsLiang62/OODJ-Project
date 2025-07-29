@@ -57,9 +57,8 @@ public class AppointmentListPage extends JFrame {
     private class LoadButtonListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            List<Object[]> appointmentRecords = TableHelper.asListOfObjectArray(staffUser.getAllAppointmentPublicRecords());
             JButton[] operatePanelButtonsToDisable = {assignDoctorButton, collectPaymentButton, deleteButton};
-            ListenerHelper.loadButtonClicked(tableModel, appointmentRecords, operatePanelButtonsToDisable);
+            ListenerHelper.loadButtonClicked(tableModel, staffUser.getAllAppointmentPublicRecords(), operatePanelButtonsToDisable);
         }
     }
 

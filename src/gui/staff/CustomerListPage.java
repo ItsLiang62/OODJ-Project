@@ -27,13 +27,11 @@ public class CustomerListPage extends JFrame {
     private final JTable customerTable = new JTable(tableModel);
     private final JScrollPane scrollPane = new JScrollPane(customerTable);
 
-    private List<Object[]> getCustomerRecords() { return TableHelper.asListOfObjectArray(staffUser.getAllCustomerPublicRecords()); }
-
     private class LoadButtonListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             JButton[] operatePanelButtonsToDisable = {editButton, deleteButton};
-            ListenerHelper.loadButtonClicked(tableModel, getCustomerRecords(), operatePanelButtonsToDisable);
+            ListenerHelper.loadButtonClicked(tableModel, staffUser.getAllCustomerPublicRecords(), operatePanelButtonsToDisable);
         }
     }
 

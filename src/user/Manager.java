@@ -101,17 +101,17 @@ public class Manager extends User {
 
     public void removeDoctorById(String doctorId) { Database.removeDoctor(doctorId, true); }
 
-    public Set<List<String>> getAllAppointmentPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllAppointmentId(), Database::getAppointment); }
+    public List<List<String>> getAllAppointmentPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllAppointmentId(), Database::getAppointment); }
 
-    public Set<List<String>> getAllCustomerFeedbackPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllCustomerFeedbackId(), Database::getCustomerFeedback); }
+    public List<List<String>> getAllCustomerFeedbackPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllCustomerFeedbackId(), Database::getCustomerFeedback); }
 
-    public Set<List<String>> getAllManagerPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllManagerId(), Database::getManager); }
+    public List<List<String>> getAllManagerPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllManagerId(), Database::getManager); }
 
-    public Set<List<String>> getAllStaffPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllStaffId(), Database::getStaff); }
+    public List<List<String>> getAllStaffPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllStaffId(), Database::getStaff); }
 
-    public Set<List<String>> getAllDoctorPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllDoctorId(), Database::getDoctor); }
+    public List<List<String>> getAllDoctorPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllDoctorId(), Database::getDoctor); }
 
-    public Set<List<String>> getAllMedicinePublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllMedicineId(), Database::getMedicine); }
+    public List<List<String>> getAllMedicinePublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllMedicineId(), Database::getMedicine); }
 
     public void removeMedicine(String medicineId) {
         Database.removeMedicine(medicineId, true);
