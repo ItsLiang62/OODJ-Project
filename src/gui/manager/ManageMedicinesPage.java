@@ -141,7 +141,7 @@ public class ManageMedicinesPage extends JFrame {
                 String id = (String) tableModel.getValueAt(row, 0);
                 int confirm = JOptionPane.showConfirmDialog(null, String.format("Are you sure you want to delete the medicine %s from inventory?", id), "Confirm Delete", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE);
                 if (confirm == JOptionPane.YES_NO_OPTION) {
-                    managerUser.removeMedicine(id);
+                    managerUser.removeMedicineById(id);
                     JOptionPane.showMessageDialog(null, "Successfully deleted medicine", "Medicine Deleted Successfully", JOptionPane.PLAIN_MESSAGE);
                 }
             }

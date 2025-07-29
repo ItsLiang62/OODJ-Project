@@ -8,31 +8,28 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class ManagerMainPage extends JFrame {
-    private Manager managerUser;
-
-    private JLabel titleLabel;
-    private final JButton manageEmployeesButton = new JButton("Manage Employees");
-    private final JButton viewAppointmentsButton = new JButton("View All Appointments");
-    private final JButton viewCustomerFeedbacksButton = new JButton("View All Customer Feedbacks");
-    private final JButton manageReportsButton = new JButton("Manage Reports");
-    private final JButton manageMedicinesButton = new JButton("Manage Medicines");
-    private final JButton backButton = new JButton("Back");;
-
+    private final Manager managerUser;
 
     public ManagerMainPage(Manager managerUser) {
         this.managerUser = managerUser;
-        this.titleLabel = new JLabel(String.format("Welcome to Manager Main Page, Mr. %s", managerUser.getName()));
 
-        this.manageEmployeesButton.addActionListener(this.new ManageEmployeesButtonListener());
-        this.viewAppointmentsButton.addActionListener(this.new ViewAppointmentsButtonListener());
-        this.viewCustomerFeedbacksButton.addActionListener(this.new ViewCustomerFeedbacksButtonListener());
-        this.manageMedicinesButton.addActionListener(this.new ManageMedicinesButtonListener());
-        this.backButton.addActionListener(this.new BackButtonListener());
+        JLabel titleLabel = new JLabel(String.format("Welcome to Manager Main Page, Mr. %s", managerUser.getName()));
+        JButton manageEmployeesButton = new JButton("Manage Employees");
+        JButton viewAppointmentsButton = new JButton("View All Appointments");
+        JButton viewCustomerFeedbacksButton = new JButton("View All Customer Feedbacks");
+        JButton manageMedicinesButton = new JButton("Manage Medicines");
+        JButton manageReportsButton = new JButton("Manage Reports");
+        JButton backButton = new JButton("Back");
+
+        manageEmployeesButton.addActionListener(this.new ManageEmployeesButtonListener());
+        viewAppointmentsButton.addActionListener(this.new ViewAppointmentsButtonListener());
+        viewCustomerFeedbacksButton.addActionListener(this.new ViewCustomerFeedbacksButtonListener());
+        manageMedicinesButton.addActionListener(this.new ManageMedicinesButtonListener());
+        backButton.addActionListener(this.new BackButtonListener());
 
         JButton[] functionalityButtons = {manageEmployeesButton, viewAppointmentsButton, viewCustomerFeedbacksButton, manageMedicinesButton, manageReportsButton};
 
-        this.setTitle("Manager Main Page");
-        PageDesigner.displayBorderLayoutMainPage(this, titleLabel, functionalityButtons, backButton);
+        PageDesigner.displayBorderLayoutMainPage(this, "Manager Main Page", titleLabel, functionalityButtons, backButton);
     }
 
 

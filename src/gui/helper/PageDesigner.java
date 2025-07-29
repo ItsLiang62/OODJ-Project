@@ -83,7 +83,8 @@ public final class PageDesigner {
         frame.setVisible(true);
     }
 
-    public static void displayBorderLayoutMainPage(JFrame frame, JLabel title, JButton[] functionalityButtons, JButton backButton) {
+    public static void displayBorderLayoutMainPage(JFrame frame, String title, JLabel titleLabel, JButton[] functionalityButtons, JButton backButton) {
+        frame.setTitle(title);
         frame.setSize(700, 500);
         frame.setLayout(new BorderLayout());
         frame.setLocationRelativeTo(null);
@@ -128,7 +129,7 @@ public final class PageDesigner {
         backPanel.add(backButton);
 
         // Add components to titlePanel
-        titlePanel.add(title);
+        titlePanel.add(titleLabel);
 
         frame.setVisible(true);
     }

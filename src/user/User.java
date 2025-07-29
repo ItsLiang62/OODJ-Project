@@ -35,7 +35,6 @@ public abstract class User implements Identifiable {
             throw new InvalidUserNameException("Invalid user name!");
         }
     }
-
     public static void checkEmail(String email) {
         Pattern emailPattern = Pattern.compile("^([\\w.+%-]+@[\\w.-]+\\.\\w{2,})$");
         Matcher emailMatcher = emailPattern.matcher(email);
@@ -46,7 +45,6 @@ public abstract class User implements Identifiable {
             throw new RecordAlreadyInDatabaseException("Email is already in use by another user!");
         }
     }
-
     public static void checkPassword(String password) {
         if (password == null || password.isBlank()) {
             throw new NullOrEmptyValueRejectedException("Password must not be empty!");

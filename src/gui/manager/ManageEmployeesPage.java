@@ -19,7 +19,6 @@ import java.util.List;
 
 public class ManageEmployeesPage extends JFrame {
     private final Manager managerUser;
-
     private final DefaultTableModel tableModel = new DefaultTableModel(new String[] {"Employee ID", "Name", "Email"}, 0);
     private final JTable employeeTable = new JTable(tableModel);
 
@@ -39,7 +38,7 @@ public class ManageEmployeesPage extends JFrame {
         JButton[] loadPanelButtons = {managersButton, staffsButton, doctorsButton};
         JButton[] operatePanelButtons = {addButton, editButton, deleteButton};
 
-        TableHelper.configureToPreferredSettings(this.employeeTable, 600, 200, new JButton[] {editButton, deleteButton});
+        TableHelper.configureToPreferredSettings(employeeTable, 600, 200, new JButton[] {editButton, deleteButton});
 
         EmployeeButtonListener ebl = this.new EmployeeButtonListener(new JButton[] {editButton, deleteButton});
         managersButton.addActionListener(ebl);
@@ -110,17 +109,17 @@ public class ManageEmployeesPage extends JFrame {
                     switch (Objects.requireNonNull(role)) {
                         case "Manager":
                             Manager newManager = new Manager(name, email); // initial user password will be the email itself, user can change the password later
-                            ManageEmployeesPage.this.managerUser.addManager(newManager);
+                            managerUser.addManager(newManager);
                             JOptionPane.showMessageDialog(null, "Successfully added new manager account", "Employee Created Successfully", JOptionPane.PLAIN_MESSAGE);
                             break;
                         case "Staff":
                             Staff newStaff = new Staff(name, email);
-                            ManageEmployeesPage.this.managerUser.addStaff(newStaff);
+                            managerUser.addStaff(newStaff);
                             JOptionPane.showMessageDialog(null, "Successfully created new staff account", "Employee Added Successfully", JOptionPane.PLAIN_MESSAGE);
                             break;
                         case "Doctor":
                             Doctor newDoctor = new Doctor(name, email);
-                            ManageEmployeesPage.this.managerUser.addDoctor(newDoctor);
+                            managerUser.addDoctor(newDoctor);
                             JOptionPane.showMessageDialog(null, "Successfully created new doctor account", "Employee Added Successfully", JOptionPane.PLAIN_MESSAGE);
                             break;
                         default:
@@ -212,8 +211,8 @@ public class ManageEmployeesPage extends JFrame {
 
     private class BackButtonListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
-            SwingUtilities.invokeLater(() -> new ManagerMainPage(ManageEmployeesPage.this.managerUser));
-            ManageEmployeesPage.this.dispose();
+            SwingUtilities.invokeLater(() -> new ManagerMainPage(managerUser));
+            dispose();
         }
     }
 }
