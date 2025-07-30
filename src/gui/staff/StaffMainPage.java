@@ -19,6 +19,7 @@ public class StaffMainPage extends JFrame {
         JButton manageAppointmentsButton = new JButton("Manage Appointments");
         JButton viewMyCustomerFeedbacksButton = new JButton("View My Customer Feedbacks");
         JButton viewInvoicesButton = new JButton("View Invoices");
+        JButton myProfileButton = new JButton("My Profile");
         JButton backButton = new JButton("Back");
 
         manageCustomersButton.addActionListener(this.new ManageCustomersButtonListener());
@@ -26,8 +27,9 @@ public class StaffMainPage extends JFrame {
         viewMyCustomerFeedbacksButton.addActionListener(this.new ViewMyCustomerFeedbacksButtonListener());
         viewInvoicesButton.addActionListener(this.new ViewInvoicesButtonListener());
         backButton.addActionListener(this.new BackButtonListener());
+        myProfileButton.addActionListener(this.new MyProfileButtonListener());
 
-        JButton[] functionalityButtons = {manageCustomersButton, manageAppointmentsButton, viewMyCustomerFeedbacksButton, viewInvoicesButton};
+        JButton[] functionalityButtons = {manageCustomersButton, manageAppointmentsButton, viewMyCustomerFeedbacksButton, viewInvoicesButton, myProfileButton};
 
         PageDesigner.displayBorderLayoutMainPage(this, "Staff Main Page", titleLabel, functionalityButtons, backButton);
     }
@@ -60,6 +62,14 @@ public class StaffMainPage extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             SwingUtilities.invokeLater(() -> new ViewInvoicesPage(staffUser));
+            dispose();
+        }
+    }
+
+    private class MyProfileButtonListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            SwingUtilities.invokeLater(() -> new ProfilePage(staffUser));
             dispose();
         }
     }

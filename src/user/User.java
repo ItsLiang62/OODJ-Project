@@ -28,14 +28,26 @@ public abstract class User implements Identifiable {
         this.password = password;
     }
 
-    public static void checkName(String name) {
+    public void checkName(String name) {
+        if (name == null) {
+            throw new InvalidUserNameException("Invalid user name!");
+        }
+        if (name.equals(this.name)) {
+            return;
+        }
         Pattern namePattern = Pattern.compile("^([A-Z][A-Za-z]*(\\s[A-Z][A-Za-z]*)*)$");
         Matcher nameMatcher = namePattern.matcher(name);
         if (!nameMatcher.matches()) {
             throw new InvalidUserNameException("Invalid user name!");
         }
     }
-    public static void checkEmail(String email) {
+    public void checkEmail(String email) {
+        if (email == null) {
+            throw new InvalidEmailException("Invalid email format!");
+        }
+        if (email.equals(this.email)) {
+            return;
+        }
         Pattern emailPattern = Pattern.compile("^([\\w.+%-]+@[\\w.-]+\\.\\w{2,})$");
         Matcher emailMatcher = emailPattern.matcher(email);
         if (!emailMatcher.matches()) {

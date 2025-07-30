@@ -141,32 +141,27 @@ public final class PageDesigner {
         frame.setLayout(new BorderLayout());
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+        GridBagConstraints gbc = new GridBagConstraints();
+
+        // Adding panels to ProfilePage (BorderLayout)
+
         JPanel northPanel = new JPanel(new GridBagLayout());
         JPanel centerPanel = new JPanel(new GridBagLayout());
         JPanel southPanel = new JPanel();
         southPanel.setLayout(new BoxLayout(southPanel, BoxLayout.Y_AXIS));
-        southPanel.add(Box.createRigidArea(new Dimension(0, 100)));
 
-        GridBagConstraints gbc = new GridBagConstraints();
-
-        // Adding panels to ProfilePage (BorderLayout)
         frame.add(northPanel, BorderLayout.NORTH);
         frame.add(centerPanel, BorderLayout.CENTER);
         frame.add(southPanel, BorderLayout.SOUTH);
 
         // Adding panels to northPanel (GridBagLayout)
         gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.anchor = GridBagConstraints.CENTER;
         gbc.gridx = 0;
 
-        JPanel backPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-
         gbc.gridy = 0;
-        northPanel.add(backPanel);
+        northPanel.add(backButton, gbc);
         gbc.gridy = 1;
-        northPanel.add(titlePanel);
+        northPanel.add(titleLabel, gbc);
 
 
         // Adding components to centerPanel (GridBagLayout)
@@ -191,18 +186,10 @@ public final class PageDesigner {
             gbc.gridy ++;
         }
 
-        // Adding panels to southPanel (BoxLayout)
-        JPanel savePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        southPanel.add(savePanel);
-
-        // Adding components to backPanel
-        backPanel.add(backButton);
-
-        // Adding components to titlePanel
-        titlePanel.add(titleLabel);
-
-        // Adding components to savePanel
-        savePanel.add(saveButton);
+        // Adding components to southPanel (BoxLayout)
+        saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        southPanel.add(saveButton);
+        southPanel.add(Box.createRigidArea(new Dimension(0, 50)));
 
         frame.setVisible(true);
     }
