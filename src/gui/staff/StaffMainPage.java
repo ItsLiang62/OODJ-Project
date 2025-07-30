@@ -17,14 +17,17 @@ public class StaffMainPage extends JFrame {
         JLabel titleLabel = new JLabel(String.format("Welcome to Staff Main Page, Mr. %s", staffUser.getName()));
         JButton manageCustomersButton = new JButton("Manage Customers");
         JButton manageAppointmentsButton = new JButton("Manage Appointments");
-        JButton viewCustomerFeedbacksButton = new JButton("View Customer Feedbacks");
+        JButton viewMyCustomerFeedbacksButton = new JButton("View My Customer Feedbacks");
+        JButton viewInvoicesButton = new JButton("View Invoices");
         JButton backButton = new JButton("Back");
 
         manageCustomersButton.addActionListener(this.new ManageCustomersButtonListener());
         manageAppointmentsButton.addActionListener(this.new ManageAppointmentsButtonListener());
+        viewMyCustomerFeedbacksButton.addActionListener(this.new ViewMyCustomerFeedbacksButtonListener());
+        viewInvoicesButton.addActionListener(this.new ViewInvoicesButtonListener());
         backButton.addActionListener(this.new BackButtonListener());
 
-        JButton[] functionalityButtons = {manageCustomersButton, manageAppointmentsButton, viewCustomerFeedbacksButton};
+        JButton[] functionalityButtons = {manageCustomersButton, manageAppointmentsButton, viewMyCustomerFeedbacksButton, viewInvoicesButton};
 
         PageDesigner.displayBorderLayoutMainPage(this, "Staff Main Page", titleLabel, functionalityButtons, backButton);
     }
@@ -32,23 +35,39 @@ public class StaffMainPage extends JFrame {
     private class ManageCustomersButtonListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            SwingUtilities.invokeLater(() -> new ManageCustomersPage(StaffMainPage.this.staffUser));
-            StaffMainPage.this.dispose();
+            SwingUtilities.invokeLater(() -> new ManageCustomersPage(staffUser));
+            dispose();
         }
     }
 
     private class ManageAppointmentsButtonListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            SwingUtilities.invokeLater(() -> new ManageAppointmentsPage(StaffMainPage.this.staffUser));
-            StaffMainPage.this.dispose();
+            SwingUtilities.invokeLater(() -> new ManageAppointmentsPage(staffUser));
+            dispose();
+        }
+    }
+
+    private class ViewMyCustomerFeedbacksButtonListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            SwingUtilities.invokeLater(() -> new ViewMyCustomerFeedbacksPage(staffUser));
+            dispose();
+        }
+    }
+
+    private class ViewInvoicesButtonListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            SwingUtilities.invokeLater(() -> new ViewInvoicesPage(staffUser));
+            dispose();
         }
     }
 
     private class BackButtonListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             SwingUtilities.invokeLater(LoginPage::new);
-            StaffMainPage.this.dispose();
+            dispose();
         }
     }
 }

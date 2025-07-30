@@ -55,6 +55,10 @@ public class Staff extends User {
 
     public List<List<String>> getAllDoctorPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllDoctorId(), Database::getDoctor); }
 
+    public List<List<String>> getAllInvoicePublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllInvoiceId(), Database::getInvoice); }
+
+    public List<List<String>> getAllMyCustomerFeedbackRecords() { return Database.getAllPublicRecordsOf(Database.getAllCustomerFeedbackIdOfNonManagerEmployee(id), Database::getCustomerFeedback); }
+
     public void removeCustomerById(String customerId) {
         Database.removeCustomer(customerId, true);
     }
