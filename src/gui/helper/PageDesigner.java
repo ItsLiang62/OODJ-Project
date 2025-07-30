@@ -133,4 +133,77 @@ public final class PageDesigner {
 
         frame.setVisible(true);
     }
+
+    public static void displayBorderLayoutProfilePage(JFrame frame, String title, JLabel titleLabel, JComponent[] dataFields, JLabel[] labels, JButton saveButton, JButton backButton) {
+        frame.setTitle(title);
+        frame.setSize(700, 500);
+        frame.setLocationRelativeTo(null);
+        frame.setLayout(new BorderLayout());
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        JPanel northPanel = new JPanel(new GridBagLayout());
+        JPanel centerPanel = new JPanel(new GridBagLayout());
+        JPanel southPanel = new JPanel();
+        southPanel.setLayout(new BoxLayout(southPanel, BoxLayout.Y_AXIS));
+        southPanel.add(Box.createRigidArea(new Dimension(0, 100)));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+
+        // Adding panels to ProfilePage (BorderLayout)
+        frame.add(northPanel, BorderLayout.NORTH);
+        frame.add(centerPanel, BorderLayout.CENTER);
+        frame.add(southPanel, BorderLayout.SOUTH);
+
+        // Adding panels to northPanel (GridBagLayout)
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.gridx = 0;
+
+        JPanel backPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+
+        gbc.gridy = 0;
+        northPanel.add(backPanel);
+        gbc.gridy = 1;
+        northPanel.add(titlePanel);
+
+
+        // Adding components to centerPanel (GridBagLayout)
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.EAST;
+        gbc.gridx = 0;
+
+        gbc.gridy = 0;
+        for (JLabel label: labels) {
+            centerPanel.add(label, gbc);
+            gbc.gridy ++;
+        }
+
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.gridx = 1;
+
+        gbc.gridy = 0;
+        for (JComponent dataField: dataFields) {
+            centerPanel.add(dataField, gbc);
+            gbc.gridy ++;
+        }
+
+        // Adding panels to southPanel (BoxLayout)
+        JPanel savePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        southPanel.add(savePanel);
+
+        // Adding components to backPanel
+        backPanel.add(backButton);
+
+        // Adding components to titlePanel
+        titlePanel.add(titleLabel);
+
+        // Adding components to savePanel
+        savePanel.add(saveButton);
+
+        frame.setVisible(true);
+    }
 }
