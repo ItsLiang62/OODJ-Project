@@ -8,8 +8,8 @@ import database.Identifiable;
 import java.util.*;
 
 public class Appointment implements Identifiable {
-    private String id;
-    private String customerId;
+    private final String id;
+    private final String customerId;
     private String doctorId;
     private String doctorFeedback;
     private double consultationFee;
@@ -63,15 +63,15 @@ public class Appointment implements Identifiable {
         }
     }
 
-    public String getId() { return this.id; }
-    public String getCustomerId() { return this.customerId; }
-    public String getDoctorId() { return this.doctorId; }
-    public String getDoctorFeedback() { return this.doctorFeedback; }
-    public double getConsultationFee() { return this.consultationFee; }
-    public String getStatus() { return this.status; }
+    public String getId() { return id; }
+    public String getCustomerId() { return customerId; }
+    public String getDoctorId() { return doctorId; }
+    public String getDoctorFeedback() { return doctorFeedback; }
+    public double getConsultationFee() { return consultationFee; }
+    public String getStatus() { return status; }
 
     public double getTotalMedicineCharges() {
-        return Database.getTotalMedicineChargesOfAppointment(this.id);
+        return Database.getTotalMedicineChargesOfAppointment(id);
     }
 
     public double getTotalCharge() {
@@ -79,91 +79,89 @@ public class Appointment implements Identifiable {
     }
 
     public void setDoctorId(String doctorId) {
-        if (this.status.equals("Completed")) {
+        if (status.equals("Completed")) {
             throw new AppointmentCompletedException("Appointment is completed and is not subject to any modification.");
         }
         checkDoctorId(doctorId);
         this.doctorId = doctorId;
-        if (this.doctorId == null) { // Unassign a doctor
-            this.status = "Pending";
+        if (doctorId == null) { // Unassign a doctor
+            status = "Pending";
         } else {
-            this.status = "Confirmed";
+            status = "Confirmed";
         }
-        Database.removeAppointment(this.id, false);
+        Database.removeAppointment(id, false);
         Database.addAppointment(this);
     }
 
     public void setDoctorFeedback(String doctorFeedback) {
-        if (this.status.equals("Completed")) {
+        if (status.equals("Completed")) {
             throw new AppointmentCompletedException("Appointment is completed and is not subject to any modification.");
         }
         this.doctorFeedback = doctorFeedback;
-        Database.removeAppointment(this.id, false);
+        Database.removeAppointment(id, false);
         Database.addAppointment(this);
     }
 
     public void setConsultationFee(double consultationFee) {
-        if (this.status.equals("Completed")) {
+        if (status.equals("Completed")) {
             throw new AppointmentCompletedException("Appointment is completed and is not subject to any modification.");
         }
         checkConsultationFee(consultationFee);
         this.consultationFee = consultationFee;
-        Database.removeAppointment(this.id, false);
+        Database.removeAppointment(id, false);
         Database.addAppointment(this);
     }
 
     public void setStatusToCompleted() {
-        if (this.status.equals("Completed")) {
+        if (status.equals("Completed")) {
             throw new AppointmentCompletedException("Appointment is already completed.");
         }
-        if (this.doctorId == null || !this.status.equals("Confirmed")) {
+        if (doctorId == null || !status.equals("Confirmed")) {
             throw new AppointmentNotCompletableException("Appointment is not completable. Make sure the appointment is confirmed and has a valid doctor ID.");
         } else {
-            this.status = "Completed";
+            status = "Completed";
         }
         Database.removeAppointment(this.id, false);
         Database.addAppointment(this);
     }
 
     public List<String> createDbRecord() {
-        String dbId = this.id;
-        String dbCustomerId = this.customerId;
         String dbDoctorId = Objects.requireNonNullElse(doctorId, "NULL");
         String dbDoctorFeedback = Objects.requireNonNullElse(doctorFeedback, "NULL");
-        String dbConsultationFee = String.valueOf(this.consultationFee);
-        String dbStatus = this.status;
+        String dbConsultationFee = String.valueOf(consultationFee);
+        String dbStatus = status;
 
         return new ArrayList<>(Arrays.asList(
-                dbId, dbCustomerId, dbDoctorId, dbDoctorFeedback, dbConsultationFee, dbStatus
+                id, customerId, dbDoctorId, dbDoctorFeedback, dbConsultationFee, dbStatus
         ));
     }
 
     public List<String> createPublicRecord() {
-        return this.createDbRecord();
+        return createDbRecord();
     }
 
     public static String[] getColumnNames() { return new String[] {"Appointment ID", "Customer ID", "Doctor ID", "Doctor Feedback", "Consultation Fee", "Status"}; }
 
     public static void createAppointmentFromRecord(List<String> record) {
-        String appointmentId = record.getFirst();
-        String appointmentCustomerId = record.get(1);
-        String appointmentDoctorId;
+        String id = record.getFirst();
+        String customerId = record.get(1);
+        String doctorId;
         if (record.get(2).equalsIgnoreCase("NULL")) {
-            appointmentDoctorId = null;
+            doctorId = null;
         } else {
-            appointmentDoctorId = record.get(2);
+            doctorId = record.get(2);
         }
-        String appointmentDoctorFeedback;
+        String doctorFeedback;
         if (record.get(3).equalsIgnoreCase("NULL")) {
-            appointmentDoctorFeedback = null;
+            doctorFeedback = null;
         } else {
-            appointmentDoctorFeedback = record.get(3);
+            doctorFeedback = record.get(3);
         }
-        double appointmentConsultationFee = Double.parseDouble(record.get(4));
-        String appointmentStatus = record.getLast();
+        double consultationFee = Double.parseDouble(record.get(4));
+        String status = record.getLast();
 
-        Appointment appointment = new Appointment(appointmentId, appointmentCustomerId, appointmentDoctorId,
-                appointmentDoctorFeedback, appointmentConsultationFee, appointmentStatus
+        Appointment appointment = new Appointment(id, customerId, doctorId,
+                doctorFeedback, consultationFee, status
         );
         Database.addAppointment(appointment);
     }

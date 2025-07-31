@@ -7,33 +7,26 @@ import user.Customer;
 import user.Staff;
 
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.List;
 
-public class CustomerListPage extends JFrame {
-    private Staff staffUser;
-
-    private final JLabel titleLabel = new JLabel("Manage Customers");
-    private final JButton loadButton = new JButton("Load");
-    private final JButton addButton = new JButton("Add");
-    private final JButton editButton = new JButton("Edit");
-    private final JButton deleteButton = new JButton("Delete");
-    private final JButton backButton = new JButton("Back");
+public class ManageCustomersPage extends JFrame {
+    private final Staff staffUser;
     private final DefaultTableModel tableModel = new DefaultTableModel(new String[] {"Customer ID", "Name", "Email", "ApWallet"}, 0);
     private final JTable customerTable = new JTable(tableModel);
-    private final JScrollPane scrollPane = new JScrollPane(customerTable);
-
-    private List<Object[]> getCustomerRecords() { return TableHelper.asListOfObjectArray(staffUser.getAllCustomerPublicRecords()); }
 
     private class LoadButtonListener implements ActionListener {
+
+        JButton[] operatePanelButtonsToDisable;
+
+        public LoadButtonListener(JButton[] operatePanelButtonsToDisable) {
+            this.operatePanelButtonsToDisable = operatePanelButtonsToDisable;
+        }
+
         @Override
         public void actionPerformed(ActionEvent e) {
-            JButton[] operatePanelButtonsToDisable = {editButton, deleteButton};
-            ListenerHelper.loadButtonClicked(tableModel, getCustomerRecords(), operatePanelButtonsToDisable);
+            ListenerHelper.loadButtonClicked(tableModel, staffUser.getAllCustomerPublicRecords(), operatePanelButtonsToDisable);
         }
     }
 
@@ -58,7 +51,7 @@ public class CustomerListPage extends JFrame {
                 String email = emailField.getText();
                 try {
                     Customer newCustomer = new Customer(name, email);
-                    CustomerListPage.this.staffUser.addCustomer(newCustomer);
+                    staffUser.addCustomer(newCustomer);
                     JOptionPane.showMessageDialog(null, "Successfully created new customer account", "Customer Created Successfully", JOptionPane.PLAIN_MESSAGE);
                 } catch (RuntimeException exception) {
                     JOptionPane.showMessageDialog(null, exception.getMessage(), "Input Error", JOptionPane.ERROR_MESSAGE);
@@ -70,7 +63,6 @@ public class CustomerListPage extends JFrame {
     private class EditButtonListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            Staff staffUser = CustomerListPage.this.staffUser;
             int row = customerTable.getSelectedRow();
             if (row != -1) {
                 String id = (String) tableModel.getValueAt(row, 0);
@@ -116,28 +108,35 @@ public class CustomerListPage extends JFrame {
 
     private class BackButtonListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
-            SwingUtilities.invokeLater(() -> new StaffMainPage(CustomerListPage.this.staffUser));
-            CustomerListPage.this.dispose();
+            SwingUtilities.invokeLater(() -> new StaffMainPage(staffUser));
+            ManageCustomersPage.this.dispose();
         }
     }
 
-    public CustomerListPage(Staff staffUser) {
-        JButton[] loadPanelButtons = {loadButton};
-        JButton[] operatePanelButtons = {addButton, editButton, deleteButton};
-        JButton[] buttonsToDisableWithoutTableRowSelection = {editButton, deleteButton};
-
+    public ManageCustomersPage(Staff staffUser) {
         this.staffUser = staffUser;
 
-        TableHelper.configureToPreferredSettings(this.customerTable, 600, 200, buttonsToDisableWithoutTableRowSelection);
+        JLabel titleLabel = new JLabel("Manage Customers");
+        JButton loadButton = new JButton("Load");
+        JButton addButton = new JButton("Add");
+        JButton editButton = new JButton("Edit");
+        JButton deleteButton = new JButton("Delete");
+        JButton backButton = new JButton("Back");
+        JScrollPane scrollPane = new JScrollPane(customerTable);
+        JButton[] loadPanelButtons = {loadButton};
 
-        this.editButton.setEnabled(false);
-        this.deleteButton.setEnabled(false);
+        JButton[] operatePanelButtons = {addButton, editButton, deleteButton};
 
-        this.loadButton.addActionListener(this.new LoadButtonListener());
-        this.addButton.addActionListener(this.new AddButtonListener());
-        this.editButton.addActionListener(this.new EditButtonListener());
-        this.deleteButton.addActionListener(this.new DeleteButtonListener());
-        this.backButton.addActionListener(this.new BackButtonListener());
+        loadButton.addActionListener(this.new LoadButtonListener(new JButton[] {editButton, deleteButton}));
+        addButton.addActionListener(this.new AddButtonListener());
+        editButton.addActionListener(this.new EditButtonListener());
+        deleteButton.addActionListener(this.new DeleteButtonListener());
+        backButton.addActionListener(this.new BackButtonListener());
+
+        editButton.setEnabled(false);
+        deleteButton.setEnabled(false);
+
+        TableHelper.configureToPreferredSettings(this.customerTable, 600, 200, new JButton[] {editButton, deleteButton});
 
         PageDesigner.displayBorderLayoutListPage(this, "Manage Customers", titleLabel, loadPanelButtons, operatePanelButtons, backButton, scrollPane);
     }

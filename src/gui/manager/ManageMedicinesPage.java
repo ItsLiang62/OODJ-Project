@@ -1,8 +1,6 @@
 package gui.manager;
 
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 
 import gui.helper.ListenerHelper;
@@ -13,49 +11,52 @@ import user.*;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.List;
 
-public class MedicineListPage extends JFrame {
-    private Manager managerUser;
-
-    private final JLabel titleLabel = new JLabel("Manage Medicines");
-    private final JButton loadButton = new JButton("Load");
-    private final JButton addButton = new JButton("Add");
-    private final JButton editButton = new JButton("Edit");
-    private final JButton deleteButton = new JButton("Delete");
-    private final JButton backButton = new JButton("Back");
+public class ManageMedicinesPage extends JFrame {
+    private final Manager managerUser;
     private final DefaultTableModel tableModel = new DefaultTableModel(new String[] {"Medicine ID", "Name", "Charge"}, 0);
     private final JTable medicineTable = new JTable(tableModel);
-    private final JScrollPane scrollPane = new JScrollPane(medicineTable);
 
-    public MedicineListPage(Manager managerUser) {
+    public ManageMedicinesPage(Manager managerUser) {
+        this.managerUser = managerUser;
+
+        JLabel titleLabel = new JLabel("Manage Medicines");
+        JButton addButton = new JButton("Add");
+        JButton editButton = new JButton("Edit");
+        JButton deleteButton = new JButton("Delete");
+        JButton loadButton = new JButton("Load");
+        JButton backButton = new JButton("Back");
+        JScrollPane scrollPane = new JScrollPane(medicineTable);
+
         JButton[] loadPanelButtons = {loadButton};
         JButton[] operatePanelButtons = {addButton, editButton, deleteButton};
         JButton[] buttonsToDisableWithoutTableRowSelection = {editButton, deleteButton};
 
-        this.managerUser = managerUser;
+        loadButton.addActionListener(this.new LoadButtonListener(new JButton[] {editButton, deleteButton}));
+        addButton.addActionListener(this.new AddButtonListener());
+        editButton.addActionListener(this.new EditButtonListener());
+        deleteButton.addActionListener(this.new DeleteButtonListener());
+        backButton.addActionListener(this.new BackButtonListener());
+
+        editButton.setEnabled(false);
+        deleteButton.setEnabled(false);
 
         TableHelper.configureToPreferredSettings(medicineTable, 600, 200, buttonsToDisableWithoutTableRowSelection);
 
-        this.loadButton.addActionListener(this.new LoadButtonListener());
-        this.addButton.addActionListener(this.new AddButtonListener());
-        this.editButton.addActionListener(this.new EditButtonListener());
-        this.deleteButton.addActionListener(this.new DeleteButtonListener());
-        this.backButton.addActionListener(this.new BackButtonListener());
-
-        this.editButton.setEnabled(false);
-        this.deleteButton.setEnabled(false);
-
-        PageDesigner.displayBorderLayoutListPage(this, "Manage Medicines", titleLabel, loadPanelButtons, operatePanelButtons, backButton, scrollPane);
+        PageDesigner.displayBorderLayoutListPage(this, "Manage Medicines Page", titleLabel, loadPanelButtons, operatePanelButtons, backButton, scrollPane);
     }
 
-    private List<Object[]> getMedicineRecords() { return TableHelper.asListOfObjectArray(managerUser.getAllMedicinePublicRecords()); }
-
     private class LoadButtonListener implements ActionListener {
+
+        JButton[] operatePanelButtonsToDisable;
+
+        public LoadButtonListener(JButton[] operatePanelButtonsToDisable) {
+            this.operatePanelButtonsToDisable = operatePanelButtonsToDisable;
+        }
+
         @Override
         public void actionPerformed(ActionEvent e) {
-            JButton[] operatePanelButtonsToDisable = {editButton, deleteButton};
-            ListenerHelper.loadButtonClicked(tableModel, getMedicineRecords(), operatePanelButtonsToDisable);
+            ListenerHelper.loadButtonClicked(tableModel, managerUser.getAllMedicinePublicRecords(), operatePanelButtonsToDisable);
         }
     }
 
@@ -86,7 +87,7 @@ public class MedicineListPage extends JFrame {
                 }
                 try {
                     Medicine newMedicine = new Medicine(name, charge);
-                    MedicineListPage.this.managerUser.addMedicine(newMedicine);
+                    ManageMedicinesPage.this.managerUser.addMedicine(newMedicine);
                     JOptionPane.showMessageDialog(null, "Successfully added medicine to inventory", "Medicine Created Successfully", JOptionPane.PLAIN_MESSAGE);
                 } catch (RuntimeException exception) {
                     JOptionPane.showMessageDialog(null, exception.getMessage(), "Input Error", JOptionPane.ERROR_MESSAGE);
@@ -98,7 +99,7 @@ public class MedicineListPage extends JFrame {
     private class EditButtonListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            Manager managerUser = MedicineListPage.this.managerUser;
+            Manager managerUser = ManageMedicinesPage.this.managerUser;
             int row = medicineTable.getSelectedRow();
             if (row != -1) {
                 String id = (String) tableModel.getValueAt(row, 0);
@@ -140,7 +141,7 @@ public class MedicineListPage extends JFrame {
                 String id = (String) tableModel.getValueAt(row, 0);
                 int confirm = JOptionPane.showConfirmDialog(null, String.format("Are you sure you want to delete the medicine %s from inventory?", id), "Confirm Delete", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE);
                 if (confirm == JOptionPane.YES_NO_OPTION) {
-                    managerUser.removeMedicine(id);
+                    managerUser.removeMedicineById(id);
                     JOptionPane.showMessageDialog(null, "Successfully deleted medicine", "Medicine Deleted Successfully", JOptionPane.PLAIN_MESSAGE);
                 }
             }
@@ -150,8 +151,8 @@ public class MedicineListPage extends JFrame {
     private class BackButtonListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            SwingUtilities.invokeLater(() -> new ManagerMainPage(MedicineListPage.this.managerUser));
-            MedicineListPage.this.dispose();
+            SwingUtilities.invokeLater(() -> new ManagerMainPage(ManageMedicinesPage.this.managerUser));
+            ManageMedicinesPage.this.dispose();
         }
     }
 }

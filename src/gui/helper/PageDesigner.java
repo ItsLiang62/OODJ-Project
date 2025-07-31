@@ -83,7 +83,8 @@ public final class PageDesigner {
         frame.setVisible(true);
     }
 
-    public static void displayBorderLayoutMainPage(JFrame frame, JLabel title, JButton[] functionalityButtons, JButton backButton) {
+    public static void displayBorderLayoutMainPage(JFrame frame, String title, JLabel titleLabel, JButton[] functionalityButtons, JButton backButton) {
+        frame.setTitle(title);
         frame.setSize(700, 500);
         frame.setLayout(new BorderLayout());
         frame.setLocationRelativeTo(null);
@@ -128,7 +129,67 @@ public final class PageDesigner {
         backPanel.add(backButton);
 
         // Add components to titlePanel
-        titlePanel.add(title);
+        titlePanel.add(titleLabel);
+
+        frame.setVisible(true);
+    }
+
+    public static void displayBorderLayoutProfilePage(JFrame frame, String title, JLabel titleLabel, JComponent[] dataFields, JLabel[] labels, JButton saveButton, JButton backButton) {
+        frame.setTitle(title);
+        frame.setSize(700, 500);
+        frame.setLocationRelativeTo(null);
+        frame.setLayout(new BorderLayout());
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        GridBagConstraints gbc = new GridBagConstraints();
+
+        // Adding panels to ProfilePage (BorderLayout)
+
+        JPanel northPanel = new JPanel(new GridBagLayout());
+        JPanel centerPanel = new JPanel(new GridBagLayout());
+        JPanel southPanel = new JPanel();
+        southPanel.setLayout(new BoxLayout(southPanel, BoxLayout.Y_AXIS));
+
+        frame.add(northPanel, BorderLayout.NORTH);
+        frame.add(centerPanel, BorderLayout.CENTER);
+        frame.add(southPanel, BorderLayout.SOUTH);
+
+        // Adding panels to northPanel (GridBagLayout)
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.gridx = 0;
+
+        gbc.gridy = 0;
+        northPanel.add(backButton, gbc);
+        gbc.gridy = 1;
+        northPanel.add(titleLabel, gbc);
+
+
+        // Adding components to centerPanel (GridBagLayout)
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.EAST;
+        gbc.gridx = 0;
+
+        gbc.gridy = 0;
+        for (JLabel label: labels) {
+            centerPanel.add(label, gbc);
+            gbc.gridy ++;
+        }
+
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.gridx = 1;
+
+        gbc.gridy = 0;
+        for (JComponent dataField: dataFields) {
+            centerPanel.add(dataField, gbc);
+            gbc.gridy ++;
+        }
+
+        // Adding components to southPanel (BoxLayout)
+        saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        southPanel.add(saveButton);
+        southPanel.add(Box.createRigidArea(new Dimension(0, 50)));
 
         frame.setVisible(true);
     }
