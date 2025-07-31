@@ -91,7 +91,7 @@ public class Manager extends User {
     public void removeStaffById(String staffId) { Database.removeStaff(staffId, true); }
     public void removeDoctorById(String doctorId) { Database.removeDoctor(doctorId, true); }
 
-    public void removeMedicine(String medicineId) {
+    public void removeMedicineById(String medicineId) {
         Database.removeMedicine(medicineId, true);
     }
 
