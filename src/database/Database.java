@@ -38,14 +38,13 @@ public final class Database {
         try {
             File dataFolder = new File(dataFolderPath);
             if (!dataFolder.exists()) {
-                dataFolder.mkdirs();
+                dataFolder.mkdirs(); // Create the data folder if it doesn't exist
             }
-
             for (File file: new File[] {managerFile, staffFile, doctorFile, customerFile, appointmentFile, medicineFile, appointmentMedicineFile, customerFeedbackFile, invoiceFile}) {
                 if (!file.exists()) {
-                    file.createNewFile();
+                    file.createNewFile(); // Create the text file in the data folder if it doesn't exist
                 }
-                if (file == managerFile && !new Scanner(file).hasNextLine()) {
+                if (file == managerFile && !new Scanner(file).hasNextLine()) {  // Write the root manager record to manager.txt if the file is empty
                     try (FileWriter managerFileWriter = new FileWriter(managerFile)) {
                         managerFileWriter.write(rootManagerDbRecord);
                     }
@@ -55,6 +54,9 @@ public final class Database {
             throw new RuntimeException(e.getMessage());
         }
 
+        // Create Entity sets that will store Entity objects created from text file records
+
+        // Ordered by ID Number
         managers = new TreeSet<>(Comparator.comparingInt(
                 user -> Integer.parseInt(user.getId().substring(1))
         ));
@@ -67,7 +69,7 @@ public final class Database {
         customers = new TreeSet<>(Comparator.comparingInt(
                 user -> Integer.parseInt(user.getId().substring(1))
         ));
-
+        // Ordered by Status -> ID Number
         Map<String, Integer> appointmentStatusPriority = new HashMap<>();
         appointmentStatusPriority.put("Pending", 1);
         appointmentStatusPriority.put("Confirmed", 2);
@@ -80,6 +82,7 @@ public final class Database {
         medicines = new TreeSet<>(Comparator.comparingInt(
                 medicine -> Integer.parseInt(medicine.getId().substring(1))
         ));
+        // Ordered by Appointment ID -> Medicine ID
         appointmentMedicines = new TreeSet<>(Comparator.comparingInt(
                 (AppointmentMedicine appointmentMedicine) -> Integer.parseInt(appointmentMedicine.getAppointmentId().substring(1))
         ).thenComparing(
@@ -91,58 +94,53 @@ public final class Database {
         invoices = new TreeSet<>(Comparator.comparingInt(
                 invoice -> Integer.parseInt(invoice.getId().substring(1))
         ));
-        Database.populate();
+        Database.populate(); // Fill the sets with objects created from text file records
     }
 
-    // add
+    // Add
 
+    // Add new Manager to Manager set and auto save to manager.txt
     public static void addManager(Manager newManager) {
         managers.add(newManager);
         Database.saveRecords(managers, managerFile);
     }
-
     public static void addStaff(Staff newStaff) {
         staffs.add(newStaff);
         Database.saveRecords(staffs, staffFile);
     }
-
     public static void addDoctor(Doctor newDoctor) {
         doctors.add(newDoctor);
         Database.saveRecords(doctors, doctorFile);
     }
-
     public static void addCustomer(Customer newCustomer) {
         customers.add(newCustomer);
         Database.saveRecords(customers, customerFile);
     }
-
     public static void addAppointment(Appointment newAppointment) {
         appointments.add(newAppointment);
         Database.saveRecords(appointments, appointmentFile);
     }
-
     public static void addMedicine(Medicine newMedicine) {
         medicines.add(newMedicine);
         Database.saveRecords(medicines, medicineFile);
     }
-
     public static void addAppointmentMedicine(AppointmentMedicine newAppointmentMedicine) {
         appointmentMedicines.add(newAppointmentMedicine);
         Database.saveRecords(appointmentMedicines, appointmentMedicineFile);
     }
-
     public static void addCustomerFeedback(CustomerFeedback newCustomerFeedback) {
         customerFeedbacks.add(newCustomerFeedback);
         Database.saveRecords(customerFeedbacks, customerFeedbackFile);
     }
-
     public static void addInvoice(Invoice newInvoice) {
         invoices.add(newInvoice);
         Database.saveRecords(invoices, invoiceFile);
     }
 
-    // get
+    // Get
 
+    // Return an Identifiable object using its ID, searched from the Identifiable set
+    // String identifiableType is used for error message customization
     public static <T extends Identifiable> T getIdentifiable(String id, Set<T> identifiableSet, String identifiableType) {
         for (T identifiable: identifiableSet) {
             if (identifiable.getId().equals(id)) {
@@ -159,36 +157,43 @@ public final class Database {
     public static Medicine getMedicine(String medicineId) { return getIdentifiable(medicineId, medicines, "medicine"); }
     public static CustomerFeedback getCustomerFeedback(String customerFeedbackId) { return getIdentifiable(customerFeedbackId, customerFeedbacks, "customer feedback");}
     public static Invoice getInvoice(String invoiceId) { return getIdentifiable(invoiceId, invoices, "invoice"); }
+
+    // Appointment is not an Identifiable (composite primary key, no single ID can identify it)
     public static AppointmentMedicine getAppointmentMedicine(String appointmentId, String medicineId) {
         for (AppointmentMedicine appointmentMedicine: appointmentMedicines) {
+            // Both appointment ID and medicine ID must match
             if (appointmentMedicine.getAppointmentId().equals(appointmentId) && appointmentMedicine.getMedicineId().equals(medicineId)) {
                 return appointmentMedicine;
             }
         }
-        throw new IdNotFoundException("Could not find AppointmentMedicine with the given appointmentId and medicineId!");
+        throw new IdNotFoundException("Could not find prescription with the given appointment ID and medicine ID!");
     }
 
-    // remove
+    // Remove
 
+    // Remove an Identifiable object from the Identifiable set using its ID, and auto save the new set to a file
     public static <T extends Identifiable> void removeFrom(Set<T> identifiableSet, String id, File resultOutputFile) {
         identifiableSet.removeIf(identifiable -> identifiable.getId().equals(id));
         Database.saveRecords(identifiableSet, resultOutputFile);
     }
 
     public static void removeManager(String managerId) {
+        // Restrict deletion of root manager (ID of M001)
         if (managerId.equals("M001")) {
             throw new RootManagerUnmodifiableException("Root manager is unmodifiable!");
         }
         removeFrom(managers, managerId, managerFile);
     }
 
+    // Dependencies of a record are defined as external records that references the record's primary key, typically in a foreign key column
+    // If removeAllDependencies is true, all dependencies of the record being removed will also be removed, to ensure data integrity
+    // removeAllDependencies can be false if the removal is part of updating the record (to be followed by add)
     public static void removeStaff(String staffId, boolean removeAllDependencies) {
-        removeFrom(staffs, staffId, managerFile);
+        removeFrom(staffs, staffId, staffFile); // Remove the staff record by staff ID first
         if (removeAllDependencies) {
-            removeCustomerFeedbackByNonManagerEmployeeId(staffId);
+            removeCustomerFeedbackByNonManagerEmployeeId(staffId); // Remove all customer feedbacks that has references to the staff ID
         }
     }
-
     public static void removeDoctor(String doctorId, boolean removeAllDependencies) {
         removeFrom(doctors, doctorId, doctorFile);
         if (removeAllDependencies) {
@@ -196,7 +201,6 @@ public final class Database {
             removeAppointmentByDoctorId(doctorId);
         }
     }
-
     public static void removeCustomer(String customerId, boolean removeAllDependencies) {
         removeFrom(customers, customerId, customerFile);
         if (removeAllDependencies) {
@@ -204,7 +208,6 @@ public final class Database {
             removeCustomerFeedbackByCustomerId(customerId);
         }
     }
-
     public static void removeAppointment(String appointmentId, boolean removeAllDependencies) {
         removeFrom(appointments, appointmentId, appointmentFile);
         if (removeAllDependencies) {
@@ -212,7 +215,6 @@ public final class Database {
             removeInvoiceByAppointmentId(appointmentId);
         }
     }
-
     public static void removeMedicine(String medicineId, boolean removeAllDependencies) {
         removeFrom(medicines, medicineId, medicineFile);
         if (removeAllDependencies) {
@@ -220,20 +222,20 @@ public final class Database {
         }
     }
 
-    public static void removeCustomerFeedback(String customerFeedbackId) { removeFrom(customerFeedbacks, customerFeedbackId, customerFeedbackFile); }
-
-    public static void removeInvoice(String invoiceId) { removeFrom(invoices, invoiceId, customerFeedbackFile); }
-
+    // No references made to the primary / composite primary key of manager, customer feedback, invoice and prescription
     public static void removeAppointmentMedicine(String appointmentId, String medicineId) {
         appointmentMedicines.removeIf(appointmentMedicine ->
                 appointmentMedicine.getAppointmentId().equals(appointmentId) &&
-                appointmentMedicine.getMedicineId().equals(medicineId)
+                        appointmentMedicine.getMedicineId().equals(medicineId)
         );
         Database.saveRecords(appointmentMedicines, appointmentMedicineFile);
     }
+    public static void removeCustomerFeedback(String customerFeedbackId) { removeFrom(customerFeedbacks, customerFeedbackId, customerFeedbackFile); }
+    public static void removeInvoice(String invoiceId) { removeFrom(invoices, invoiceId, customerFeedbackFile); }
 
     // Basic utility methods
 
+    // Get all IDs of Identifiable objects in the Identifiable set
     private static <T extends Identifiable> Set<String> getAllIdOf(Set<T> identifiableSet) {
         Set<String> allIdOf = new LinkedHashSet<>();
         for (Identifiable identifiable: identifiableSet) {
@@ -243,21 +245,15 @@ public final class Database {
     }
 
     public static Set<String> getAllManagerId() { return getAllIdOf(managers); }
-
     public static Set<String> getAllStaffId() { return getAllIdOf(staffs); }
-
     public static Set<String> getAllDoctorId() { return getAllIdOf(doctors); }
-
     public static Set<String> getAllCustomerId() { return getAllIdOf(customers); }
-
     public static Set<String> getAllAppointmentId() { return getAllIdOf(appointments); }
-
     public static Set<String> getAllMedicineId() { return getAllIdOf(medicines); }
-
     public static Set<String> getAllCustomerFeedbackId() { return getAllIdOf(customerFeedbacks); }
-
     public static Set<String> getAllInvoiceId() { return getAllIdOf(invoices); }
 
+    // Prescription info includes appointment ID and medicine ID
     public static Set<List<String>> getAllPrescriptionInfo() {
         Set<List<String>> allPrescriptionInfo = new LinkedHashSet<>();
         for (AppointmentMedicine appointmentMedicine: appointmentMedicines) {
@@ -281,12 +277,13 @@ public final class Database {
             }
         }
 
-        throw new EmailNotFoundException("--- Database.getUserIdWithEmail(String) failed. Could not find User with the given email ---");
+        throw new EmailNotFoundException("Could not find user with the given email!");
     }
 
-    private static <T extends Entity> Set<String> getAllFieldValueOf(Set<T> savableSet, FieldValueReturner<T> fieldValueReturner) {
+    // Get values of a specific instance field of all Entity objects in an Entity set
+    private static <T extends Entity> Set<String> getAllFieldValueOf(Set<T> entitySet, FieldValueReturner<T> fieldValueReturner) {
         Set<String> allFieldValueOf = new LinkedHashSet<>();
-        for (T savable: savableSet) {
+        for (T savable: entitySet) {
             allFieldValueOf.add(fieldValueReturner.getFieldValue(savable));
         }
         return allFieldValueOf;
@@ -306,6 +303,8 @@ public final class Database {
 
     public static Set<String> getAllMedicineNames() { return getAllFieldValueOf(medicines, Medicine::getName); }
 
+    // Get all IDs of Identifiable objects in an Identifiable set, given (where) the value of a specific instance field matches
+    // Simulate the WHERE keyword for filtering records in actual databases
     private static <T extends Identifiable> Set<String> getAllIdOfWhereCondition(Set<T> identifiableSet, String fieldValue, FieldValueReturner<T> fieldValueReturner) {
         Set<String> allIdOfWhereCondition = new LinkedHashSet<>();
         for (T identifiable: identifiableSet) {
@@ -316,6 +315,8 @@ public final class Database {
         return allIdOfWhereCondition;
     }
 
+
+    // Get all appointment IDs of appointments with the doctor ID (WHERE getDoctorId() == doctorId)
     public static Set<String> getAllAppointmentIdOfDoctor(String doctorId) { return getAllIdOfWhereCondition(appointments, doctorId, Appointment::getDoctorId); }
     public static Set<String> getAllAppointmentIdOfCustomer(String customerId) { return getAllIdOfWhereCondition(appointments, customerId, Appointment::getCustomerId); }
     public static Set<String> getAllCustomerFeedbackIdOfNonManagerEmployee(String nonManagerEmployeeId) { return getAllIdOfWhereCondition(customerFeedbacks, nonManagerEmployeeId, CustomerFeedback::getNonManagerEmployeeId); }
@@ -345,18 +346,19 @@ public final class Database {
     }
 
     public static Set<String> getAllInvoiceIdOfCustomer(String customerId) {
-        Set<String> allAppointmentIdInInvoices = getAllAppointmentIdInInvoices();
-        Set<String> allAppointmentIdOfCustomer = getAllAppointmentIdOfCustomer(customerId);
+        Set<String> allAppointmentIdInInvoices = getAllAppointmentIdInInvoices(); // Get all appointment IDs that have invoices already
+        Set<String> allAppointmentIdOfCustomer = getAllAppointmentIdOfCustomer(customerId); // Get all appointment IDs of the customer
         Set<String> allAppointmentIdOfCustomerWithInvoice = new HashSet<>(allAppointmentIdInInvoices);
-        allAppointmentIdOfCustomerWithInvoice.retainAll(allAppointmentIdOfCustomer);
+        allAppointmentIdOfCustomerWithInvoice.retainAll(allAppointmentIdOfCustomer); // All appointment IDs of the customer that have invoices already
         return getAllInvoiceId().stream().filter(
                 invoiceId -> allAppointmentIdOfCustomerWithInvoice.contains(Database.getInvoice(invoiceId).getAppointmentId())
-        ).collect(Collectors.toSet());
+        ).collect(Collectors.toSet());  // All invoice IDs whose appointment ID is in the intersected set
     }
 
     public static double getTotalMedicineChargesOfAppointment(String appointmentId) {
         double totalMedicineChargesOfAppointment = 0;
         for (AppointmentMedicine appointmentMedicine: appointmentMedicines) {
+            // If the prescription has the appointment ID, add the charge of the medicine ID to the total charge
             if (appointmentMedicine.getAppointmentId().equals(appointmentId)) {
                 Medicine medicineForAppointment = getMedicine(appointmentMedicine.getMedicineId());
                 totalMedicineChargesOfAppointment += medicineForAppointment.getCharge();
@@ -373,38 +375,64 @@ public final class Database {
         return allPublicRecordsOf;
     }
 
-    // remove dependencies
+    // Get all public records of Entity objects in an Entity set
+    public static <T extends Entity> Set<List<String>> getAllPublicRecordsOf(Set<T> entitySet) {
+        Set<List<String>> allPublicRecordsOf = new LinkedHashSet<>();
+        for (T entity: entitySet) {
+            allPublicRecordsOf.add(entity.createPublicRecord());
+        }
+        return allPublicRecordsOf;
+    }
 
-    private static <T extends Entity> void removeLeafDependenciesFrom(Set<T> leafSet, String foreignKeyId, FieldValueReturner<T> fieldValueReturner, File resultOutputFile) {
-        leafSet.removeIf(leaf -> fieldValueReturner.getFieldValue(leaf).equals(foreignKeyId));
+    public static Set<List<String>> getAllManagerPublicRecords() { return getAllPublicRecordsOf(managers); }
+    public static Set<List<String>> getAllStaffPublicRecords() { return getAllPublicRecordsOf(staffs); }
+    public static Set<List<String>> getAllDoctorPublicRecords() { return getAllPublicRecordsOf(doctors); }
+    public static Set<List<String>> getAllCustomerPublicRecords() { return getAllPublicRecordsOf(customers); }
+    public static Set<List<String>> getAllAppointmentPublicRecords() { return getAllPublicRecordsOf(appointments); }
+    public static Set<List<String>> getAllMedicinePublicRecords() { return getAllPublicRecordsOf(medicines); }
+    public static Set<List<String>> getAllAppointmentMedicinePublicRecords() { return  getAllPublicRecordsOf(appointmentMedicines); }
+    public static Set<List<String>> getAllCustomerFeedbackPublicRecords() { return getAllPublicRecordsOf(customerFeedbacks); }
+    public static Set<List<String>> getAllInvoiceRecords() { return getAllPublicRecordsOf(invoices); }
+
+    // Remove dependencies
+
+    // Leaf dependencies are defined here as dependencies whose primary key is not referenced by external records
+    // Can be directly removed
+    
+    // Removes Entity objects from the Entity set, given the value of a specific instance field of the object matches, save the new set to a file
+    private static <T extends Entity> void removeLeafDependenciesFrom(Set<T> leafSet, String fieldValue, FieldValueReturner<T> fieldValueReturner, File resultOutputFile) {
+        leafSet.removeIf(leaf -> fieldValueReturner.getFieldValue(leaf).equals(fieldValue));
         Database.saveRecords(leafSet, resultOutputFile);
     }
 
-    private static <T extends Identifiable> void removeRootDependenciesFrom(Set<T> rootSet, String foreignKeyId, FieldValueReturner<T> fieldValueReturner, IdentifiableRemover identifiableRemover, File resultOutputFile) {
+    // Root dependencies are defined here as dependencies whose primary key is referenced by external records (sub-dependencies)
+    // Removal of these dependencies requires a "chain reaction" that also removes their dependencies, and so on if needed
+    
+    // Removes Identifiable objects from the Identifiable set, given the value of a specific instance field (restricted to ID-based instance fields only) of the object matches (to be removed PK found FK match, confirmed is dependency), save the new set to a file
+    // Restriction to only ID-based instance fields for referential checking is because root dependency removal uses DependableIdentifiableRemover.removeDependableIdentifiable(String id, boolean removeAllDependencies)
+    private static <T extends Identifiable> void removeRootDependenciesFrom(Set<T> rootSet, String idFieldValue, FieldValueReturner<T> fieldValueReturner, DependableIdentifiableRemover dependableIdentifiableRemover, File resultOutputFile) {
         List<T> rootsToRemove = new ArrayList<>();
         for (T root: rootSet) {
-            if (fieldValueReturner.getFieldValue(root).equals(foreignKeyId)) {
+            if (fieldValueReturner.getFieldValue(root).equals(idFieldValue)) {
                 rootsToRemove.add(root);
             }
         }
         for (T root: rootsToRemove) {
-            identifiableRemover.removeIdentifiable(root.getId(), true);
+            dependableIdentifiableRemover.removeDependableIdentifiable(root.getId(), true);
         }
         Database.saveRecords(rootSet, resultOutputFile);
     }
 
+
+    // Remove prescriptions with the given appointment ID (no external references to composite primary key = leaf dependency)
     public static void removeAppointmentMedicineByAppointmentId(String appointmentId) { removeLeafDependenciesFrom(appointmentMedicines, appointmentId, AppointmentMedicine::getAppointmentId, appointmentMedicineFile); }
-
     public static void removeAppointmentMedicineByMedicineId(String medicineId) { removeLeafDependenciesFrom(appointmentMedicines, medicineId, AppointmentMedicine::getMedicineId, appointmentMedicineFile); }
-
     public static void removeCustomerFeedbackByCustomerId(String customerId) { removeLeafDependenciesFrom(customerFeedbacks, customerId, CustomerFeedback::getCustomerId, customerFeedbackFile);}
-
     public static void removeCustomerFeedbackByNonManagerEmployeeId(String nonManagerEmployeeId) { removeLeafDependenciesFrom(customerFeedbacks, nonManagerEmployeeId, CustomerFeedback::getNonManagerEmployeeId, customerFeedbackFile);}
-
     public static void removeInvoiceByAppointmentId(String appointmentId) { removeLeafDependenciesFrom(invoices, appointmentId, Invoice::getAppointmentId, invoiceFile); }
 
+    // Remove appointments with the given customer ID (has external references to primary key appointment ID in invoices = root dependency)
     public static void removeAppointmentByCustomerId(String customerId) { removeRootDependenciesFrom(appointments, customerId, Appointment::getCustomerId, Database::removeAppointment, appointmentFile);}
-
     public static void removeAppointmentByDoctorId(String doctorId) { removeRootDependenciesFrom(appointments, doctorId, Appointment::getDoctorId, Database::removeAppointment, appointmentFile);}
 
     private static void populateFromRecords(InstantiatableFromRecord instantiatableFromRecord, File inputFile) {
