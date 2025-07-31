@@ -100,6 +100,8 @@ public final class ListenerHelper {
 
         @Override
         public void actionPerformed(ActionEvent e) {
+
+            // Filter invoice records to this month only
             List<List<String>> allInvoicePublicRecords = managerUser.getAllInvoicePublicRecords();
             List<List<String>> thisMonthInvoicePublicRecords = new ArrayList<>();
             for (List<String> invoicePublicRecords: allInvoicePublicRecords) {
@@ -109,6 +111,8 @@ public final class ListenerHelper {
                     thisMonthInvoicePublicRecords.add(invoicePublicRecords);
                 }
             }
+
+            // Calculate statistics
             double monthlyRevenue = 0;
             double numAppointments = thisMonthInvoicePublicRecords.size();
             double avgAppointmentRevenue;
@@ -116,6 +120,9 @@ public final class ListenerHelper {
             for (List<String> invoicePublicRecord: thisMonthInvoicePublicRecords) {
                 monthlyRevenue += Double.parseDouble(invoicePublicRecord.get(Arrays.asList(Invoice.getColumnNames()).indexOf("Total Charge")));
             }
+            avgAppointmentRevenue = monthlyRevenue / numAppointments;
+
+            
         }
     }
 }
