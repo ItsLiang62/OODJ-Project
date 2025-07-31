@@ -6,6 +6,7 @@ import customExceptions.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Month;
 import java.util.*;
 
 import java.io.FileWriter;
@@ -281,13 +282,7 @@ public final class Database {
     }
 
     // Get values of a specific instance field of all Entity objects in an Entity set
-    private static <T extends Entity> Set<String> getAllFieldValueOf(Set<T> entitySet, FieldValueReturner<T> fieldValueReturner) {
-        Set<String> allFieldValueOf = new LinkedHashSet<>();
-        for (T savable: entitySet) {
-            allFieldValueOf.add(fieldValueReturner.getFieldValue(savable));
-        }
-        return allFieldValueOf;
-    }
+    private static <T extends Entity> Set<String> getAllFieldValueOf(Set<T> entitySet, FieldValueReturner<T> fieldValueReturner) { return entitySet.stream().map(fieldValueReturner::getFieldValue).collect(Collectors.toCollection(LinkedHashSet::new)); }
 
     public static Set<String> getAllAppointmentIdInInvoices() { return getAllFieldValueOf(invoices, Invoice::getAppointmentId); }
 
@@ -305,96 +300,35 @@ public final class Database {
 
     // Get all IDs of Identifiable objects in an Identifiable set, given (where) the value of a specific instance field matches
     // Simulate the WHERE keyword for filtering records in actual databases
-    private static <T extends Identifiable> Set<String> getAllIdOfWhereCondition(Set<T> identifiableSet, String fieldValue, FieldValueReturner<T> fieldValueReturner) {
-        Set<String> allIdOfWhereCondition = new LinkedHashSet<>();
-        for (T identifiable: identifiableSet) {
-            if (fieldValueReturner.getFieldValue(identifiable).equals(fieldValue)) {
-                allIdOfWhereCondition.add(identifiable.getId());
-            }
-        }
-        return allIdOfWhereCondition;
-    }
-
+    private static <T extends Identifiable> Set<String> getAllIdOfWhereCondition(Set<T> identifiableSet, String fieldValue, FieldValueReturner<T> fieldValueReturner) { return identifiableSet.stream().filter(identifiable -> fieldValueReturner.getFieldValue(identifiable).equals(fieldValue)).map(Identifiable::getId).collect(Collectors.toCollection(LinkedHashSet::new)); }
 
     // Get all appointment IDs of appointments with the doctor ID (WHERE getDoctorId() == doctorId)
     public static Set<String> getAllAppointmentIdOfDoctor(String doctorId) { return getAllIdOfWhereCondition(appointments, doctorId, Appointment::getDoctorId); }
     public static Set<String> getAllAppointmentIdOfCustomer(String customerId) { return getAllIdOfWhereCondition(appointments, customerId, Appointment::getCustomerId); }
-    public static Set<String> getAllCustomerFeedbackIdOfNonManagerEmployee(String nonManagerEmployeeId) { return getAllIdOfWhereCondition(customerFeedbacks, nonManagerEmployeeId, CustomerFeedback::getNonManagerEmployeeId); }
     public static Set<String> getAllCustomerFeedbackIdOfCustomer(String customerId) { return getAllIdOfWhereCondition(customerFeedbacks, customerId, CustomerFeedback::getCustomerId); }
 
-    public static Set<List<String>> getAllPrescriptionInfoOfDoctor(String doctorId) {
-        Set<List<String>> allPrescriptionInfoOfDoctor = new LinkedHashSet<>();
-        for (String appointmentId: Database.getAllAppointmentIdOfDoctor(doctorId)) {
-            for (List<String> prescriptionInfo: Database.getAllPrescriptionInfo()) {
-                if (prescriptionInfo.getFirst().equals(appointmentId)) {
-                    allPrescriptionInfoOfDoctor.add(prescriptionInfo);
-                }
-            }
-        }
-        return allPrescriptionInfoOfDoctor;
-    }
-
-    public static Set<List<String>> getAllPrescriptionInfoOfCustomer(String customerId) {
-        Set<List<String>> allPrescriptionInfoOfCustomer = new LinkedHashSet<>();
-        for (String appointmentId: Database.getAllAppointmentIdOfCustomer(customerId)) {
-            for (List<String> prescriptionInfo: Database.getAllPrescriptionInfo()) {
-                if (prescriptionInfo.getFirst().equals(appointmentId)) {
-                    allPrescriptionInfoOfCustomer.add(prescriptionInfo);
-                }
-            }
-        }
-        return allPrescriptionInfoOfCustomer;
-    }
-
-    public static Set<String> getAllInvoiceIdOfCustomer(String customerId) {
-        Set<String> allAppointmentIdInInvoices = getAllAppointmentIdInInvoices(); // Get all appointment IDs that have invoices already
-        Set<String> allAppointmentIdOfCustomer = getAllAppointmentIdOfCustomer(customerId); // Get all appointment IDs of the customer
-        Set<String> allAppointmentIdOfCustomerWithInvoice = new HashSet<>(allAppointmentIdInInvoices);
-        allAppointmentIdOfCustomerWithInvoice.retainAll(allAppointmentIdOfCustomer); // All appointment IDs of the customer that have invoices already
-        return getAllInvoiceId().stream().filter(
-                invoiceId -> allAppointmentIdOfCustomerWithInvoice.contains(Database.getInvoice(invoiceId).getAppointmentId())
-        ).collect(Collectors.toSet());  // All invoice IDs whose appointment ID is in the intersected set
-    }
-
-    public static double getTotalMedicineChargesOfAppointment(String appointmentId) {
-        double totalMedicineChargesOfAppointment = 0;
-        for (AppointmentMedicine appointmentMedicine: appointmentMedicines) {
-            // If the prescription has the appointment ID, add the charge of the medicine ID to the total charge
-            if (appointmentMedicine.getAppointmentId().equals(appointmentId)) {
-                Medicine medicineForAppointment = getMedicine(appointmentMedicine.getMedicineId());
-                totalMedicineChargesOfAppointment += medicineForAppointment.getCharge();
-            }
-        }
-        return totalMedicineChargesOfAppointment;
-    }
-
-
-    public static Set<List<String>> getAllPublicRecordsOf(Set<String> idSet, IdentifiableReturner identifiableReturner) {
-        Set<List<String>> allPublicRecordsOf = new LinkedHashSet<>();
-        for (String id: idSet) {
-            allPublicRecordsOf.add(identifiableReturner.getIdentifiable(id).createPublicRecord());
-        }
-        return allPublicRecordsOf;
-    }
+    public static double getTotalMedicineChargesOfAppointment(String appointmentId) { return appointmentMedicines.stream().filter(appointmentMedicine -> appointmentMedicine.getAppointmentId().equals(appointmentId)).mapToDouble(appointmentMedicine -> getMedicine(appointmentMedicine.getMedicineId()).getCharge()).sum(); }
+    public static Set<String> getAllInvoiceIdOfMonth(Month month) { return invoices.stream().filter(invoice -> invoice.getCreationDate().getMonth().equals(month)).map(Invoice::getId).collect(Collectors.toCollection(LinkedHashSet::new)); }
 
     // Get all public records of Entity objects in an Entity set
-    public static <T extends Entity> Set<List<String>> getAllPublicRecordsOf(Set<T> entitySet) {
-        Set<List<String>> allPublicRecordsOf = new LinkedHashSet<>();
-        for (T entity: entitySet) {
-            allPublicRecordsOf.add(entity.createPublicRecord());
-        }
-        return allPublicRecordsOf;
-    }
+    public static <T extends Entity> List<List<String>> getAllPublicRecordsOf(Set<T> entitySet) { return entitySet.stream().map(Entity::createPublicRecord).collect(Collectors.toCollection(ArrayList::new)); }
 
-    public static Set<List<String>> getAllManagerPublicRecords() { return getAllPublicRecordsOf(managers); }
-    public static Set<List<String>> getAllStaffPublicRecords() { return getAllPublicRecordsOf(staffs); }
-    public static Set<List<String>> getAllDoctorPublicRecords() { return getAllPublicRecordsOf(doctors); }
-    public static Set<List<String>> getAllCustomerPublicRecords() { return getAllPublicRecordsOf(customers); }
-    public static Set<List<String>> getAllAppointmentPublicRecords() { return getAllPublicRecordsOf(appointments); }
-    public static Set<List<String>> getAllMedicinePublicRecords() { return getAllPublicRecordsOf(medicines); }
-    public static Set<List<String>> getAllAppointmentMedicinePublicRecords() { return  getAllPublicRecordsOf(appointmentMedicines); }
-    public static Set<List<String>> getAllCustomerFeedbackPublicRecords() { return getAllPublicRecordsOf(customerFeedbacks); }
-    public static Set<List<String>> getAllInvoiceRecords() { return getAllPublicRecordsOf(invoices); }
+    public static List<List<String>> getAllManagerPublicRecords() { return getAllPublicRecordsOf(managers); }
+    public static List<List<String>> getAllStaffPublicRecords() { return getAllPublicRecordsOf(staffs); }
+    public static List<List<String>> getAllDoctorPublicRecords() { return getAllPublicRecordsOf(doctors); }
+    public static List<List<String>> getAllCustomerPublicRecords() { return getAllPublicRecordsOf(customers); }
+    public static List<List<String>> getAllAppointmentPublicRecords() { return getAllPublicRecordsOf(appointments); }
+    public static List<List<String>> getAllMedicinePublicRecords() { return getAllPublicRecordsOf(medicines); }
+    public static List<List<String>> getAllAppointmentMedicinePublicRecords() { return  getAllPublicRecordsOf(appointmentMedicines); }
+    public static List<List<String>> getAllCustomerFeedbackPublicRecords() { return getAllPublicRecordsOf(customerFeedbacks); }
+    public static List<List<String>> getAllInvoicePublicRecords() { return getAllPublicRecordsOf(invoices); }
+    public static List<List<String>> getAllAppointmentPublicRecordsOfDoctor(String doctorId) { return getAllPublicRecordsOf(appointments.stream().filter(appointment -> appointment.getDoctorId().equals(doctorId)).collect(Collectors.toCollection(LinkedHashSet::new))); }
+    public static List<List<String>> getAllAppointmentPublicRecordsOfCustomer(String customerId) { return getAllPublicRecordsOf(appointments.stream().filter(appointment -> appointment.getCustomerId().equals(customerId)).collect(Collectors.toCollection(LinkedHashSet::new))); }
+    public static List<List<String>> getAllCustomerFeedbackPublicRecordsOfNonManagerEmployee(String nonManagerEmployeeId) { return getAllPublicRecordsOf(customerFeedbacks.stream().filter(customerFeedback -> customerFeedback.getNonManagerEmployeeId().equals(nonManagerEmployeeId)).collect(Collectors.toCollection(LinkedHashSet::new))); }
+    public static List<List<String>> getAllCustomerFeedbackPublicRecordsOfCustomer(String customerId) { return getAllPublicRecordsOf(customerFeedbacks.stream().filter(customerFeedback -> customerFeedback.getCustomerId().equals(customerId)).collect(Collectors.toCollection(LinkedHashSet::new))); }
+    public static List<List<String>> getAllAppointmentMedicinePublicRecordsOfDoctor(String doctorId) { return getAllPublicRecordsOf(appointmentMedicines.stream().filter(appointmentMedicine -> getAllAppointmentIdOfDoctor(doctorId).contains(appointmentMedicine.getAppointmentId())).collect(Collectors.toCollection(LinkedHashSet::new))); }
+    public static List<List<String>> getAllAppointmentMedicinePublicRecordsOfCustomer(String customerId) { return getAllPublicRecordsOf(appointmentMedicines.stream().filter(appointmentMedicine -> getAllAppointmentIdOfCustomer(customerId).contains(appointmentMedicine.getAppointmentId())).collect(Collectors.toCollection(LinkedHashSet::new))); }
+    public static List<List<String>> getAllInvoicePublicRecordsOfCustomer(String customerId) { return getAllPublicRecordsOf(invoices.stream().filter(invoice -> getAllAppointmentIdOfCustomer(customerId).contains(invoice.getAppointmentId())).collect(Collectors.toCollection(LinkedHashSet::new))); }
 
     // Remove dependencies
 

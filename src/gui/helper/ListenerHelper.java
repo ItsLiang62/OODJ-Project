@@ -1,8 +1,15 @@
 package gui.helper;
 
+import operation.Invoice;
+import user.Manager;
+import user.User;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.time.Month;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -43,5 +50,63 @@ public final class ListenerHelper {
         }
 
         return panel;
+    }
+
+    public static class SaveButtonListener implements ActionListener {
+        User user;
+        JTextField nameField;
+        JTextField emailField;
+        JTextField passwordField;
+
+        public SaveButtonListener(User user, JTextField nameField, JTextField emailField, JTextField passwordField) {
+            this.user = user;
+            this.nameField = nameField;
+            this.emailField = emailField;
+            this.passwordField = passwordField;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String name = nameField.getText();
+            String email = emailField.getText();
+            String password = passwordField.getText();
+            try {
+                user.setName(name);
+                user.setEmail(email);
+                user.setPassword(password);
+            } catch (RuntimeException exception) {
+                JOptionPane.showMessageDialog(null, exception.getMessage(), "Input Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            JOptionPane.showMessageDialog(null, "Successfully updated profile!", "Profile Updated Successfully", JOptionPane.PLAIN_MESSAGE);
+        }
+    }
+
+    public class GenerateReportButtonListener implements ActionListener {
+        Manager managerUser;
+        Month month;
+
+        public GenerateReportButtonListener(Manager managerUser, Month month) {
+            this.managerUser = managerUser;
+            this.month = month;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+
+            // Filter invoice records to this month only
+            List<Invoice> allInvoicesOfMonth = managerUser.getAllInvoicesOfMonth(month);
+
+            // Calculate statistics
+            double monthlyRevenue = 0;
+            double numAppointments = allInvoicesOfMonth.size();
+            double avgAppointmentRevenue;
+
+            for (Invoice invoice: allInvoicesOfMonth) {
+                monthlyRevenue += invoice.getTotalAmount();
+            }
+            avgAppointmentRevenue = monthlyRevenue / numAppointments;
+        }
     }
 }

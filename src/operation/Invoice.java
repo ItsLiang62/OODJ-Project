@@ -43,7 +43,9 @@ public class Invoice implements Identifiable {
 
     public String getId() { return this.id; }
     public String getAppointmentId() { return this.appointmentId; }
-    public String getCreationDate() { return this.creationDate.format(formatter); }
+    public LocalDate getCreationDate() { return this.creationDate; }
+    public String getCreationDateStr() { return this.creationDate.format(formatter); }
+    public double getTotalAmount() { return this.totalAmount; }
 
     public List<String> createDbRecord() {
         String dbId = this.id;

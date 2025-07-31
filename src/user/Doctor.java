@@ -18,40 +18,13 @@ public class Doctor extends User {
         this(IdCreator.createId('D'), name, email, email);
     }
 
-    public Set<List<String>> getAllMyAppointmentRecords() {
-        Set<List<String>> allMyAppointmentRecords = new LinkedHashSet<>();
-        for (String appointmentId: Database.getAllAppointmentIdOfDoctor(this.id)) {
-            allMyAppointmentRecords.add(Database.getAppointment(appointmentId).createPublicRecord());
-        }
-        return allMyAppointmentRecords;
-    }
-
-    public Set<List<String>> getAllMyCustomerFeedbackRecords() {
-        Set<List<String>> allMyCustomerFeedbackRecords = new LinkedHashSet<>();
-        for (String customerFeedbackId: Database.getAllCustomerFeedbackIdOfNonManagerEmployee(this.getId())) {
-            allMyCustomerFeedbackRecords.add(Database.getCustomerFeedback(customerFeedbackId).createPublicRecord());
-        }
-        return allMyCustomerFeedbackRecords;
-    }
-
-    public Set<List<String>> getAllMedicineRecords() {
-        Set<List<String>> allMedicineRecords = new LinkedHashSet<>();
-        for (String medicineId: Database.getAllMedicineId()){
-            allMedicineRecords.add(Database.getMedicine(medicineId).createPublicRecord());
-        }
-        return allMedicineRecords;
-    }
-
-    public Set<List<String>> getAllMyPrescriptionRecords() {
-        Set<List<String>> allMyPrescriptionRecords = new LinkedHashSet<>();
-        for (List<String> prescriptionInfo: Database.getAllPrescriptionInfoOfDoctor(this.id)) {
-            allMyPrescriptionRecords.add(Database.getAppointmentMedicine(prescriptionInfo.getFirst(), prescriptionInfo.getLast()).createPublicRecord());
-        }
-        return allMyPrescriptionRecords;
-    }
+    public List<List<String>> getAllMyAppointmentRecords() { return Database.getAllAppointmentPublicRecordsOfDoctor(id); }
+    public List<List<String>> getAllMyCustomerFeedbackRecords() { return Database.getAllCustomerFeedbackPublicRecordsOfNonManagerEmployee(id); }
+    public List<List<String>> getAllMedicineRecords() { return Database.getAllMedicinePublicRecords(); }
+    public List<List<String>> getAllMyPrescriptionRecords() { return Database.getAllAppointmentMedicinePublicRecordsOfDoctor(id); }
 
     public void prescribeMedicine(String appointmentId, String medicineId, String targetSymptom) {
-        if (!Database.getAllAppointmentIdOfDoctor(this.id).contains(appointmentId)) {
+        if (!Database.getAllAppointmentIdOfDoctor(id).contains(appointmentId)) {
             throw new AppointmentDoesNotBelongToDoctorException("Failed to prescribe medicine for appointment. Appointment does not belong to doctor");
         }
         AppointmentMedicine newAppointmentMedicine = new AppointmentMedicine(appointmentId, medicineId, targetSymptom.trim(), true);
@@ -59,7 +32,7 @@ public class Doctor extends User {
     }
 
     public void setConsultationFee(String appointmentId, double consultationFee) {
-        if (!Database.getAllAppointmentIdOfDoctor(this.id).contains(appointmentId)) {
+        if (!Database.getAllAppointmentIdOfDoctor(id).contains(appointmentId)) {
             throw new AppointmentDoesNotBelongToDoctorException("Failed to set consultation fee for appointment. Appointment does not belong to doctor");
         }
         Appointment appointment = Database.getAppointment(appointmentId);
@@ -67,7 +40,7 @@ public class Doctor extends User {
     }
 
     public void provideFeedback(String appointmentId, String feedback) {
-        if (!Database.getAllAppointmentIdOfDoctor(this.id).contains(appointmentId)) {
+        if (!Database.getAllAppointmentIdOfDoctor(id).contains(appointmentId)) {
             throw new AppointmentDoesNotBelongToDoctorException("Failed to set feedback for customer of appointment. Appointment does not belong to doctor!");
         }
         Appointment appointment = Database.getAppointment(appointmentId);
@@ -77,21 +50,21 @@ public class Doctor extends User {
     @Override
     public void setName(String name) {
         super.setName(name);
-        Database.removeDoctor(this.id, false);
+        Database.removeDoctor(id, false);
         Database.addDoctor(this);
     }
 
     @Override
     public void setEmail(String email) {
         super.setEmail(email);
-        Database.removeDoctor(this.id, false);
+        Database.removeDoctor(id, false);
         Database.addDoctor(this);
     }
 
     @Override
     public void setPassword(String password) {
         super.setPassword(password);
-        Database.removeDoctor(this.id, false);
+        Database.removeDoctor(id, false);
         Database.addDoctor(this);
     }
 

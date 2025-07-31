@@ -2,9 +2,12 @@ package user;
 
 import customExceptions.SelfDeletionUnsupportedException;
 import database.*;
+import operation.Invoice;
 import operation.Medicine;
 
+import java.time.Month;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Manager extends User {
 
@@ -76,21 +79,17 @@ public class Manager extends User {
 
     public void removeDoctorById(String doctorId) { Database.removeDoctor(doctorId, true); }
 
-    public Set<List<String>> getAllAppointmentPublicRecords() { return Database.getAllAppointmentPublicRecords(); }
-
-    public Set<List<String>> getAllCustomerFeedbackPublicRecords() { return Database.getAllCustomerFeedbackPublicRecords(); }
-
-    public Set<List<String>> getAllManagerPublicRecords() { return Database.getAllManagerPublicRecords(); }
-
-    public Set<List<String>> getAllStaffPublicRecords() { return Database.getAllStaffPublicRecords(); }
-
-    public Set<List<String>> getAllDoctorPublicRecords() { return Database.getAllDoctorPublicRecords(); }
-
-    public Set<List<String>> getAllMedicinePublicRecords() { return Database.getAllMedicinePublicRecords(); }
-
     public void removeMedicine(String medicineId) {
         Database.removeMedicine(medicineId, true);
     }
+
+    public List<List<String>> getAllAppointmentPublicRecords() { return Database.getAllAppointmentPublicRecords(); }
+    public List<List<String>> getAllCustomerFeedbackPublicRecords() { return Database.getAllCustomerFeedbackPublicRecords(); }
+    public List<List<String>> getAllManagerPublicRecords() { return Database.getAllManagerPublicRecords(); }
+    public List<List<String>> getAllStaffPublicRecords() { return Database.getAllStaffPublicRecords(); }
+    public List<List<String>> getAllDoctorPublicRecords() { return Database.getAllDoctorPublicRecords(); }
+    public List<List<String>> getAllMedicinePublicRecords() { return Database.getAllMedicinePublicRecords(); }
+    public List<Invoice> getAllInvoicesOfMonth(Month month) { return Database.getAllInvoiceIdOfMonth(month).stream().map(Database::getInvoice).collect(Collectors.toCollection(ArrayList::new)); }
 
     public static void createManagerFromDbRecord(List<String> record) {
         String managerId = record.getFirst();

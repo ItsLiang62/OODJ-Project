@@ -49,11 +49,11 @@ public class Staff extends User {
 
     public Appointment getAppointmentById(String appointmentId) { return Database.getAppointment(appointmentId); }
 
-    public Set<List<String>> getAllCustomerPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllCustomerId(), Database::getCustomer); }
-
-    public Set<List<String>> getAllAppointmentPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllAppointmentId(), Database::getAppointment); }
-
-    public Set<List<String>> getAllDoctorPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllDoctorId(), Database::getDoctor); }
+    public List<List<String>> getAllCustomerPublicRecords() { return Database.getAllCustomerPublicRecords(); }
+    public List<List<String>> getAllAppointmentPublicRecords() { return Database.getAllAppointmentPublicRecords(); }
+    public List<List<String>> getAllDoctorPublicRecords() { return Database.getAllDoctorPublicRecords(); }
+    public List<List<String>> getAllInvoicePublicRecords() { return Database.getAllInvoicePublicRecords(); }
+    public List<List<String>> getAllMyCustomerFeedbackRecords() { return Database.getAllCustomerFeedbackPublicRecordsOfNonManagerEmployee(id); }
 
     public void removeCustomerById(String customerId) {
         Database.removeCustomer(customerId, true);
