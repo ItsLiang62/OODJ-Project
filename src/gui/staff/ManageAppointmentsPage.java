@@ -8,8 +8,6 @@ import operation.Invoice;
 import user.Staff;
 
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -18,29 +16,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class AppointmentListPage extends JFrame {
-    private Staff staffUser;
-    private final JLabel titleLabel = new JLabel("Manage Appointments");
-    private final JButton loadButton = new JButton("Load");
-    private final JButton addButton = new JButton("Add");
-    private final JButton assignDoctorButton = new JButton("Assign Doctor");
-    private final JButton collectPaymentButton = new JButton("Collect Payment");
-    private final JButton deleteButton = new JButton("Delete");
-    private final JButton backButton = new JButton("Back");
+public class ManageAppointmentsPage extends JFrame {
+    private final Staff staffUser;
     private final DefaultTableModel tableModel = new DefaultTableModel(new String[] {"Appointment ID", "Customer ID", "Doctor ID", "Doctor Feedback", "Consultation Fee", "Status"}, 0);
     private final JTable appointmentTable = new JTable(tableModel);
-    private final JScrollPane scrollPane = new JScrollPane(appointmentTable);
 
-    public AppointmentListPage(Staff staffUser) {
+    public ManageAppointmentsPage(Staff staffUser) {
         this.staffUser = staffUser;
 
-        JButton[] loadPanelButtons = {loadButton};
+        JLabel titleLabel = new JLabel("Manage Appointments");
+        JButton loadButton = new JButton("Load");
+        JButton addButton = new JButton("Add");
+        JButton backButton = new JButton("Back");
+        JButton assignDoctorButton = new JButton("Assign Doctor");
+        JButton collectPaymentButton = new JButton("Collect Payment");
+        JButton deleteButton = new JButton("Delete");
+        JScrollPane scrollPane = new JScrollPane(appointmentTable);
+
         JButton[] operatePanelButtons = {addButton, assignDoctorButton, collectPaymentButton, deleteButton};
-        JButton[] buttonsToDisableWithoutTableRowSelection = {assignDoctorButton, collectPaymentButton, deleteButton};
 
-        TableHelper.configureToPreferredSettings(appointmentTable, 600, 200, buttonsToDisableWithoutTableRowSelection);
-
-        loadButton.addActionListener(this.new LoadButtonListener());
+        loadButton.addActionListener(this.new LoadButtonListener(new JButton[] {assignDoctorButton, collectPaymentButton, deleteButton}));
         addButton.addActionListener(this.new AddButtonListener());
         assignDoctorButton.addActionListener(this.new AssignDoctorButtonListener());
         collectPaymentButton.addActionListener(this.new CollectPaymentButtonListener());
@@ -51,15 +46,22 @@ public class AppointmentListPage extends JFrame {
         collectPaymentButton.setEnabled(false);
         deleteButton.setEnabled(false);
 
-        PageDesigner.displayBorderLayoutListPage(this, "Manage Appointments", titleLabel, loadPanelButtons, operatePanelButtons, backButton, scrollPane);
+        TableHelper.configureToPreferredSettings(appointmentTable, 600, 200, new JButton[] {assignDoctorButton, collectPaymentButton, deleteButton});
+
+        PageDesigner.displayBorderLayoutListPage(this, "Manage Appointments Page", titleLabel, new JButton[] {loadButton}, operatePanelButtons, backButton, scrollPane);
     }
 
     private class LoadButtonListener implements ActionListener {
+
+        JButton[] operatePanelButtonsToDisable;
+
+        public LoadButtonListener(JButton[] operatePanelButtonsToDisable) {
+            this.operatePanelButtonsToDisable = operatePanelButtonsToDisable;
+        }
+
         @Override
         public void actionPerformed(ActionEvent e) {
-            List<Object[]> appointmentRecords = TableHelper.asListOfObjectArray(staffUser.getAllAppointmentPublicRecords());
-            JButton[] operatePanelButtonsToDisable = {assignDoctorButton, collectPaymentButton, deleteButton};
-            ListenerHelper.loadButtonClicked(tableModel, appointmentRecords, operatePanelButtonsToDisable);
+            ListenerHelper.loadButtonClicked(tableModel, staffUser.getAllAppointmentPublicRecords(), operatePanelButtonsToDisable);
         }
     }
 
@@ -182,8 +184,8 @@ public class AppointmentListPage extends JFrame {
 
     private class BackButtonListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
-            SwingUtilities.invokeLater(() -> new StaffMainPage(AppointmentListPage.this.staffUser));
-            AppointmentListPage.this.dispose();
+            SwingUtilities.invokeLater(() -> new StaffMainPage(ManageAppointmentsPage.this.staffUser));
+            ManageAppointmentsPage.this.dispose();
         }
     }
 }

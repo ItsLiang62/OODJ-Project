@@ -24,15 +24,15 @@ public final class Database {
     private final static File customerFeedbackFile = new File(dataFolderPath + "/customerFeedback.txt");
     private final static File invoiceFile = new File(dataFolderPath + "/invoice.txt");
 
-    private static Set<Manager> managers;
-    private static Set<Staff> staffs;
-    private static Set<Doctor> doctors;
-    private static Set<Customer> customers;
-    private static Set<Appointment> appointments;
-    private static Set<Medicine> medicines;
-    private static Set<AppointmentMedicine> appointmentMedicines;
-    private static Set<CustomerFeedback> customerFeedbacks;
-    private static Set<Invoice> invoices;
+    private static final Set<Manager> managers;
+    private static final Set<Staff> staffs;
+    private static final Set<Doctor> doctors;
+    private static final Set<Customer> customers;
+    private static final Set<Appointment> appointments;
+    private static final Set<Medicine> medicines;
+    private static final Set<AppointmentMedicine> appointmentMedicines;
+    private static final Set<CustomerFeedback> customerFeedbacks;
+    private static final Set<Invoice> invoices;
 
     static {
         String rootManagerDbRecord = "M001,Root Manager,root@email.com,123";

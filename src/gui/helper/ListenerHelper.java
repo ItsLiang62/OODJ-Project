@@ -6,17 +6,19 @@ import user.User;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.Month;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 public final class ListenerHelper {
-    public static void loadButtonClicked(DefaultTableModel tableModel, Collection<Object[]> records, JButton[] buttonsToDisable) {
+    public static <T extends Collection<String>> void loadButtonClicked(DefaultTableModel tableModel, Collection<T> records, JButton[] buttonsToDisable) {
         tableModel.setRowCount(0);
-        for (Object[] record: records) {
+        for (Object[] record: TableHelper.asListOfObjectArray(records)) {
             tableModel.addRow(record);
         }
         if (buttonsToDisable != null) {

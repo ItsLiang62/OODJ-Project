@@ -47,21 +47,35 @@ public class Manager extends User {
         Database.addMedicine(newMedicine);
     }
 
+    public Manager getManagerById(String managerId) { return Database.getManager(managerId); }
+    public Staff getStaffById(String staffId) { return Database.getStaff(staffId); }
+    public Doctor getDoctorById(String doctorId) { return Database.getDoctor(doctorId); }
+
+    public Manager getManagerByEmail(String managerEmail) {
+        String managerId = Database.getUserIdByEmail(managerEmail);
+        return Database.getManager(managerId);
+    }
+    public Staff getStaffByEmail(String staffEmail) {
+        String staffId = Database.getUserIdByEmail(staffEmail);
+        return Database.getStaff(staffId);
+    }
+    public Doctor getDoctorByEmail(String doctorEmail) {
+        String doctorId = Database.getUserIdByEmail(doctorEmail);
+        return Database.getDoctor(doctorId);
+    }
+
     public void updateManager(Manager newManager) { // expects a valid manager
         Database.removeManager(newManager.getId());
         Database.addManager(newManager);
     }
-
     public void updateStaff(Staff newStaff) {
         Database.removeStaff(newStaff.getId(), false);
         Database.addStaff(newStaff);
     }
-
     public void updateDoctor(Doctor newDoctor) {
         Database.removeDoctor(newDoctor.getId(), false);
         Database.addDoctor(newDoctor);
     }
-
     public void updateMedicine(Medicine newMedicine) {
         Database.removeMedicine(newMedicine.getId(), false);
         Database.addMedicine(newMedicine);
@@ -74,9 +88,7 @@ public class Manager extends User {
             throw new SelfDeletionUnsupportedException("Cannot delete yourself!");
         }
     }
-
     public void removeStaffById(String staffId) { Database.removeStaff(staffId, true); }
-
     public void removeDoctorById(String doctorId) { Database.removeDoctor(doctorId, true); }
 
     public void removeMedicine(String medicineId) {
