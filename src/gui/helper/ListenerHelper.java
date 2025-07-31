@@ -1,5 +1,8 @@
 package gui.helper;
 
+import database.Database;
+import operation.Invoice;
+import user.Manager;
 import user.User;
 
 import javax.swing.*;
@@ -8,8 +11,13 @@ import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.time.LocalDate;
+import java.time.Month;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 public final class ListenerHelper {
     public static <T extends Collection<String>> void loadButtonClicked(DefaultTableModel tableModel, Collection<T> records, JButton[] buttonsToDisable) {
@@ -78,6 +86,36 @@ public final class ListenerHelper {
             }
 
             JOptionPane.showMessageDialog(null, "Successfully updated profile!", "Profile Updated Successfully", JOptionPane.PLAIN_MESSAGE);
+        }
+    }
+
+    public class GenerateReportButtonListener implements ActionListener {
+        Manager managerUser;
+        Month month;
+
+        public GenerateReportButtonListener(Manager managerUser, Month month) {
+            this.managerUser = managerUser;
+            this.month = month;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            List<List<String>> allInvoicePublicRecords = managerUser.getAllInvoicePublicRecords();
+            List<List<String>> thisMonthInvoicePublicRecords = new ArrayList<>();
+            for (List<String> invoicePublicRecords: allInvoicePublicRecords) {
+                String creationDateStr = invoicePublicRecords.get(Arrays.asList(Invoice.getColumnNames()).indexOf("Creation Date"));
+                LocalDate creationDate = LocalDate.parse(creationDateStr, DateTimeFormatter.ofPattern("d/M/yyyy"));
+                if (creationDate.getMonth().equals(month)) {
+                    thisMonthInvoicePublicRecords.add(invoicePublicRecords);
+                }
+            }
+            double monthlyRevenue = 0;
+            double numAppointments = thisMonthInvoicePublicRecords.size();
+            double avgAppointmentRevenue;
+
+            for (List<String> invoicePublicRecord: thisMonthInvoicePublicRecords) {
+                monthlyRevenue += Double.parseDouble(invoicePublicRecord.get(Arrays.asList(Invoice.getColumnNames()).indexOf("Total Charge")));
+            }
         }
     }
 }

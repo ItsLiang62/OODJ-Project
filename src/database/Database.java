@@ -152,21 +152,13 @@ public final class Database {
         throw new IdNotFoundException(String.format("Could not find %s with the given ID!", identifiableType));
     }
     public static Manager getManager(String managerId) { return getIdentifiable(managerId, managers, "manager"); }
-
     public static Staff getStaff(String staffId) { return getIdentifiable(staffId, staffs, "staff");  }
-
     public static Doctor getDoctor(String doctorId) { return getIdentifiable(doctorId, doctors, "doctor");  }
-
     public static Customer getCustomer(String customerId) { return getIdentifiable(customerId, customers, "customer");  }
-
     public static Appointment getAppointment(String appointmentId) { return getIdentifiable(appointmentId, appointments, "appointment");  }
-
     public static Medicine getMedicine(String medicineId) { return getIdentifiable(medicineId, medicines, "medicine"); }
-
     public static CustomerFeedback getCustomerFeedback(String customerFeedbackId) { return getIdentifiable(customerFeedbackId, customerFeedbacks, "customer feedback");}
-
     public static Invoice getInvoice(String invoiceId) { return getIdentifiable(invoiceId, invoices, "invoice"); }
-
     public static AppointmentMedicine getAppointmentMedicine(String appointmentId, String medicineId) {
         for (AppointmentMedicine appointmentMedicine: appointmentMedicines) {
             if (appointmentMedicine.getAppointmentId().equals(appointmentId) && appointmentMedicine.getMedicineId().equals(medicineId)) {
@@ -325,13 +317,9 @@ public final class Database {
     }
 
     public static Set<String> getAllAppointmentIdOfDoctor(String doctorId) { return getAllIdOfWhereCondition(appointments, doctorId, Appointment::getDoctorId); }
-
     public static Set<String> getAllAppointmentIdOfCustomer(String customerId) { return getAllIdOfWhereCondition(appointments, customerId, Appointment::getCustomerId); }
-
     public static Set<String> getAllCustomerFeedbackIdOfNonManagerEmployee(String nonManagerEmployeeId) { return getAllIdOfWhereCondition(customerFeedbacks, nonManagerEmployeeId, CustomerFeedback::getNonManagerEmployeeId); }
-
     public static Set<String> getAllCustomerFeedbackIdOfCustomer(String customerId) { return getAllIdOfWhereCondition(customerFeedbacks, customerId, CustomerFeedback::getCustomerId); }
-
     public static Set<List<String>> getAllPrescriptionInfoOfDoctor(String doctorId) {
         Set<List<String>> allPrescriptionInfoOfDoctor = new LinkedHashSet<>();
         for (String appointmentId: Database.getAllAppointmentIdOfDoctor(doctorId)) {

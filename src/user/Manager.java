@@ -97,6 +97,7 @@ public class Manager extends User {
     public List<List<String>> getAllStaffPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllStaffId(), Database::getStaff); }
     public List<List<String>> getAllDoctorPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllDoctorId(), Database::getDoctor); }
     public List<List<String>> getAllMedicinePublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllMedicineId(), Database::getMedicine); }
+    public List<List<String>> getAllInvoicePublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllInvoiceId(), Database::getInvoice); }
 
     public static void createManagerFromDbRecord(List<String> record) {
         String managerId = record.getFirst();
