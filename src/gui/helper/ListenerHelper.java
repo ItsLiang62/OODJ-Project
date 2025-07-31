@@ -1,15 +1,28 @@
 package gui.helper;
 
+import database.Database;
+import operation.Invoice;
+import user.Manager;
+import user.User;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.time.LocalDate;
+import java.time.Month;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 public final class ListenerHelper {
-    public static void loadButtonClicked(DefaultTableModel tableModel, Collection<Object[]> records, JButton[] buttonsToDisable) {
+    public static <T extends Collection<String>> void loadButtonClicked(DefaultTableModel tableModel, Collection<T> records, JButton[] buttonsToDisable) {
         tableModel.setRowCount(0);
-        for (Object[] record: records) {
+        for (Object[] record: TableHelper.asListOfObjectArray(records)) {
             tableModel.addRow(record);
         }
         if (buttonsToDisable != null) {
@@ -43,5 +56,66 @@ public final class ListenerHelper {
         }
 
         return panel;
+    }
+
+    public static class SaveButtonListener implements ActionListener {
+        User user;
+        JTextField nameField;
+        JTextField emailField;
+        JTextField passwordField;
+
+        public SaveButtonListener(User user, JTextField nameField, JTextField emailField, JTextField passwordField) {
+            this.user = user;
+            this.nameField = nameField;
+            this.emailField = emailField;
+            this.passwordField = passwordField;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String name = nameField.getText();
+            String email = emailField.getText();
+            String password = passwordField.getText();
+            try {
+                user.setName(name);
+                user.setEmail(email);
+                user.setPassword(password);
+            } catch (RuntimeException exception) {
+                JOptionPane.showMessageDialog(null, exception.getMessage(), "Input Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            JOptionPane.showMessageDialog(null, "Successfully updated profile!", "Profile Updated Successfully", JOptionPane.PLAIN_MESSAGE);
+        }
+    }
+
+    public class GenerateReportButtonListener implements ActionListener {
+        Manager managerUser;
+        Month month;
+
+        public GenerateReportButtonListener(Manager managerUser, Month month) {
+            this.managerUser = managerUser;
+            this.month = month;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            List<List<String>> allInvoicePublicRecords = managerUser.getAllInvoicePublicRecords();
+            List<List<String>> thisMonthInvoicePublicRecords = new ArrayList<>();
+            for (List<String> invoicePublicRecords: allInvoicePublicRecords) {
+                String creationDateStr = invoicePublicRecords.get(Arrays.asList(Invoice.getColumnNames()).indexOf("Creation Date"));
+                LocalDate creationDate = LocalDate.parse(creationDateStr, DateTimeFormatter.ofPattern("d/M/yyyy"));
+                if (creationDate.getMonth().equals(month)) {
+                    thisMonthInvoicePublicRecords.add(invoicePublicRecords);
+                }
+            }
+            double monthlyRevenue = 0;
+            double numAppointments = thisMonthInvoicePublicRecords.size();
+            double avgAppointmentRevenue;
+
+            for (List<String> invoicePublicRecord: thisMonthInvoicePublicRecords) {
+                monthlyRevenue += Double.parseDouble(invoicePublicRecord.get(Arrays.asList(Invoice.getColumnNames()).indexOf("Total Charge")));
+            }
+        }
     }
 }

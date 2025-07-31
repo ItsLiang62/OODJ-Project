@@ -44,21 +44,35 @@ public class Manager extends User {
         Database.addMedicine(newMedicine);
     }
 
+    public Manager getManagerById(String managerId) { return Database.getManager(managerId); }
+    public Staff getStaffById(String staffId) { return Database.getStaff(staffId); }
+    public Doctor getDoctorById(String doctorId) { return Database.getDoctor(doctorId); }
+
+    public Manager getManagerByEmail(String managerEmail) {
+        String managerId = Database.getUserIdByEmail(managerEmail);
+        return Database.getManager(managerId);
+    }
+    public Staff getStaffByEmail(String staffEmail) {
+        String staffId = Database.getUserIdByEmail(staffEmail);
+        return Database.getStaff(staffId);
+    }
+    public Doctor getDoctorByEmail(String doctorEmail) {
+        String doctorId = Database.getUserIdByEmail(doctorEmail);
+        return Database.getDoctor(doctorId);
+    }
+
     public void updateManager(Manager newManager) { // expects a valid manager
         Database.removeManager(newManager.getId());
         Database.addManager(newManager);
     }
-
     public void updateStaff(Staff newStaff) {
         Database.removeStaff(newStaff.getId(), false);
         Database.addStaff(newStaff);
     }
-
     public void updateDoctor(Doctor newDoctor) {
         Database.removeDoctor(newDoctor.getId(), false);
         Database.addDoctor(newDoctor);
     }
-
     public void updateMedicine(Medicine newMedicine) {
         Database.removeMedicine(newMedicine.getId(), false);
         Database.addMedicine(newMedicine);
@@ -71,26 +85,19 @@ public class Manager extends User {
             throw new SelfDeletionUnsupportedException("Cannot delete yourself!");
         }
     }
-
     public void removeStaffById(String staffId) { Database.removeStaff(staffId, true); }
-
     public void removeDoctorById(String doctorId) { Database.removeDoctor(doctorId, true); }
-
-    public Set<List<String>> getAllAppointmentPublicRecords() { return Database.getAllAppointmentPublicRecords(); }
-
-    public Set<List<String>> getAllCustomerFeedbackPublicRecords() { return Database.getAllCustomerFeedbackPublicRecords(); }
-
-    public Set<List<String>> getAllManagerPublicRecords() { return Database.getAllManagerPublicRecords(); }
-
-    public Set<List<String>> getAllStaffPublicRecords() { return Database.getAllStaffPublicRecords(); }
-
-    public Set<List<String>> getAllDoctorPublicRecords() { return Database.getAllDoctorPublicRecords(); }
-
-    public Set<List<String>> getAllMedicinePublicRecords() { return Database.getAllMedicinePublicRecords(); }
-
-    public void removeMedicine(String medicineId) {
+    public void removeMedicineById(String medicineId) {
         Database.removeMedicine(medicineId, true);
     }
+
+    public List<List<String>> getAllAppointmentPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllAppointmentId(), Database::getAppointment); }
+    public List<List<String>> getAllCustomerFeedbackPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllCustomerFeedbackId(), Database::getCustomerFeedback); }
+    public List<List<String>> getAllManagerPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllManagerId(), Database::getManager); }
+    public List<List<String>> getAllStaffPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllStaffId(), Database::getStaff); }
+    public List<List<String>> getAllDoctorPublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllDoctorId(), Database::getDoctor); }
+    public List<List<String>> getAllMedicinePublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllMedicineId(), Database::getMedicine); }
+    public List<List<String>> getAllInvoicePublicRecords() { return Database.getAllPublicRecordsOf(Database.getAllInvoiceId(), Database::getInvoice); }
 
     public static void createManagerFromDbRecord(List<String> record) {
         String managerId = record.getFirst();

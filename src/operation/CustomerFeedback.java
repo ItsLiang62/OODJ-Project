@@ -10,8 +10,8 @@ import java.util.List;
 
 public class CustomerFeedback implements Identifiable {
     private final String id;
-    private String customerId;
-    private String nonManagerEmployeeId;
+    private final String customerId;
+    private final String nonManagerEmployeeId;
     private String content;
 
 
@@ -67,12 +67,10 @@ public class CustomerFeedback implements Identifiable {
     }
 
     public List<String> createDbRecord() {
-        String dbCustomerId = this.customerId;
-        String dbTargetEmployeeId = this.nonManagerEmployeeId;
         String dbContent = this.content;
 
         return new ArrayList<>(Arrays.asList(
-                this.id, dbCustomerId, dbTargetEmployeeId, dbContent
+                id, customerId, nonManagerEmployeeId, dbContent
         ));
     }
 
@@ -81,12 +79,14 @@ public class CustomerFeedback implements Identifiable {
     }
 
     public static void createCustomerFeedbackFromRecord(List<String> record) {
-        String customerFeedbackId = record.getFirst();
-        String customerFeedbackCustomerId = record.get(1);
-        String customerFeedbackTargetEmployeeId = record.get(2);
-        String customerFeedbackContent = record.getLast();
+        String id = record.getFirst();
+        String customerId = record.get(1);
+        String nonManagerEmployeeId = record.get(2);
+        String content = record.getLast();
 
-        CustomerFeedback customerFeedback = new CustomerFeedback(customerFeedbackId, customerFeedbackCustomerId, customerFeedbackTargetEmployeeId, customerFeedbackContent);
+        CustomerFeedback customerFeedback = new CustomerFeedback(id, customerId, nonManagerEmployeeId, content);
         Database.addCustomerFeedback(customerFeedback);
     }
+
+    public static String[] getColumnNames() { return new String[] {"Customer Feedback ID", "Customer ID", "Employee ID", "Content"}; }
 }
