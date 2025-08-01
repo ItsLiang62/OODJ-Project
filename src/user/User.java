@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public abstract class User implements Identifiable {
+public abstract class User implements database.Identifiable {
     protected String id;
     protected String name;
     protected String email;

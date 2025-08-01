@@ -13,7 +13,6 @@ import java.awt.event.ActionListener;
 
 public class ViewAppointmentsPage extends JFrame {
     private final Manager managerUser;
-    private final DefaultTableModel tableModel = new DefaultTableModel(Appointment.getColumnNames(), 0);
 
     public ViewAppointmentsPage(Manager managerUser) {
         this.managerUser = managerUser;
@@ -21,22 +20,16 @@ public class ViewAppointmentsPage extends JFrame {
         JLabel titleLabel = new JLabel("View Appointments");
         JButton loadButton = new JButton("Load");
         JButton backButton = new JButton("Back");
+        DefaultTableModel tableModel = new DefaultTableModel(Appointment.getColumnNames(), 0);
         JTable appointmentTable = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(appointmentTable);
 
-        loadButton.addActionListener(this.new LoadButtonListener());
+        loadButton.addActionListener(new ListenerHelper.LoadButtonListener<>(tableModel, managerUser.getAllAppointmentPublicRecords(), null));
         backButton.addActionListener(this.new BackButtonListener());
 
         TableHelper.configureToPreferredSettings(appointmentTable, 600, 200, null);
 
         PageDesigner.displayBorderLayoutListPage(this, "View Appointments Page", titleLabel, new JButton[] {loadButton}, null, backButton, scrollPane);
-    }
-
-    private class LoadButtonListener implements ActionListener {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            ListenerHelper.loadButtonClicked(tableModel, managerUser.getAllAppointmentPublicRecords(), null);
-        }
     }
 
     private class BackButtonListener implements ActionListener {

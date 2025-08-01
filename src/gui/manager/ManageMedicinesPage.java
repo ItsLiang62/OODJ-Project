@@ -32,7 +32,7 @@ public class ManageMedicinesPage extends JFrame {
         JButton[] operatePanelButtons = {addButton, editButton, deleteButton};
         JButton[] buttonsToDisableWithoutTableRowSelection = {editButton, deleteButton};
 
-        loadButton.addActionListener(this.new LoadButtonListener(new JButton[] {editButton, deleteButton}));
+        loadButton.addActionListener(new ListenerHelper.LoadButtonListener<>(tableModel, managerUser.getAllMedicinePublicRecords(), new JButton[] {editButton, deleteButton}));
         addButton.addActionListener(this.new AddButtonListener());
         editButton.addActionListener(this.new EditButtonListener());
         deleteButton.addActionListener(this.new DeleteButtonListener());
@@ -44,20 +44,6 @@ public class ManageMedicinesPage extends JFrame {
         TableHelper.configureToPreferredSettings(medicineTable, 600, 200, buttonsToDisableWithoutTableRowSelection);
 
         PageDesigner.displayBorderLayoutListPage(this, "Manage Medicines Page", titleLabel, loadPanelButtons, operatePanelButtons, backButton, scrollPane);
-    }
-
-    private class LoadButtonListener implements ActionListener {
-
-        JButton[] operatePanelButtonsToDisable;
-
-        public LoadButtonListener(JButton[] operatePanelButtonsToDisable) {
-            this.operatePanelButtonsToDisable = operatePanelButtonsToDisable;
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            ListenerHelper.loadButtonClicked(tableModel, managerUser.getAllMedicinePublicRecords(), operatePanelButtonsToDisable);
-        }
     }
 
     private class AddButtonListener implements ActionListener {

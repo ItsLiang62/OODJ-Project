@@ -15,7 +15,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import java.util.*;
-import java.util.List;
 
 public class ManageEmployeesPage extends JFrame {
     private final Manager managerUser;
@@ -40,10 +39,10 @@ public class ManageEmployeesPage extends JFrame {
 
         TableHelper.configureToPreferredSettings(employeeTable, 600, 200, new JButton[] {editButton, deleteButton});
 
-        EmployeeButtonListener ebl = this.new EmployeeButtonListener(new JButton[] {editButton, deleteButton});
-        managersButton.addActionListener(ebl);
-        staffsButton.addActionListener(ebl);
-        doctorsButton.addActionListener(ebl);
+        JButton[] operatePanelButtonsToDisableWhenLoad = {editButton, deleteButton};
+        managersButton.addActionListener(new ListenerHelper.LoadButtonListener<>(tableModel, managerUser.getAllManagerPublicRecords(), operatePanelButtonsToDisableWhenLoad));
+        staffsButton.addActionListener(new ListenerHelper.LoadButtonListener<>(tableModel, managerUser.getAllStaffPublicRecords(), operatePanelButtonsToDisableWhenLoad));
+        doctorsButton.addActionListener(new ListenerHelper.LoadButtonListener<>(tableModel, managerUser.getAllDoctorPublicRecords(), operatePanelButtonsToDisableWhenLoad));
         addButton.addActionListener(this.new AddButtonListener());
         editButton.addActionListener(this.new EditButtonListener());
         deleteButton.addActionListener(this.new DeleteButtonListener());
@@ -53,31 +52,6 @@ public class ManageEmployeesPage extends JFrame {
         deleteButton.setEnabled(false);
 
         PageDesigner.displayBorderLayoutListPage(this, "Manage Employees Page", titleLabel, loadPanelButtons, operatePanelButtons, backButton, scrollPane);
-    }
-
-    private List<List<String>> getEmployeeRecordsByType(String type) {
-        return switch (type) {
-            case "Managers" -> managerUser.getAllManagerPublicRecords();
-            case "Staffs" -> managerUser.getAllStaffPublicRecords();
-            case "Doctors" -> managerUser.getAllDoctorPublicRecords();
-            default -> new ArrayList<>();
-        };
-    }
-
-    private class EmployeeButtonListener implements ActionListener {
-        JButton[] operatePanelButtonsToDisable;
-
-        public EmployeeButtonListener(JButton[] operatePanelButtonsToDisable) {
-            this.operatePanelButtonsToDisable = operatePanelButtonsToDisable;
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            String employeeType = ((JButton) e.getSource()).getText();
-            List<List<String>> employeeRecords = getEmployeeRecordsByType(employeeType);
-
-            ListenerHelper.loadButtonClicked(tableModel, employeeRecords, operatePanelButtonsToDisable);
-        }
     }
 
     private class AddButtonListener implements ActionListener {
