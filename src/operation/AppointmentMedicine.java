@@ -92,8 +92,6 @@ public class AppointmentMedicine implements Entity {
         return this.createDbRecord();
     }
 
-    public static String[] getColumnNames() { return new String[] {"Appointment ID", "Medicine ID", "Target Symptom"}; }
-
     public static void createAppointmentMedicineFromRecord(List<String> record) {
         String appointmentId = record.getFirst();
         String medicineId = record.get(1);
@@ -102,4 +100,6 @@ public class AppointmentMedicine implements Entity {
         AppointmentMedicine appointmentMedicine = new AppointmentMedicine(appointmentId, medicineId, targetSymptom);
         Database.addAppointmentMedicine(appointmentMedicine);
     }
+
+    public static String[] getColumnNames() { return new String[] {"Appointment ID", "Medicine ID", "Target Symptom"}; }
 }

@@ -62,8 +62,6 @@ public class Invoice implements Identifiable {
         return this.createDbRecord();
     }
 
-    public static String[] getColumnNames() { return new String[] {"Invoice ID", "Appointment ID", "Creation Date", "Total Charge"}; }
-
     public static void createInvoiceFromRecord(List<String> record) {
         String invoiceId = record.getFirst();
         String invoiceAppointmentId = record.get(1);
@@ -73,4 +71,6 @@ public class Invoice implements Identifiable {
         Invoice invoice = new Invoice(invoiceId, invoiceAppointmentId, LocalDate.parse(invoiceCreationDate, formatter), invoiceTotalCharge);
         Database.addInvoice(invoice);
     }
+
+    public static String[] getColumnNames() { return new String[] {"Invoice ID", "Appointment ID", "Creation Date", "Total Charge"}; }
 }

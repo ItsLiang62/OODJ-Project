@@ -77,10 +77,6 @@ public class Medicine implements Identifiable {
         return this.createDbRecord();
     }
 
-    public static String[] getColumnNames() {
-        return new String[] {"Medicine ID", "Medicine Name", "Charge"};
-    }
-
     public static void createMedicineFromRecord(List<String> record) {
         String medicineId = record.getFirst();
         String medicineName = record.get(1);
@@ -88,5 +84,9 @@ public class Medicine implements Identifiable {
 
         Medicine medicine = new Medicine(medicineId, medicineName, medicineCharge);
         Database.addMedicine(medicine);
+    }
+
+    public static String[] getColumnNames() {
+        return new String[] {"Medicine ID", "Medicine Name", "Charge"};
     }
 }
