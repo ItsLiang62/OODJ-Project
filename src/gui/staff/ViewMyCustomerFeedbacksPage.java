@@ -14,7 +14,6 @@ import java.awt.event.ActionListener;
 public class ViewMyCustomerFeedbacksPage extends JFrame {
 
     private final Staff staffUser;
-    private final DefaultTableModel tableModel = new DefaultTableModel(CustomerFeedback.getColumnNames(), 0);
 
     public ViewMyCustomerFeedbacksPage(Staff staffUser) {
 
@@ -22,22 +21,16 @@ public class ViewMyCustomerFeedbacksPage extends JFrame {
         JLabel titleLabel = new JLabel("View My Customer Feedbacks");
         JButton loadButton = new JButton("Load");
         JButton backButton = new JButton("Back");
+        DefaultTableModel tableModel = new DefaultTableModel(CustomerFeedback.getColumnNames(), 0);
         JTable customerFeedbackTable = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(customerFeedbackTable);
 
-        loadButton.addActionListener(this.new LoadButtonListener());
+        loadButton.addActionListener(new ListenerHelper.LoadButtonListener<>(tableModel, staffUser.getAllMyCustomerFeedbackRecords(), null));
         backButton.addActionListener(this.new BackButtonListener());
 
         TableHelper.configureToPreferredSettings(customerFeedbackTable, 600, 200, null);
 
         PageDesigner.displayBorderLayoutListPage(this, "View My Customer Feedbacks Page", titleLabel, new JButton[] {loadButton}, null, backButton, scrollPane);
-    }
-
-    private class LoadButtonListener implements ActionListener {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            ListenerHelper.loadButtonClicked(tableModel, staffUser.getAllMyCustomerFeedbackRecords(), null);
-        }
     }
 
     private class BackButtonListener implements ActionListener {

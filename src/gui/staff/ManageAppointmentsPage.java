@@ -35,7 +35,7 @@ public class ManageAppointmentsPage extends JFrame {
 
         JButton[] operatePanelButtons = {addButton, assignDoctorButton, collectPaymentButton, deleteButton};
 
-        loadButton.addActionListener(this.new LoadButtonListener(new JButton[] {assignDoctorButton, collectPaymentButton, deleteButton}));
+        loadButton.addActionListener(new ListenerHelper.LoadButtonListener<>(tableModel, staffUser.getAllAppointmentPublicRecords(), new JButton[] {assignDoctorButton, collectPaymentButton, deleteButton}));
         addButton.addActionListener(this.new AddButtonListener());
         assignDoctorButton.addActionListener(this.new AssignDoctorButtonListener());
         collectPaymentButton.addActionListener(this.new CollectPaymentButtonListener());
@@ -49,20 +49,6 @@ public class ManageAppointmentsPage extends JFrame {
         TableHelper.configureToPreferredSettings(appointmentTable, 600, 200, new JButton[] {assignDoctorButton, collectPaymentButton, deleteButton});
 
         PageDesigner.displayBorderLayoutListPage(this, "Manage Appointments Page", titleLabel, new JButton[] {loadButton}, operatePanelButtons, backButton, scrollPane);
-    }
-
-    private class LoadButtonListener implements ActionListener {
-
-        JButton[] operatePanelButtonsToDisable;
-
-        public LoadButtonListener(JButton[] operatePanelButtonsToDisable) {
-            this.operatePanelButtonsToDisable = operatePanelButtonsToDisable;
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            ListenerHelper.loadButtonClicked(tableModel, staffUser.getAllAppointmentPublicRecords(), operatePanelButtonsToDisable);
-        }
     }
 
     private class AddButtonListener implements ActionListener {

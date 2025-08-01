@@ -15,42 +15,28 @@ import java.util.Collection;
 import java.util.List;
 
 public final class ListenerHelper {
-    public static <T extends Collection<String>> void loadButtonClicked(DefaultTableModel tableModel, Collection<T> records, JButton[] buttonsToDisable) {
-        tableModel.setRowCount(0);
-        for (Object[] record: TableHelper.asListOfObjectArray(records)) {
-            tableModel.addRow(record);
-        }
-        if (buttonsToDisable != null) {
-            Arrays.stream(buttonsToDisable).forEach(button -> button.setEnabled(false));
-        }
-    }
 
-    public static JPanel getCustomizedUserInputPanel(Component[] inputFields, JLabel[] labels) {
+    public static class LoadButtonListener<T extends Collection<String>> implements ActionListener {
+        DefaultTableModel tableModel;
+        Collection<T> records;
+        JButton[] operatePanelButtonsToDisable;
 
-        JPanel panel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.gridx = 0;
-
-        gbc.gridy = 0;
-        for (JLabel label : labels) {
-            panel.add(label, gbc);
-            gbc.gridy ++;
+        public LoadButtonListener(DefaultTableModel tableModel, Collection<T> records, JButton[] operatePanelButtonsToDisable) {
+            this.tableModel = tableModel;
+            this.records = records;
+            this.operatePanelButtonsToDisable = operatePanelButtonsToDisable;
         }
 
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.anchor = GridBagConstraints.CENTER;
-        gbc.gridx = 1;
-
-        gbc.gridy = 0;
-        for (Component inputField: inputFields) {
-            panel.add(inputField, gbc);
-            gbc.gridy ++;
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            tableModel.setRowCount(0);
+            for (Object[] record: TableHelper.asListOfObjectArray(records)) {
+                tableModel.addRow(record);
+            }
+            if (operatePanelButtonsToDisable != null) {
+                Arrays.stream(operatePanelButtonsToDisable).forEach(button -> button.setEnabled(false));
+            }
         }
-
-        return panel;
     }
 
     public static class SaveButtonListener implements ActionListener {
@@ -109,5 +95,33 @@ public final class ListenerHelper {
             }
             avgAppointmentRevenue = monthlyRevenue / numAppointments;
         }
+    }
+
+    public static JPanel getCustomizedUserInputPanel(Component[] inputFields, JLabel[] labels) {
+
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+
+        gbc.anchor = GridBagConstraints.EAST;
+        gbc.gridx = 0;
+
+        gbc.gridy = 0;
+        for (JLabel label : labels) {
+            panel.add(label, gbc);
+            gbc.gridy ++;
+        }
+
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.gridx = 1;
+
+        gbc.gridy = 0;
+        for (Component inputField: inputFields) {
+            panel.add(inputField, gbc);
+            gbc.gridy ++;
+        }
+
+        return panel;
     }
 }
