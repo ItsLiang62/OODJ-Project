@@ -389,7 +389,7 @@ public final class Database {
         }
         Database.saveRecords(rootSet, resultOutputFile);
     }
-    
+
     // Remove prescriptions with the given appointment ID (no external references to composite primary key = leaf dependency)
     public static void removeAppointmentMedicineByAppointmentId(String appointmentId) { removeLeafDependenciesFrom(appointmentMedicines, appointmentId, AppointmentMedicine::getAppointmentId, appointmentMedicineFile); }
     public static void removeAppointmentMedicineByMedicineId(String medicineId) { removeLeafDependenciesFrom(appointmentMedicines, medicineId, AppointmentMedicine::getMedicineId, appointmentMedicineFile); }
