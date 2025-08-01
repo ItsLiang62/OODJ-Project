@@ -24,11 +24,6 @@ public class Staff extends User {
         Database.addCustomer(newCustomer);
     }
 
-    public void updateCustomer(Customer newCustomer) {
-        Database.removeCustomer(newCustomer.getId(), false);
-        Database.addCustomer(newCustomer);
-    }
-
     public void addAppointment(Appointment newAppointment) {
         Appointment.checkCustomerId(newAppointment.getCustomerId());
         Appointment.checkDoctorId(newAppointment.getDoctorId());
@@ -42,11 +37,9 @@ public class Staff extends User {
         Database.addInvoice(newInvoice);
     }
 
-
     public Customer getCustomerById(String customerId) {
         return Database.getCustomer(customerId);
     }
-
     public Appointment getAppointmentById(String appointmentId) { return Database.getAppointment(appointmentId); }
 
     public List<List<String>> getAllCustomerPublicRecords() { return Database.getAllCustomerPublicRecords(); }
@@ -55,10 +48,14 @@ public class Staff extends User {
     public List<List<String>> getAllInvoicePublicRecords() { return Database.getAllInvoicePublicRecords(); }
     public List<List<String>> getAllMyCustomerFeedbackRecords() { return Database.getAllCustomerFeedbackPublicRecordsOfNonManagerEmployee(id); }
 
+    public void updateCustomer(Customer newCustomer) {
+        Database.removeCustomer(newCustomer.getId(), false);
+        Database.addCustomer(newCustomer);
+    }
+
     public void removeCustomerById(String customerId) {
         Database.removeCustomer(customerId, true);
     }
-
     public void removeAppointmentById(String appointmentId) { Database.removeAppointment(appointmentId, true); }
 
     public void assignDoctorToAppointment(String appointmentId, String doctorId) {

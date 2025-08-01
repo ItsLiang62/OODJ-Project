@@ -6,6 +6,8 @@ import operation.Appointment;
 import operation.CustomerFeedback;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Customer extends User {
 
@@ -25,15 +27,8 @@ public class Customer extends User {
 
     public List<List<String>> getAllMyAppointmentRecords() { return Database.getAllAppointmentPublicRecordsOfCustomer(id); }
     public List<List<String>> getAllMyCustomerFeedbackRecords() { return Database.getAllCustomerFeedbackPublicRecordsOfCustomer(id); }
-    public List<List<String>> getAllNonManagerEmployeeRecords() {
-        List<List<String>> allNonManagerEmployeeRecords = new ArrayList<>();
-        allNonManagerEmployeeRecords.addAll(Database.getAllStaffPublicRecords());
-        allNonManagerEmployeeRecords.addAll(Database.getAllDoctorPublicRecords());
-        return allNonManagerEmployeeRecords;
-    }
-
+    public List<List<String>> getAllNonManagerEmployeeRecords() { return Stream.of(Database.getAllStaffPublicRecords(), Database.getAllDoctorPublicRecords()).flatMap(List::stream).collect(Collectors.toCollection(ArrayList::new)); }
     public List<List<String>> getAllMyPrescriptionRecords() { return Database.getAllAppointmentMedicinePublicRecordsOfCustomer(id); }
-
     public List<List<String>> getAllMyInvoiceRecords() { return Database.getAllInvoicePublicRecordsOfCustomer(id); }
 
     public void changeFeedbackContent(String customerFeedbackID, String content) {
