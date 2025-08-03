@@ -45,7 +45,6 @@ Thumbs.db
 
 ### Java-related ###
 *.class
-*.jar
 *.war
 *.ear
 

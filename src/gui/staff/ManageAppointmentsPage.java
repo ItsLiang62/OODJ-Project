@@ -35,7 +35,7 @@ public class ManageAppointmentsPage extends JFrame {
 
         JButton[] operatePanelButtons = {addButton, assignDoctorButton, collectPaymentButton, deleteButton};
 
-        loadButton.addActionListener(this.new LoadButtonListener(new JButton[] {assignDoctorButton, collectPaymentButton, deleteButton}));
+        loadButton.addActionListener(new ListenerHelper.LoadButtonListener(tableModel, staffUser::getAllAppointmentPublicRecords, new JButton[] {assignDoctorButton, collectPaymentButton, deleteButton}));
         addButton.addActionListener(this.new AddButtonListener());
         assignDoctorButton.addActionListener(this.new AssignDoctorButtonListener());
         collectPaymentButton.addActionListener(this.new CollectPaymentButtonListener());

@@ -40,10 +40,10 @@ public class ManageEmployeesPage extends JFrame {
 
         TableHelper.configureToPreferredSettings(employeeTable, 600, 200, new JButton[] {editButton, deleteButton});
 
-        EmployeeButtonListener ebl = this.new EmployeeButtonListener(new JButton[] {editButton, deleteButton});
-        managersButton.addActionListener(ebl);
-        staffsButton.addActionListener(ebl);
-        doctorsButton.addActionListener(ebl);
+        JButton[] operatePanelButtonsToDisableWhenLoad = {editButton, deleteButton};
+        managersButton.addActionListener(new ListenerHelper.LoadButtonListener(tableModel, managerUser::getAllManagerPublicRecords, operatePanelButtonsToDisableWhenLoad));
+        staffsButton.addActionListener(new ListenerHelper.LoadButtonListener(tableModel, managerUser::getAllStaffPublicRecords, operatePanelButtonsToDisableWhenLoad));
+        doctorsButton.addActionListener(new ListenerHelper.LoadButtonListener(tableModel, managerUser::getAllDoctorPublicRecords, operatePanelButtonsToDisableWhenLoad));
         addButton.addActionListener(this.new AddButtonListener());
         editButton.addActionListener(this.new EditButtonListener());
         deleteButton.addActionListener(this.new DeleteButtonListener());

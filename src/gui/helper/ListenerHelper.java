@@ -13,10 +13,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.LocalDate;
 import java.time.Month;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.*;
 import java.util.List;
 
 public final class ListenerHelper {
@@ -30,32 +27,27 @@ public final class ListenerHelper {
         }
     }
 
-    public static JPanel getCustomizedUserInputPanel(Component[] inputFields, JLabel[] labels) {
+    public static class LoadButtonListener implements ActionListener {
+        DefaultTableModel tableModel;
+        PublicRecordsGetter publicRecordsGetter;
+        JButton[] operatePanelButtonsToDisable;
 
-        JPanel panel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.gridx = 0;
-
-        gbc.gridy = 0;
-        for (JLabel label : labels) {
-            panel.add(label, gbc);
-            gbc.gridy ++;
+        public LoadButtonListener(DefaultTableModel tableModel, PublicRecordsGetter publicRecordsGetter, JButton[] operatePanelButtonsToDisable) {
+            this.tableModel = tableModel;
+            this.publicRecordsGetter = publicRecordsGetter;
+            this.operatePanelButtonsToDisable = operatePanelButtonsToDisable;
         }
 
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.anchor = GridBagConstraints.CENTER;
-        gbc.gridx = 1;
-
-        gbc.gridy = 0;
-        for (Component inputField: inputFields) {
-            panel.add(inputField, gbc);
-            gbc.gridy ++;
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            tableModel.setRowCount(0);
+            for (Object[] record: TableHelper.asListOfObjectArray(publicRecordsGetter.getPublicRecords())) {
+                tableModel.addRow(record);
+            }
+            if (operatePanelButtonsToDisable != null) {
+                Arrays.stream(operatePanelButtonsToDisable).forEach(button -> button.setEnabled(false));
+            }
         }
-
-        return panel;
     }
 
     public static class SaveButtonListener implements ActionListener {
@@ -89,40 +81,31 @@ public final class ListenerHelper {
         }
     }
 
-    public class GenerateReportButtonListener implements ActionListener {
-        Manager managerUser;
-        Month month;
+    public static JPanel getCustomizedUserInputPanel(Component[] inputFields, JLabel[] labels) {
 
-        public GenerateReportButtonListener(Manager managerUser, Month month) {
-            this.managerUser = managerUser;
-            this.month = month;
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+
+        gbc.anchor = GridBagConstraints.EAST;
+        gbc.gridx = 0;
+
+        gbc.gridy = 0;
+        for (JLabel label : labels) {
+            panel.add(label, gbc);
+            gbc.gridy ++;
         }
 
-        @Override
-        public void actionPerformed(ActionEvent e) {
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.gridx = 1;
 
-            // Filter invoice records to this month only
-            List<List<String>> allInvoicePublicRecords = managerUser.getAllInvoicePublicRecords();
-            List<List<String>> thisMonthInvoicePublicRecords = new ArrayList<>();
-            for (List<String> invoicePublicRecords: allInvoicePublicRecords) {
-                String creationDateStr = invoicePublicRecords.get(Arrays.asList(Invoice.getColumnNames()).indexOf("Creation Date"));
-                LocalDate creationDate = LocalDate.parse(creationDateStr, DateTimeFormatter.ofPattern("d/M/yyyy"));
-                if (creationDate.getMonth().equals(month)) {
-                    thisMonthInvoicePublicRecords.add(invoicePublicRecords);
-                }
-            }
-
-            // Calculate statistics
-            double monthlyRevenue = 0;
-            double numAppointments = thisMonthInvoicePublicRecords.size();
-            double avgAppointmentRevenue;
-
-            for (List<String> invoicePublicRecord: thisMonthInvoicePublicRecords) {
-                monthlyRevenue += Double.parseDouble(invoicePublicRecord.get(Arrays.asList(Invoice.getColumnNames()).indexOf("Total Charge")));
-            }
-            avgAppointmentRevenue = monthlyRevenue / numAppointments;
-
-            
+        gbc.gridy = 0;
+        for (Component inputField: inputFields) {
+            panel.add(inputField, gbc);
+            gbc.gridy ++;
         }
+
+        return panel;
     }
 }

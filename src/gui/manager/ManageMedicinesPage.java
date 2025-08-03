@@ -32,7 +32,7 @@ public class ManageMedicinesPage extends JFrame {
         JButton[] operatePanelButtons = {addButton, editButton, deleteButton};
         JButton[] buttonsToDisableWithoutTableRowSelection = {editButton, deleteButton};
 
-        loadButton.addActionListener(this.new LoadButtonListener(new JButton[] {editButton, deleteButton}));
+        loadButton.addActionListener(new ListenerHelper.LoadButtonListener(tableModel, managerUser::getAllMedicinePublicRecords, new JButton[] {editButton, deleteButton}));
         addButton.addActionListener(this.new AddButtonListener());
         editButton.addActionListener(this.new EditButtonListener());
         deleteButton.addActionListener(this.new DeleteButtonListener());
