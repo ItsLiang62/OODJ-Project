@@ -10,27 +10,26 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.Month;
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.*;
 import java.util.List;
 
 public final class ListenerHelper {
 
-    public static class LoadButtonListener<T extends Collection<String>> implements ActionListener {
+    public static class LoadButtonListener implements ActionListener {
         DefaultTableModel tableModel;
-        Collection<T> records;
+        PublicRecordsGetter publicRecordsGetter;
         JButton[] operatePanelButtonsToDisable;
 
-        public LoadButtonListener(DefaultTableModel tableModel, Collection<T> records, JButton[] operatePanelButtonsToDisable) {
+        public LoadButtonListener(DefaultTableModel tableModel, PublicRecordsGetter publicRecordsGetter, JButton[] operatePanelButtonsToDisable) {
             this.tableModel = tableModel;
-            this.records = records;
+            this.publicRecordsGetter = publicRecordsGetter;
             this.operatePanelButtonsToDisable = operatePanelButtonsToDisable;
         }
 
         @Override
         public void actionPerformed(ActionEvent e) {
             tableModel.setRowCount(0);
-            for (Object[] record: TableHelper.asListOfObjectArray(records)) {
+            for (Object[] record: TableHelper.asListOfObjectArray(publicRecordsGetter.getPublicRecords())) {
                 tableModel.addRow(record);
             }
             if (operatePanelButtonsToDisable != null) {
@@ -67,33 +66,6 @@ public final class ListenerHelper {
             }
 
             JOptionPane.showMessageDialog(null, "Successfully updated profile!", "Profile Updated Successfully", JOptionPane.PLAIN_MESSAGE);
-        }
-    }
-
-    public class GenerateReportButtonListener implements ActionListener {
-        Manager managerUser;
-        Month month;
-
-        public GenerateReportButtonListener(Manager managerUser, Month month) {
-            this.managerUser = managerUser;
-            this.month = month;
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-
-            // Filter invoice records to this month only
-            List<Invoice> allInvoicesOfMonth = managerUser.getAllInvoicesOfMonth(month);
-
-            // Calculate statistics
-            double monthlyRevenue = 0;
-            double numAppointments = allInvoicesOfMonth.size();
-            double avgAppointmentRevenue;
-
-            for (Invoice invoice: allInvoicesOfMonth) {
-                monthlyRevenue += invoice.getTotalAmount();
-            }
-            avgAppointmentRevenue = monthlyRevenue / numAppointments;
         }
     }
 

@@ -24,7 +24,7 @@ public class ViewAppointmentsPage extends JFrame {
         JTable appointmentTable = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(appointmentTable);
 
-        loadButton.addActionListener(new ListenerHelper.LoadButtonListener<>(tableModel, managerUser.getAllAppointmentPublicRecords(), null));
+        loadButton.addActionListener(new ListenerHelper.LoadButtonListener(tableModel, managerUser::getAllAppointmentPublicRecords, null));
         backButton.addActionListener(this.new BackButtonListener());
 
         TableHelper.configureToPreferredSettings(appointmentTable, 600, 200, null);

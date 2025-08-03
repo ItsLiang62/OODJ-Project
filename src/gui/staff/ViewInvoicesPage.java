@@ -25,7 +25,7 @@ public class ViewInvoicesPage extends JFrame {
         JTable invoiceTable = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(invoiceTable);
 
-        loadButton.addActionListener(new ListenerHelper.LoadButtonListener<>(tableModel, staffUser.getAllInvoicePublicRecords(), null));
+        loadButton.addActionListener(new ListenerHelper.LoadButtonListener(tableModel, staffUser::getAllInvoicePublicRecords, null));
         backButton.addActionListener(this.new BackButtonListener());
 
         TableHelper.configureToPreferredSettings(invoiceTable, 600, 200, null);

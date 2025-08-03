@@ -26,6 +26,7 @@ public class ManagerMainPage extends JFrame {
         viewAppointmentsButton.addActionListener(this.new ViewAppointmentsButtonListener());
         viewCustomerFeedbacksButton.addActionListener(this.new ViewCustomerFeedbacksButtonListener());
         manageMedicinesButton.addActionListener(this.new ManageMedicinesButtonListener());
+        manageReportsButton.addActionListener(this.new ManageReportsButtonListener());
         myProfileButton.addActionListener(this.new MyProfileButtonListener());
         backButton.addActionListener(this.new BackButtonListener());
 
@@ -63,6 +64,14 @@ public class ManagerMainPage extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             SwingUtilities.invokeLater(() -> new ManageMedicinesPage(managerUser));
+            dispose();
+        }
+    }
+
+    private class ManageReportsButtonListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            SwingUtilities.invokeLater(() -> new ManageReportsPage(managerUser));
             dispose();
         }
     }

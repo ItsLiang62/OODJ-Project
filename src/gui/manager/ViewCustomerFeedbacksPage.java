@@ -24,7 +24,7 @@ public class ViewCustomerFeedbacksPage extends JFrame {
         JTable customerFeedbackTable = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(customerFeedbackTable);
 
-        loadButton.addActionListener(new ListenerHelper.LoadButtonListener<>(tableModel, managerUser.getAllCustomerFeedbackPublicRecords(), null));
+        loadButton.addActionListener(new ListenerHelper.LoadButtonListener(tableModel, managerUser::getAllCustomerFeedbackPublicRecords, null));
         backButton.addActionListener(this.new BackButtonListener());
 
         TableHelper.configureToPreferredSettings(customerFeedbackTable, 600, 200, null);
