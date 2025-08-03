@@ -40,6 +40,7 @@ public class ManageReportsPage extends JFrame {
         reportPanel.setForeground(Color.WHITE);
         generateReportButton.addActionListener(this.new GenerateReportButtonListener(monthComboBox, reportPanel));
         viewRevenueTrendButton.addActionListener(this.new ViewRevenueTrendButtonListener());
+        backButton.addActionListener(this.new BackButtonListener());
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
@@ -232,6 +233,14 @@ public class ManageReportsPage extends JFrame {
             popUpChartWindow.pack();
             popUpChartWindow.setLocationRelativeTo(null);
             popUpChartWindow.setVisible(true);
+        }
+    }
+
+    private class BackButtonListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            SwingUtilities.invokeLater(() -> new ManagerMainPage(managerUser));
+            dispose();
         }
     }
 }
