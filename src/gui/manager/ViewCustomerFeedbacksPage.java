@@ -13,7 +13,6 @@ import java.awt.event.ActionListener;
 
 public class ViewCustomerFeedbacksPage extends JFrame {
     private final Manager managerUser;
-    private final DefaultTableModel tableModel = new DefaultTableModel(CustomerFeedback.getColumnNames(), 0);
 
     public ViewCustomerFeedbacksPage(Manager managerUser) {
         this.managerUser = managerUser;
@@ -21,6 +20,7 @@ public class ViewCustomerFeedbacksPage extends JFrame {
         JLabel titleLabel = new JLabel("View Customer Feedbacks");
         JButton loadButton = new JButton("Load");
         JButton backButton = new JButton("Back");
+        DefaultTableModel tableModel = new DefaultTableModel(CustomerFeedback.getColumnNames(), 0);
         JTable customerFeedbackTable = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(customerFeedbackTable);
 
@@ -30,13 +30,6 @@ public class ViewCustomerFeedbacksPage extends JFrame {
         TableHelper.configureToPreferredSettings(customerFeedbackTable, 600, 200, null);
 
         PageDesigner.displayBorderLayoutListPage(this, "View Customer Feedbacks Page", titleLabel, new JButton[] {loadButton}, null, backButton, scrollPane);
-    }
-
-    private class LoadButtonListener implements ActionListener {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            ListenerHelper.loadButtonClicked(tableModel, managerUser.getAllCustomerFeedbackPublicRecords(), null);
-        }
     }
 
     private class BackButtonListener implements ActionListener {

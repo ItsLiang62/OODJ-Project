@@ -51,20 +51,6 @@ public class ManageAppointmentsPage extends JFrame {
         PageDesigner.displayBorderLayoutListPage(this, "Manage Appointments Page", titleLabel, new JButton[] {loadButton}, operatePanelButtons, backButton, scrollPane);
     }
 
-    private class LoadButtonListener implements ActionListener {
-
-        JButton[] operatePanelButtonsToDisable;
-
-        public LoadButtonListener(JButton[] operatePanelButtonsToDisable) {
-            this.operatePanelButtonsToDisable = operatePanelButtonsToDisable;
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            ListenerHelper.loadButtonClicked(tableModel, staffUser.getAllAppointmentPublicRecords(), operatePanelButtonsToDisable);
-        }
-    }
-
     private class AddButtonListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {

@@ -1,31 +1,19 @@
 package gui.helper;
 
-import database.Database;
 import operation.Invoice;
 import user.Manager;
 import user.User;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.time.LocalDate;
 import java.time.Month;
 import java.util.*;
 import java.util.List;
 
 public final class ListenerHelper {
-    public static <T extends Collection<String>> void loadButtonClicked(DefaultTableModel tableModel, Collection<T> records, JButton[] buttonsToDisable) {
-        tableModel.setRowCount(0);
-        for (Object[] record: TableHelper.asListOfObjectArray(records)) {
-            tableModel.addRow(record);
-        }
-        if (buttonsToDisable != null) {
-            Arrays.stream(buttonsToDisable).forEach(button -> button.setEnabled(false));
-        }
-    }
 
     public static class LoadButtonListener implements ActionListener {
         DefaultTableModel tableModel;

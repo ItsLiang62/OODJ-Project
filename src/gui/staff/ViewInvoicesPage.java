@@ -3,7 +3,6 @@ package gui.staff;
 import gui.helper.ListenerHelper;
 import gui.helper.PageDesigner;
 import gui.helper.TableHelper;
-import operation.CustomerFeedback;
 import operation.Invoice;
 import user.Staff;
 
@@ -15,7 +14,6 @@ import java.awt.event.ActionListener;
 public class ViewInvoicesPage extends JFrame {
 
     private final Staff staffUser;
-    private final DefaultTableModel tableModel = new DefaultTableModel(Invoice.getColumnNames(), 0);
 
     public ViewInvoicesPage(Staff staffUser) {
 
@@ -23,6 +21,7 @@ public class ViewInvoicesPage extends JFrame {
         JLabel titleLabel = new JLabel("View Invoices");
         JButton loadButton = new JButton("Load");
         JButton backButton = new JButton("Back");
+        DefaultTableModel tableModel = new DefaultTableModel(Invoice.getColumnNames(), 0);
         JTable invoiceTable = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(invoiceTable);
 
@@ -32,13 +31,6 @@ public class ViewInvoicesPage extends JFrame {
         TableHelper.configureToPreferredSettings(invoiceTable, 600, 200, null);
 
         PageDesigner.displayBorderLayoutListPage(this, "View Invoices Page", titleLabel, new JButton[] {loadButton}, null, backButton, scrollPane);
-    }
-
-    private class LoadButtonListener implements ActionListener {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            ListenerHelper.loadButtonClicked(tableModel, staffUser.getAllInvoicePublicRecords(), null);
-        }
     }
 
     private class BackButtonListener implements ActionListener {

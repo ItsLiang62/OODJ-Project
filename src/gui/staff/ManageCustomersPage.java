@@ -16,20 +16,6 @@ public class ManageCustomersPage extends JFrame {
     private final DefaultTableModel tableModel = new DefaultTableModel(new String[] {"Customer ID", "Name", "Email", "ApWallet"}, 0);
     private final JTable customerTable = new JTable(tableModel);
 
-    private class LoadButtonListener implements ActionListener {
-
-        JButton[] operatePanelButtonsToDisable;
-
-        public LoadButtonListener(JButton[] operatePanelButtonsToDisable) {
-            this.operatePanelButtonsToDisable = operatePanelButtonsToDisable;
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            ListenerHelper.loadButtonClicked(tableModel, staffUser.getAllCustomerPublicRecords(), operatePanelButtonsToDisable);
-        }
-    }
-
     private class AddButtonListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {

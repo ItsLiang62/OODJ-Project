@@ -1,13 +1,13 @@
 package user;
 
-import customExceptions.AppointmentCompletedException;
-import customExceptions.InsufficientApWalletException;
-import customExceptions.NegativeValueRejectedException;
+import customExceptions.*;
 import database.*;
 import operation.Appointment;
 import operation.CustomerFeedback;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Customer extends User {
 
@@ -23,67 +23,24 @@ public class Customer extends User {
         this(IdCreator.createId('C'), name, email, email, 0);
     }
 
-    public double getApWallet() { return this.apWallet; }
+    public double getApWallet() { return apWallet; }
 
-    public Set<List<String>> getAllMyAppointmentRecords() {
-        Set<List<String>> allMyAppointmentRecords = new LinkedHashSet<>();
-        for (String appointmentId: Database.getAllAppointmentIdOfCustomer(this.id)) {
-            Appointment appointment = Database.getAppointment(appointmentId);
-            List<String> appointmentRecord = appointment.createDbRecord();
-            appointmentRecord.add(String.valueOf(appointment.getTotalCharge()));
-            allMyAppointmentRecords.add(appointmentRecord);
-        }
-        return allMyAppointmentRecords;
-    }
-
-    public Set<List<String>> getAllMyCustomerFeedbackRecords() {
-        Set<List<String>> allMyCustomerFeedbackRecords = new LinkedHashSet<>();
-        for (String customerFeedbackId: Database.getAllCustomerFeedbackIdOfCustomer(this.getId())) {
-            allMyCustomerFeedbackRecords.add(Database.getCustomerFeedback(customerFeedbackId).createDbRecord());
-        }
-        return allMyCustomerFeedbackRecords;
-    }
-
-    public Set<List<String>> getAllNonManagerEmployeeRecords() {
-        Set<List<String>> allNonManagerEmployeeRecords = new LinkedHashSet<>();
-        for (String staffId: Database.getAllStaffId()) {
-            List<String> staffRecord = Database.getStaff(staffId).createPublicRecord();
-            staffRecord.removeLast();
-            staffRecord.add("Staff");
-            allNonManagerEmployeeRecords.add(staffRecord);
-        }
-        for (String doctorId: Database.getAllDoctorId()) {
-            List<String> doctorRecord = Database.getDoctor(doctorId).createPublicRecord();
-            doctorRecord.removeLast();
-            doctorRecord.add("Doctor");
-            allNonManagerEmployeeRecords.add(doctorRecord);
-        }
-        return allNonManagerEmployeeRecords;
-    }
-
-    public Set<List<String>> getAllMyPrescriptionRecords() {
-        Set<List<String>> allMyPrescriptionRecords = new LinkedHashSet<>();
-        for (List<String> prescriptionInfo: Database.getAllPrescriptionInfoOfCustomer(this.id)) {
-            allMyPrescriptionRecords.add(Database.getAppointmentMedicine(prescriptionInfo.getFirst(), prescriptionInfo.getLast()).createPublicRecord());
-        }
-        return allMyPrescriptionRecords;
-    }
-
-    public Set<List<String>> getAllMyInvoiceRecords() {
-        Set<List<String>> allMyInvoiceRecords = new LinkedHashSet<>();
-        for (String invoiceId: Database.getAllInvoiceIdOfCustomer(this.id)) {
-            allMyInvoiceRecords.add(Database.getInvoice(invoiceId).createPublicRecord());
-        }
-        return allMyInvoiceRecords;
-    }
+    public List<List<String>> getAllMyAppointmentRecords() { return Database.getAllAppointmentPublicRecordsOfCustomer(id); }
+    public List<List<String>> getAllMyCustomerFeedbackRecords() { return Database.getAllCustomerFeedbackPublicRecordsOfCustomer(id); }
+    public List<List<String>> getAllNonManagerEmployeeRecords() { return Stream.of(Database.getAllStaffPublicRecords(), Database.getAllDoctorPublicRecords()).flatMap(List::stream).collect(Collectors.toCollection(ArrayList::new)); }
+    public List<List<String>> getAllMyPrescriptionRecords() { return Database.getAllAppointmentMedicinePublicRecordsOfCustomer(id); }
+    public List<List<String>> getAllMyInvoiceRecords() { return Database.getAllInvoicePublicRecordsOfCustomer(id); }
 
     public void changeFeedbackContent(String customerFeedbackID, String content) {
+        if (!Database.getAllCustomerFeedbackIdOfCustomer(id).contains(customerFeedbackID)) {
+            throw new CustomerFeedbackDoesNotBelongToCustomerException("Failed to change customer feedback content. Customer feedback does not belong to customer.");
+        }
         CustomerFeedback customerFeedback = Database.getCustomerFeedback(customerFeedbackID);
         customerFeedback.setContent(content.trim());
     }
 
     public void provideFeedbackToNonManagerEmployee(String nonManagerEmployeeId, String content) {
-        CustomerFeedback newCustomerFeedback = new CustomerFeedback(this.id, nonManagerEmployeeId, content.trim());
+        CustomerFeedback newCustomerFeedback = new CustomerFeedback(id, nonManagerEmployeeId, content.trim());
         Database.addCustomerFeedback(newCustomerFeedback);
     }
 
@@ -92,11 +49,11 @@ public class Customer extends User {
             throw new AppointmentCompletedException("Appointment is already paid by customer and marked as completed.");
         }
         double amount = appointment.getConsultationFee() + Database.getTotalMedicineChargesOfAppointment(appointment.getId());
-        if (this.apWallet < amount) {
+        if (apWallet < amount) {
             throw new InsufficientApWalletException("Customer does not have enough in AP Wallet to pay for appointment!");
         }
-        this.apWallet -= amount;
-        Database.removeCustomer(this.id, false);
+        apWallet -= amount;
+        Database.removeCustomer(id, false);
         Database.addCustomer(this);
     }
 
@@ -104,7 +61,7 @@ public class Customer extends User {
         if (amount < 0) {
             throw new NegativeValueRejectedException("Cannot top up ApWallet with a negative amount!");
         }
-        this.apWallet += amount;
+        apWallet += amount;
         Database.removeCustomer(this.id, false);
         Database.addCustomer(this);
     }

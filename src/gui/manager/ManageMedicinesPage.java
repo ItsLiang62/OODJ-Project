@@ -46,20 +46,6 @@ public class ManageMedicinesPage extends JFrame {
         PageDesigner.displayBorderLayoutListPage(this, "Manage Medicines Page", titleLabel, loadPanelButtons, operatePanelButtons, backButton, scrollPane);
     }
 
-    private class LoadButtonListener implements ActionListener {
-
-        JButton[] operatePanelButtonsToDisable;
-
-        public LoadButtonListener(JButton[] operatePanelButtonsToDisable) {
-            this.operatePanelButtonsToDisable = operatePanelButtonsToDisable;
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            ListenerHelper.loadButtonClicked(tableModel, managerUser.getAllMedicinePublicRecords(), operatePanelButtonsToDisable);
-        }
-    }
-
     private class AddButtonListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
