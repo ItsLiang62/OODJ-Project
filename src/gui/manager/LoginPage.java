@@ -3,6 +3,7 @@ package gui.manager;
 import customExceptions.EmailNotFoundException;
 import database.Database;
 import gui.staff.StaffMainPage;
+import user.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -96,39 +97,39 @@ public class LoginPage extends JFrame {
             String password = String.valueOf(passwordField.getPassword());
             String userId;
             try {
-                userId = Database.getUserIdByEmail(email);
+                userId = User.getIdByEmail(email);
             } catch (EmailNotFoundException exception) {
                 showEmailNotRegisteredErrorMessage();
                 return;
             }
             switch (userId.charAt(0)) {
                 case 'M':
-                    if (!password.equals(Database.getManager(userId).getPassword())) {
+                    if (!password.equals(Manager.getById(userId).getPassword())) {
                         showIncorrectPasswordErrorMessage();
                     } else {
                         showLoginSuccessfulMessage();
-                        SwingUtilities.invokeLater(() -> new ManagerMainPage(Database.getManager(userId)));
+                        SwingUtilities.invokeLater(() -> new ManagerMainPage(Manager.getById(userId)));
                         dispose();
                     }
                     return;
                 case 'S':
-                    if (!password.equals(Database.getStaff(userId).getPassword())) {
+                    if (!password.equals(Staff.getById(userId).getPassword())) {
                        showIncorrectPasswordErrorMessage();
                     } else {
                         showLoginSuccessfulMessage();
-                        SwingUtilities.invokeLater(() -> new StaffMainPage(Database.getStaff(userId)));
+                        SwingUtilities.invokeLater(() -> new StaffMainPage(Staff.getById(userId)));
                         dispose();
                     }
                     return;
                 case 'D':
-                    if (!password.equals(Database.getDoctor(userId).getPassword())) {
+                    if (!password.equals(Doctor.getById(userId).getPassword())) {
                         showIncorrectPasswordErrorMessage();
                     } else {
                         showLoginSuccessfulMessage();
                     }
                     return;
                 case 'C':
-                    if (!password.equals(Database.getCustomer(userId).getPassword())) {
+                    if (!password.equals(Customer.getById(userId).getPassword())) {
                         showIncorrectPasswordErrorMessage();
                     } else {
                         showLoginSuccessfulMessage();

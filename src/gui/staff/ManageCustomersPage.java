@@ -113,7 +113,7 @@ public class ManageCustomersPage extends JFrame {
 
         JButton[] operatePanelButtons = {addButton, editButton, deleteButton};
 
-        loadButton.addActionListener(new ListenerHelper.LoadButtonListener(tableModel, staffUser::getAllCustomerPublicRecords, new JButton[] {editButton, deleteButton}));
+        loadButton.addActionListener(new ListenerHelper.LoadButtonListener(tableModel, staffUser::getCustomerPublicRecords, new JButton[] {editButton, deleteButton}));
         addButton.addActionListener(this.new AddButtonListener());
         editButton.addActionListener(this.new EditButtonListener());
         deleteButton.addActionListener(this.new DeleteButtonListener());

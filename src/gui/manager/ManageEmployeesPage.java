@@ -1,6 +1,5 @@
 package gui.manager;
 
-import database.Database;
 import gui.helper.ListenerHelper;
 import gui.helper.PageDesigner;
 import gui.helper.TableHelper;
@@ -40,9 +39,9 @@ public class ManageEmployeesPage extends JFrame {
         TableHelper.configureToPreferredSettings(employeeTable, 600, 200, new JButton[] {editButton, deleteButton});
 
         JButton[] operatePanelButtonsToDisableWhenLoad = {editButton, deleteButton};
-        managersButton.addActionListener(new ListenerHelper.LoadButtonListener(tableModel, managerUser::getAllManagerPublicRecords, operatePanelButtonsToDisableWhenLoad));
-        staffsButton.addActionListener(new ListenerHelper.LoadButtonListener(tableModel, managerUser::getAllStaffPublicRecords, operatePanelButtonsToDisableWhenLoad));
-        doctorsButton.addActionListener(new ListenerHelper.LoadButtonListener(tableModel, managerUser::getAllDoctorPublicRecords, operatePanelButtonsToDisableWhenLoad));
+        managersButton.addActionListener(new ListenerHelper.LoadButtonListener(tableModel, managerUser::getManagerPublicRecords, operatePanelButtonsToDisableWhenLoad));
+        staffsButton.addActionListener(new ListenerHelper.LoadButtonListener(tableModel, managerUser::getStaffPublicRecords, operatePanelButtonsToDisableWhenLoad));
+        doctorsButton.addActionListener(new ListenerHelper.LoadButtonListener(tableModel, managerUser::getDoctorPublicRecords, operatePanelButtonsToDisableWhenLoad));
         addButton.addActionListener(this.new AddButtonListener());
         editButton.addActionListener(this.new EditButtonListener());
         deleteButton.addActionListener(this.new DeleteButtonListener());
@@ -82,23 +81,23 @@ public class ManageEmployeesPage extends JFrame {
                 try {
                     switch (Objects.requireNonNull(role)) {
                         case "Manager":
-                            Manager newManager = new Manager(name, email); // initial user password will be the email itself, user can change the password later
+                            // initial user password will be the email itself, user can change the password later
+                            Manager newManager = new Manager(name, email);
                             managerUser.addManager(newManager);
-                            JOptionPane.showMessageDialog(null, "Successfully added new manager account", "Employee Created Successfully", JOptionPane.PLAIN_MESSAGE);
                             break;
                         case "Staff":
                             Staff newStaff = new Staff(name, email);
                             managerUser.addStaff(newStaff);
-                            JOptionPane.showMessageDialog(null, "Successfully created new staff account", "Employee Added Successfully", JOptionPane.PLAIN_MESSAGE);
                             break;
                         case "Doctor":
                             Doctor newDoctor = new Doctor(name, email);
                             managerUser.addDoctor(newDoctor);
-                            JOptionPane.showMessageDialog(null, "Successfully created new doctor account", "Employee Added Successfully", JOptionPane.PLAIN_MESSAGE);
                             break;
                         default:
                             JOptionPane.showMessageDialog(null, "Could not recognize role", "Role Not Found Error", JOptionPane.ERROR_MESSAGE);
+                            return;
                     }
+                    JOptionPane.showMessageDialog(null, String.format("Successfully added new %s account", role.toLowerCase()), "Employee Created Successfully", JOptionPane.PLAIN_MESSAGE);
                 } catch (RuntimeException exception) {
                     JOptionPane.showMessageDialog(null, exception.getMessage(), "Input Error", JOptionPane.ERROR_MESSAGE);
                 }
@@ -127,19 +126,19 @@ public class ManageEmployeesPage extends JFrame {
                 try {
                     switch (id.charAt(0)) {
                         case 'M':
-                            password = Database.getManager(id).getPassword();
+                            password = Manager.getById(id).getPassword();
                             Manager newManager = new Manager(id, newName, newEmail, password);
                             managerUser.updateManager(newManager);
                             JOptionPane.showMessageDialog(null, "Successfully edited manager information", "Employee Updated Successfully", JOptionPane.PLAIN_MESSAGE);
                             break;
                         case 'S':
-                            password = Database.getStaff(id).getPassword();
+                            password = Staff.getById(id).getPassword();
                             Staff newStaff = new Staff(id, newName, newEmail, password);
                             managerUser.updateStaff(newStaff);
                             JOptionPane.showMessageDialog(null, "Successfully edited staff information", "Employee Updated Successfully", JOptionPane.PLAIN_MESSAGE);
                             break;
                         case 'D':
-                            password = Database.getDoctor(id).getPassword();
+                            password = Doctor.getById(id).getPassword();
                             Doctor newDoctor = new Doctor(id, newName, newEmail, password);
                             managerUser.updateDoctor(newDoctor);
                             JOptionPane.showMessageDialog(null, "Successfully edited doctor information", "Employee Updated Successfully", JOptionPane.PLAIN_MESSAGE);
