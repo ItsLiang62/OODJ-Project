@@ -35,7 +35,7 @@ public class ManageAppointmentsPage extends JFrame {
 
         JButton[] operatePanelButtons = {addButton, assignDoctorButton, collectPaymentButton, deleteButton};
 
-        loadButton.addActionListener(new ListenerHelper.LoadButtonListener(tableModel, staffUser::getAllAppointmentPublicRecords, new JButton[] {assignDoctorButton, collectPaymentButton, deleteButton}));
+        loadButton.addActionListener(new ListenerHelper.LoadButtonListener(tableModel, staffUser::getAppointmentPublicRecords, new JButton[] {assignDoctorButton, collectPaymentButton, deleteButton}));
         addButton.addActionListener(this.new AddButtonListener());
         assignDoctorButton.addActionListener(this.new AssignDoctorButtonListener());
         collectPaymentButton.addActionListener(this.new CollectPaymentButtonListener());
@@ -55,7 +55,7 @@ public class ManageAppointmentsPage extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             List<String> customerIdName = new ArrayList<>();
-            staffUser.getAllCustomerPublicRecords().forEach(
+            staffUser.getCustomerPublicRecords().forEach(
                     record -> customerIdName.add(record.getFirst() + " " + record.get(1))
             );
             JLabel customerLabel = new JLabel("Customer:");
@@ -93,7 +93,7 @@ public class ManageAppointmentsPage extends JFrame {
                 String id = (String) tableModel.getValueAt(row, 0);
 
                 List<String> doctorIdName = new ArrayList<>();
-                staffUser.getAllDoctorPublicRecords().forEach(
+                staffUser.getDoctorPublicRecords().forEach(
                         record -> doctorIdName.add(record.getFirst() + " " + record.get(1))
                 );
                 JLabel doctorLabel = new JLabel(String.format("Doctor for %s", id));

@@ -1,6 +1,5 @@
 package gui.manager;
 
-import gui.helper.ListenerHelper;
 import operation.Invoice;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -13,9 +12,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.Month;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.DoubleSummaryStatistics;
+import java.util.*;
 import java.util.List;
 
 public class ManageReportsPage extends JFrame {
@@ -108,8 +105,8 @@ public class ManageReportsPage extends JFrame {
         public void actionPerformed(ActionEvent e) {
             // Filter invoice records to this month only
             Month month = (Month) monthComboBox.getSelectedItem();
-            java.util.List<Invoice> allInvoicesOfMonth = managerUser.getAllInvoicesOfMonth(month);
-            java.util.List<Double> allAppointmentRevenueOfMonth = allInvoicesOfMonth.stream().map(Invoice::getTotalAmount).toList();
+            Set<Invoice> allInvoicesOfMonth = managerUser.getInvoicesOfMonth(month);
+            List<Double> allAppointmentRevenueOfMonth = allInvoicesOfMonth.stream().map(Invoice::getTotalAmount).toList();
             DoubleSummaryStatistics appointmentRevenueOfMonthStats = allAppointmentRevenueOfMonth.stream().mapToDouble(Double::doubleValue).summaryStatistics();
 
             // Calculate statistics
@@ -212,7 +209,7 @@ public class ManageReportsPage extends JFrame {
             List<Double> monthlyRevenues = new ArrayList<>();
             for (Month month: Month.values()) {
                 double thisMonthRevenue = 0;
-                for (Invoice invoice: managerUser.getAllInvoicesOfMonth(month)) {
+                for (Invoice invoice: managerUser.getInvoicesOfMonth(month)) {
                     thisMonthRevenue += invoice.getTotalAmount();
                 }
                 monthlyRevenues.add(thisMonthRevenue);

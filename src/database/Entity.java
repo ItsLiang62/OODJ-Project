@@ -4,5 +4,5 @@ import java.util.List;
 
 public interface Entity {
     List<String> createDbRecord();
-    List<String> createPublicRecord();
+    List<String> getPublicRecord();
 }
