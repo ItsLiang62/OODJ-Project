@@ -1,6 +1,5 @@
 package gui.manager;
 
-import database.Database;
 import gui.helper.ListenerHelper;
 import gui.helper.PageDesigner;
 import gui.helper.TableHelper;
@@ -9,73 +8,49 @@ import user.Manager;
 import user.Staff;
 
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import java.util.*;
-import java.util.List;
 
-public class EmployeeListPage extends JFrame {
-    private Manager managerUser;
+public class ManageEmployeesPage extends JFrame {
+    private final Manager managerUser;
+    private final DefaultTableModel tableModel = new DefaultTableModel(new String[] {"Employee ID", "Name", "Email"}, 0);
+    private final JTable employeeTable = new JTable(tableModel);
 
-    private final JLabel titleLabel = new JLabel("Manage Employees");
-    private final JButton managersButton = new JButton("Managers");
-    private final JButton staffsButton = new JButton("Staffs");
-    private final JButton doctorsButton = new JButton("Doctors");
-    private final JButton addButton = new JButton("Add");
-    private final JButton editButton = new JButton("Edit");
-    private final JButton deleteButton = new JButton("Delete");
-    private final JButton backButton = new JButton("Back");
-    private final DefaultTableModel tableModel = new DefaultTableModel(new String[] {"Employee ID", "Name", "Email"}, 0);;
-    private final JTable employeeTable = new JTable(tableModel);;
-    private final JScrollPane scrollPane = new JScrollPane(employeeTable);;
-
-    public EmployeeListPage(Manager managerUser) {
+    public ManageEmployeesPage(Manager managerUser) {
         this.managerUser = managerUser;
+
+        JLabel titleLabel = new JLabel("Manage Employees");
+        JButton managersButton = new JButton("Managers");
+        JButton staffsButton = new JButton("Staffs");
+        JButton doctorsButton = new JButton("Doctors");
+        JButton addButton = new JButton("Add");
+        JButton editButton = new JButton("Edit");
+        JButton deleteButton = new JButton("Delete");
+        JButton backButton = new JButton("Back");
+        JScrollPane scrollPane = new JScrollPane(employeeTable);
 
         JButton[] loadPanelButtons = {managersButton, staffsButton, doctorsButton};
         JButton[] operatePanelButtons = {addButton, editButton, deleteButton};
-        JButton[] buttonsToDisableWithoutTableRowSelection = {editButton, deleteButton};
 
-        TableHelper.configureToPreferredSettings(this.employeeTable, 600, 200, buttonsToDisableWithoutTableRowSelection);
+        TableHelper.configureToPreferredSettings(employeeTable, 600, 200, new JButton[] {editButton, deleteButton});
 
-        EmployeeButtonListener ebl = this.new EmployeeButtonListener();
-        this.managersButton.addActionListener(ebl);
-        this.staffsButton.addActionListener(ebl);
-        this.doctorsButton.addActionListener(ebl);
-        this.addButton.addActionListener(this.new AddButtonListener());
-        this.editButton.addActionListener(this.new EditButtonListener());
-        this.deleteButton.addActionListener(this.new DeleteButtonListener());
-        this.backButton.addActionListener(this.new BackButtonListener());
+        JButton[] operatePanelButtonsToDisableWhenLoad = {editButton, deleteButton};
+        managersButton.addActionListener(new ListenerHelper.LoadButtonListener(tableModel, managerUser::getManagerPublicRecords, operatePanelButtonsToDisableWhenLoad));
+        staffsButton.addActionListener(new ListenerHelper.LoadButtonListener(tableModel, managerUser::getStaffPublicRecords, operatePanelButtonsToDisableWhenLoad));
+        doctorsButton.addActionListener(new ListenerHelper.LoadButtonListener(tableModel, managerUser::getDoctorPublicRecords, operatePanelButtonsToDisableWhenLoad));
+        addButton.addActionListener(this.new AddButtonListener());
+        editButton.addActionListener(this.new EditButtonListener());
+        deleteButton.addActionListener(this.new DeleteButtonListener());
+        backButton.addActionListener(this.new BackButtonListener());
 
-        this.editButton.setEnabled(false);
-        this.deleteButton.setEnabled(false);
+        editButton.setEnabled(false);
+        deleteButton.setEnabled(false);
 
-        PageDesigner.displayBorderLayoutListPage(this, "Manage Employees", titleLabel, loadPanelButtons, operatePanelButtons, backButton, scrollPane);
-    }
-
-    private List<Object[]> getEmployeeRecordsByType(String type) {
-        return switch (type) {
-            case "Managers" -> TableHelper.asListOfObjectArray(managerUser.getAllManagerPublicRecords());
-            case "Staffs" -> TableHelper.asListOfObjectArray(managerUser.getAllStaffPublicRecords());
-            case "Doctors" -> TableHelper.asListOfObjectArray(managerUser.getAllDoctorPublicRecords());
-            default -> new ArrayList<>();
-        };
-    }
-
-    private class EmployeeButtonListener implements ActionListener {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            String employeeType = ((JButton) e.getSource()).getText();
-            List<Object[]> employeeRecords = getEmployeeRecordsByType(employeeType);
-
-            JButton[] operatePanelButtonsToDisable = {editButton, deleteButton};
-            ListenerHelper.loadButtonClicked(tableModel, employeeRecords, operatePanelButtonsToDisable);
-        }
+        PageDesigner.displayBorderLayoutListPage(this, "Manage Employees Page", titleLabel, loadPanelButtons, operatePanelButtons, backButton, scrollPane);
     }
 
     private class AddButtonListener implements ActionListener {
@@ -106,23 +81,23 @@ public class EmployeeListPage extends JFrame {
                 try {
                     switch (Objects.requireNonNull(role)) {
                         case "Manager":
-                            Manager newManager = new Manager(name, email); // initial user password will be the email itself, user can change the password later
-                            EmployeeListPage.this.managerUser.addManager(newManager);
-                            JOptionPane.showMessageDialog(null, "Successfully added new manager account", "Employee Created Successfully", JOptionPane.PLAIN_MESSAGE);
+                            // initial user password will be the email itself, user can change the password later
+                            Manager newManager = new Manager(name, email);
+                            managerUser.addManager(newManager);
                             break;
                         case "Staff":
                             Staff newStaff = new Staff(name, email);
-                            EmployeeListPage.this.managerUser.addStaff(newStaff);
-                            JOptionPane.showMessageDialog(null, "Successfully created new staff account", "Employee Added Successfully", JOptionPane.PLAIN_MESSAGE);
+                            managerUser.addStaff(newStaff);
                             break;
                         case "Doctor":
                             Doctor newDoctor = new Doctor(name, email);
-                            EmployeeListPage.this.managerUser.addDoctor(newDoctor);
-                            JOptionPane.showMessageDialog(null, "Successfully created new doctor account", "Employee Added Successfully", JOptionPane.PLAIN_MESSAGE);
+                            managerUser.addDoctor(newDoctor);
                             break;
                         default:
                             JOptionPane.showMessageDialog(null, "Could not recognize role", "Role Not Found Error", JOptionPane.ERROR_MESSAGE);
+                            return;
                     }
+                    JOptionPane.showMessageDialog(null, String.format("Successfully added new %s account", role.toLowerCase()), "Employee Created Successfully", JOptionPane.PLAIN_MESSAGE);
                 } catch (RuntimeException exception) {
                     JOptionPane.showMessageDialog(null, exception.getMessage(), "Input Error", JOptionPane.ERROR_MESSAGE);
                 }
@@ -151,19 +126,19 @@ public class EmployeeListPage extends JFrame {
                 try {
                     switch (id.charAt(0)) {
                         case 'M':
-                            password = Database.getManager(id).getPassword();
+                            password = Manager.getById(id).getPassword();
                             Manager newManager = new Manager(id, newName, newEmail, password);
                             managerUser.updateManager(newManager);
                             JOptionPane.showMessageDialog(null, "Successfully edited manager information", "Employee Updated Successfully", JOptionPane.PLAIN_MESSAGE);
                             break;
                         case 'S':
-                            password = Database.getStaff(id).getPassword();
+                            password = Staff.getById(id).getPassword();
                             Staff newStaff = new Staff(id, newName, newEmail, password);
                             managerUser.updateStaff(newStaff);
                             JOptionPane.showMessageDialog(null, "Successfully edited staff information", "Employee Updated Successfully", JOptionPane.PLAIN_MESSAGE);
                             break;
                         case 'D':
-                            password = Database.getDoctor(id).getPassword();
+                            password = Doctor.getById(id).getPassword();
                             Doctor newDoctor = new Doctor(id, newName, newEmail, password);
                             managerUser.updateDoctor(newDoctor);
                             JOptionPane.showMessageDialog(null, "Successfully edited doctor information", "Employee Updated Successfully", JOptionPane.PLAIN_MESSAGE);
@@ -209,8 +184,8 @@ public class EmployeeListPage extends JFrame {
 
     private class BackButtonListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
-            SwingUtilities.invokeLater(() -> new ManagerMainPage(EmployeeListPage.this.managerUser));
-            EmployeeListPage.this.dispose();
+            SwingUtilities.invokeLater(() -> new ManagerMainPage(managerUser));
+            dispose();
         }
     }
 }

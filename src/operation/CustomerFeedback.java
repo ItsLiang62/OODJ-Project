@@ -3,17 +3,26 @@ package operation;
 import customExceptions.InvalidForeignKeyValueException;
 import customExceptions.NullOrEmptyValueRejectedException;
 import database.*;
+import user.Customer;
+import user.Doctor;
+import user.Staff;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.io.File;
+import java.util.*;
+import java.util.function.Function;
 
 public class CustomerFeedback implements Identifiable {
     private final String id;
-    private String customerId;
-    private String nonManagerEmployeeId;
+    private final String customerId;
+    private final String nonManagerEmployeeId;
     private String content;
 
+    private static final Set<CustomerFeedback> customerFeedbacks = new TreeSet<>(Database.getOrderedById());
+    private static final File customerFeedbackFile = new File("data/customerFeedback.txt");
+
+    static {
+        Database.populateFromRecords(CustomerFeedback::createFromDbRecord, customerFeedbackFile);
+    }
 
     public CustomerFeedback(String id, String customerId, String nonManagerEmployeeId, String content) {
         checkCustomerId(customerId);
@@ -26,27 +35,38 @@ public class CustomerFeedback implements Identifiable {
     }
 
     public CustomerFeedback(String customerId, String nonManagerEmployeeId, String content) {
-        this(IdCreator.createId('F'), customerId, nonManagerEmployeeId, content);
+        this(CustomerFeedback.createId(), customerId, nonManagerEmployeeId, content);
 
     }
 
-    public String getId() { return this.id; }
-    public String getCustomerId() { return this.customerId; }
-    public String getNonManagerEmployeeId() { return this.nonManagerEmployeeId; }
-    public String getContent() { return this.content; }
+    public String getId() {
+        return this.id;
+    }
+
+    public String getCustomerId() {
+        return this.customerId;
+    }
+
+    public String getNonManagerEmployeeId() {
+        return this.nonManagerEmployeeId;
+    }
+
+    public String getContent() {
+        return this.content;
+    }
 
     public void setContent(String content) {
         checkContent(content);
         this.content = content;
-        Database.removeCustomerFeedback(this.id);
-        Database.addCustomerFeedback(this);
+        CustomerFeedback.removeById(this.id);
+        CustomerFeedback.add(this);
     }
 
     public static void checkCustomerId(String customerId) {
         if (customerId == null || customerId.isBlank()) {
             throw new NullOrEmptyValueRejectedException("Customer ID of customer feedback must not be null or empty!");
         }
-        if (!Database.getAllCustomerId().contains(customerId)) {
+        if (!Customer.getFieldVals(Customer.getAll(), Customer::getId).contains(customerId)) {
             throw new InvalidForeignKeyValueException("Customer ID of CustomerFeedback does not exist!");
         }
     }
@@ -55,7 +75,7 @@ public class CustomerFeedback implements Identifiable {
         if (nonManagerEmployeeId == null || nonManagerEmployeeId.isBlank()) {
             throw new NullOrEmptyValueRejectedException("Non-manager employee ID of customer feedback must not be null or empty!");
         }
-        if (!Database.getAllStaffId().contains(nonManagerEmployeeId) && !Database.getAllDoctorId().contains(nonManagerEmployeeId)) {
+        if (!Staff.getFieldVals(Staff.getAll(), Staff::getId).contains(nonManagerEmployeeId) && !Doctor.getFieldVals(Doctor.getAll(), Doctor::getId).contains(nonManagerEmployeeId)) {
             throw new InvalidForeignKeyValueException("Non-manager employee ID of customer feedback object does not exist!");
         }
     }
@@ -67,26 +87,62 @@ public class CustomerFeedback implements Identifiable {
     }
 
     public List<String> createDbRecord() {
-        String dbCustomerId = this.customerId;
-        String dbTargetEmployeeId = this.nonManagerEmployeeId;
         String dbContent = this.content;
 
         return new ArrayList<>(Arrays.asList(
-                this.id, dbCustomerId, dbTargetEmployeeId, dbContent
+                id, customerId, nonManagerEmployeeId, dbContent
         ));
     }
 
-    public List<String> createPublicRecord() {
+    public List<String> getPublicRecord() {
         return this.createDbRecord();
     }
 
-    public static void createCustomerFeedbackFromRecord(List<String> record) {
-        String customerFeedbackId = record.getFirst();
-        String customerFeedbackCustomerId = record.get(1);
-        String customerFeedbackTargetEmployeeId = record.get(2);
-        String customerFeedbackContent = record.getLast();
+    public static void createFromDbRecord(List<String> record) {
+        String id = record.getFirst();
+        String customerId = record.get(1);
+        String nonManagerEmployeeId = record.get(2);
+        String content = record.getLast();
 
-        CustomerFeedback customerFeedback = new CustomerFeedback(customerFeedbackId, customerFeedbackCustomerId, customerFeedbackTargetEmployeeId, customerFeedbackContent);
-        Database.addCustomerFeedback(customerFeedback);
+        CustomerFeedback customerFeedback = new CustomerFeedback(id, customerId, nonManagerEmployeeId, content);
+        CustomerFeedback.add(customerFeedback);
+    }
+
+    public static String createId() {
+        return Database.createId(customerFeedbacks, 'F');
+    }
+
+    public static void add(CustomerFeedback newCustomerFeedback) {
+        Database.add(newCustomerFeedback, customerFeedbacks, customerFeedbackFile);
+    }
+
+    public static Set<CustomerFeedback> getAll() {
+        return new LinkedHashSet<>(customerFeedbacks);
+    }
+
+    public static CustomerFeedback getById(String customerFeedbackId) {
+        return Database.getById(customerFeedbacks, customerFeedbackId, "customer feedback");
+    }
+
+    public static <R> Set<CustomerFeedback> getFiltered(
+            Function<CustomerFeedback, R> fieldValReturner,
+            R fieldVal) {
+        return Database.getFiltered(customerFeedbacks, fieldValReturner, fieldVal);
+    }
+
+    public static <R> List<R> getFieldVals(Set<CustomerFeedback> customerFeedbacks, Function<CustomerFeedback, R> fieldValReturner) {
+        return Database.getFieldVals(customerFeedbacks, fieldValReturner);
+    }
+
+    public static List<List<String>> getPublicRecords(Set<CustomerFeedback> customerFeedbacks) {
+        return Database.getPublicRecords(customerFeedbacks);
+    }
+
+    public static void removeById(String id) {
+        Database.removeById(customerFeedbacks, id, customerFeedbackFile);
+    }
+
+    public static String[] getColumnNames() {
+        return new String[] {"Customer Feedback ID", "Customer ID", "Employee ID", "Content"};
     }
 }
