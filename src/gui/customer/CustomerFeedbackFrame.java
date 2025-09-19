@@ -4,205 +4,309 @@
  */
 package gui.customer;
 import user.Customer;
-import database.Database;
+import operation.CustomerFeedback;
+
 import javax.swing.*;
-import java.util.Set;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.List;
+
 /**
  *
  * @author Adrian Liew Ren Qian
  */
 public class CustomerFeedbackFrame extends javax.swing.JFrame {
     
-    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(CustomerFeedbackFrame.class.getName());
-    private Customer currentCustomer;
+    private final Customer customerUser;
+    private JTable feedbackTable;
+    private DefaultTableModel tableModel;
+    private JComboBox<String> employeeComboBox;
+    private JTextArea feedbackTextArea;
 
     /**
      * Creates new form CustomerFeedbackFrame
+     * @param customerUser
      */
-    public CustomerFeedbackFrame(Customer customer) {
-        this.currentCustomer = customer;
-        initComponents();
-        setupFrame();
-        loadEmployeesDropdown();
-        setupActionListeners();
+    public CustomerFeedbackFrame(Customer customerUser) {
+        this.customerUser = customerUser;
+        initializeUI();
+        loadFeedbackData();
+        loadEmployeeComboBox();
     }
-    private void setupFrame() {
-        setTitle("Provide Feedback");
-        setSize(500, 400);
-        setLocationRelativeTo(null);
+        private void initializeUI() {
+        setTitle("Customer Feedback - " + customerUser.getName());
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setSize(1000, 700);
+        setLocationRelativeTo(null);
+
+        // Create main panel with border layout
+        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        mainPanel.setBackground(new Color(240, 248, 255));
+
+        // Create title label
+        JLabel titleLabel = new JLabel("Customer Feedback", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setForeground(new Color(0, 51, 102));
+        mainPanel.add(titleLabel, BorderLayout.NORTH);
+
+        // Create center panel with tabbed pane
+        JTabbedPane tabbedPane = new JTabbedPane();
+        tabbedPane.setFont(new Font("Arial", Font.BOLD, 14));
+
+        // Tab 1: View My Feedback
+        JPanel viewFeedbackPanel = createViewFeedbackPanel();
+        tabbedPane.addTab("View My Feedback", viewFeedbackPanel);
+
+        // Tab 2: Give New Feedback
+        JPanel giveFeedbackPanel = createGiveFeedbackPanel();
+        tabbedPane.addTab("Give New Feedback", giveFeedbackPanel);
+
+        mainPanel.add(tabbedPane, BorderLayout.CENTER);
+
+        // Create button panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        buttonPanel.setBackground(new Color(240, 248, 255));
+
+        JButton refreshButton = createStyledButton("Refresh");
+        JButton backButton = createStyledButton("Back to Main");
+
+        refreshButton.addActionListener(new RefreshButtonListener());
+        backButton.addActionListener(new BackButtonListener());
+
+        buttonPanel.add(refreshButton);
+        buttonPanel.add(backButton);
+
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        // Add main panel to frame
+        add(mainPanel);
     }
-    private void setupActionListeners() {
-        jButton1.addActionListener(e -> submitFeedback());
-        jButton2.addActionListener(e -> viewPreviousFeedbacks());
-    }    
-    private void loadEmployeesDropdown() {
-        try {
-            Set<List<String>> employeeRecords = currentCustomer.getAllNonManagerEmployeeRecords();
-            jComboBox1.removeAllItems();
-            jComboBox1.addItem("-- Select Staff/Doctor --");
-            
-            for (List<String> record : employeeRecords) {
-                // Assuming record structure: [id, name, email, role, ...]
-                String employeeId = record.get(0);
-                String employeeName = record.get(1);
-                String employeeRole = record.size() > 3 ? record.get(3) : "Employee";
-                
-                String displayText = employeeName + " (" + employeeRole + ")";
-                jComboBox1.addItem(displayText);
+
+    private JPanel createViewFeedbackPanel() {
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        panel.setBackground(new Color(240, 248, 255));
+
+        // Create table model and table
+        String[] columnNames = CustomerFeedback.getColumnNames();
+        tableModel = new DefaultTableModel(columnNames, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // Make table non-editable
             }
-        } catch (Exception ex) {
-            showError("Error loading employees: " + ex.getMessage());
-        }
-    }
+        };
 
-    private void submitFeedback() {
-        String selectedItem = (String) jComboBox1.getSelectedItem();
-        String feedbackText = jTextArea1.getText().trim();
-        
-        // Validation
-        if (selectedItem == null || selectedItem.equals("-- Select Staff/Doctor --")) {
-            JOptionPane.showMessageDialog(this,
-                "Please select a staff or doctor to provide feedback to.",
-                "Selection Error", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        
-        if (feedbackText.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                "Please enter your feedback message.",
-                "Input Error", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        
-        if (feedbackText.length() < 10) {
-            JOptionPane.showMessageDialog(this,
-                "Feedback should be at least 10 characters long.",
-                "Input Error", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+        feedbackTable = new JTable(tableModel);
+        feedbackTable.setFont(new Font("Arial", Font.PLAIN, 12));
+        feedbackTable.setRowHeight(20);
+        feedbackTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
+        feedbackTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        try {
-            // Extract employee ID from the selected item
-            // Format: "Name (Role)" - we need to get the actual ID from database
-            String selectedName = selectedItem.split(" \\(")[0];
-            String employeeId = findEmployeeIdByName(selectedName);
-            
-            if (employeeId == null) {
-                showError("Could not find employee ID for selected staff/doctor.");
+        // Add table to scroll pane
+        JScrollPane scrollPane = new JScrollPane(feedbackTable);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+        panel.add(scrollPane, BorderLayout.CENTER);
+
+        // Create edit panel
+        JPanel editPanel = new JPanel(new BorderLayout(10, 10));
+        editPanel.setBorder(BorderFactory.createTitledBorder("Edit Selected Feedback"));
+        editPanel.setBackground(new Color(240, 248, 255));
+
+        JTextArea editTextArea = new JTextArea(3, 40);
+        editTextArea.setFont(new Font("Arial", Font.PLAIN, 12));
+        editTextArea.setLineWrap(true);
+        editTextArea.setWrapStyleWord(true);
+
+        JButton editButton = createStyledButton("Update Feedback");
+        editButton.addActionListener(e -> {
+            int selectedRow = feedbackTable.getSelectedRow();
+            if (selectedRow == -1) {
+                JOptionPane.showMessageDialog(this, "Please select a feedback to edit.", "Warning", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-            
-            // Provide feedback
-            currentCustomer.provideFeedbackToNonManagerEmployee(employeeId, feedbackText);
-            
-            JOptionPane.showMessageDialog(this,
-                "Thank you! Your feedback has been submitted successfully.",
-                "Success", JOptionPane.INFORMATION_MESSAGE);
-            
-            // Clear form
-            jTextArea1.setText("");
-            jComboBox1.setSelectedIndex(0);
-            
-        } catch (Exception ex) {
-            showError("Error submitting feedback: " + ex.getMessage());
-        }
-    }
 
-    private String findEmployeeIdByName(String name) {
-        try {
-            Set<List<String>> employeeRecords = currentCustomer.getAllNonManagerEmployeeRecords();
-            for (List<String> record : employeeRecords) {
-                String employeeName = record.get(1);
-                if (employeeName.equals(name)) {
-                    return record.get(0); // Return employee ID
-                }
-            }
-        } catch (Exception ex) {
-            showError("Error finding employee: " + ex.getMessage());
-        }
-        return null;
-    }
-
-    private void viewPreviousFeedbacks() {
-        try {
-            Set<List<String>> feedbackRecords = currentCustomer.getAllMyCustomerFeedbackRecords();
-            
-            if (feedbackRecords.isEmpty()) {
-                JOptionPane.showMessageDialog(this,
-                    "You haven't submitted any feedback yet.",
-                    "My Feedbacks", JOptionPane.INFORMATION_MESSAGE);
+            String newContent = editTextArea.getText().trim();
+            if (newContent.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Feedback content cannot be empty.", "Warning", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-            
-            // Create a dialog to display feedbacks
-            JDialog feedbackDialog = new JDialog(this, "My Previous Feedbacks", true);
-            feedbackDialog.setSize(600, 400);
-            feedbackDialog.setLocationRelativeTo(this);
-            feedbackDialog.setLayout(new BorderLayout());
-            
-            // Create text area to display feedbacks
-            JTextArea feedbackTextArea = new JTextArea();
-            feedbackTextArea.setEditable(false);
-            feedbackTextArea.setFont(new java.awt.Font("Monospaced", java.awt.Font.PLAIN, 12));
-            
-            StringBuilder sb = new StringBuilder();
-            sb.append("YOUR FEEDBACK HISTORY\n");
-            sb.append("=====================\n\n");
-            
+
+            String feedbackId = (String) tableModel.getValueAt(selectedRow, 0);
+            try {
+                CustomerFeedback feedback = CustomerFeedback.getById(feedbackId);
+                feedback.setContent(newContent);
+                JOptionPane.showMessageDialog(this, "Feedback updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                loadFeedbackData();
+                editTextArea.setText("");
+            } catch (HeadlessException ex) {
+                JOptionPane.showMessageDialog(this, "Error updating feedback: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        JPanel editButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        editButtonPanel.setBackground(new Color(240, 248, 255));
+        editButtonPanel.add(editButton);
+
+        editPanel.add(new JScrollPane(editTextArea), BorderLayout.CENTER);
+        editPanel.add(editButtonPanel, BorderLayout.SOUTH);
+
+        panel.add(editPanel, BorderLayout.SOUTH);
+
+        return panel;
+    }
+
+    private JPanel createGiveFeedbackPanel() {
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        panel.setBackground(new Color(240, 248, 255));
+
+        // Create form panel
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBackground(new Color(240, 248, 255));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
+
+        // Employee selection
+        gbc.gridx = 0; gbc.gridy = 0;
+        formPanel.add(new JLabel("Select Employee:"), gbc);
+        
+        employeeComboBox = new JComboBox<>();
+        employeeComboBox.setFont(new Font("Arial", Font.PLAIN, 12));
+        gbc.gridx = 1; gbc.gridy = 0;
+        formPanel.add(employeeComboBox, gbc);
+
+        // Feedback content
+        gbc.gridx = 0; gbc.gridy = 1;
+        formPanel.add(new JLabel("Feedback Content:"), gbc);
+        
+        feedbackTextArea = new JTextArea(5, 40);
+        feedbackTextArea.setFont(new Font("Arial", Font.PLAIN, 12));
+        feedbackTextArea.setLineWrap(true);
+        feedbackTextArea.setWrapStyleWord(true);
+        gbc.gridx = 1; gbc.gridy = 1;
+        formPanel.add(new JScrollPane(feedbackTextArea), gbc);
+
+        panel.add(formPanel, BorderLayout.CENTER);
+
+        // Submit button
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        buttonPanel.setBackground(new Color(240, 248, 255));
+        
+        JButton submitButton = createStyledButton("Submit Feedback");
+        submitButton.addActionListener(new SubmitFeedbackListener());
+        buttonPanel.add(submitButton);
+
+        panel.add(buttonPanel, BorderLayout.SOUTH);
+
+        return panel;
+    }
+
+    private void loadFeedbackData() {
+        // Clear existing data
+        tableModel.setRowCount(0);
+        
+        // Get feedback records from customer
+        List<List<String>> feedbackRecords = customerUser.getMyCustomerFeedbackRecords();
+        
+        if (feedbackRecords.isEmpty()) {
+            // Show message in dialog instead of adding empty row
+            JOptionPane.showMessageDialog(this, 
+                "No feedback found.", "Information", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            // Add data to table
             for (List<String> record : feedbackRecords) {
-                // Assuming record structure: [feedbackId, customerId, employeeId, content, date]
-                if (record.size() >= 5) {
-                    String date = record.get(4);
-                    String employeeId = record.get(2);
-                    String content = record.get(3);
-                    
-                    // Get employee name
-                    String employeeName = getEmployeeNameById(employeeId);
-                    
-                    sb.append("Date: ").append(date).append("\n");
-                    sb.append("To: ").append(employeeName != null ? employeeName : employeeId).append("\n");
-                    sb.append("Feedback: ").append(content).append("\n");
-                    sb.append("----------------------------------------\n\n");
-                }
+                tableModel.addRow(record.toArray());
             }
-            
-            feedbackTextArea.setText(sb.toString());
-            
-            JScrollPane scrollPane = new JScrollPane(feedbackTextArea);
-            feedbackDialog.add(scrollPane, BorderLayout.CENTER);
-            
-            // Close button
-            JButton closeButton = new JButton("Close");
-            closeButton.addActionListener(e -> feedbackDialog.dispose());
-            JPanel buttonPanel = new JPanel();
-            buttonPanel.add(closeButton);
-            feedbackDialog.add(buttonPanel, BorderLayout.SOUTH);
-            
-            feedbackDialog.setVisible(true);
-            
-        } catch (Exception ex) {
-            showError("Error loading feedbacks: " + ex.getMessage());
         }
     }
 
-    private String getEmployeeNameById(String employeeId) {
-        try {
-            Set<List<String>> employeeRecords = currentCustomer.getAllNonManagerEmployeeRecords();
+    private void loadEmployeeComboBox() {
+        employeeComboBox.removeAllItems();
+        
+        // Get non-manager employees
+        List<List<String>> employeeRecords = customerUser.getNonManagerEmployeeRecords();
+        
+        if (employeeRecords.isEmpty()) {
+            employeeComboBox.addItem("No employees available");
+        } else {
             for (List<String> record : employeeRecords) {
-                if (record.get(0).equals(employeeId)) {
-                    return record.get(1); // Return employee name
-                }
+                String employeeId = record.get(0);
+                String employeeName = record.size() > 1 ? record.get(1) : "Unknown";
+                employeeComboBox.addItem(employeeId + " - " + employeeName);
             }
-        } catch (Exception ex) {
-            // Silently fail - we'll just show the ID instead
         }
-        return null;
     }
 
-    private void showError(String message) {
-        JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
+    private JButton createStyledButton(String text) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Arial", Font.BOLD, 14));
+        button.setBackground(new Color(70, 130, 180));
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        return button;
+    }
+
+    private class SubmitFeedbackListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String selectedItem = (String) employeeComboBox.getSelectedItem();
+            if (selectedItem == null || selectedItem.equals("No employees available")) {
+                JOptionPane.showMessageDialog(CustomerFeedbackFrame.this, 
+                    "No employee selected or no employees available.", "Warning", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            String content = feedbackTextArea.getText().trim();
+            if (content.isEmpty()) {
+                JOptionPane.showMessageDialog(CustomerFeedbackFrame.this, 
+                    "Please enter feedback content.", "Warning", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            // Extract employee ID from the combo box item
+            String employeeId = selectedItem.split(" - ")[0];
+
+            try {
+                customerUser.provideFeedback(employeeId, content);
+                JOptionPane.showMessageDialog(CustomerFeedbackFrame.this, 
+                    "Feedback submitted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                
+                // Clear form
+                feedbackTextArea.setText("");
+                loadFeedbackData(); // Refresh the feedback list
+            } catch (HeadlessException ex) {
+                JOptionPane.showMessageDialog(CustomerFeedbackFrame.this, 
+                    "Error submitting feedback: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private class RefreshButtonListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            loadFeedbackData();
+            loadEmployeeComboBox();
+            JOptionPane.showMessageDialog(CustomerFeedbackFrame.this, 
+                "Data refreshed.", "Information", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    private class BackButtonListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            SwingUtilities.invokeLater(() -> {
+                CustomerMainPage mainPage = new CustomerMainPage(customerUser);
+                mainPage.setVisible(true);
+            });
+            dispose();
+        }
     }
     /**
      * This method is called from within the constructor to initialize the form.
@@ -213,131 +317,17 @@ public class CustomerFeedbackFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jPanel1 = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
-        jComboBox1 = new javax.swing.JComboBox<>();
-        jPanel2 = new javax.swing.JPanel();
-        jLabel2 = new javax.swing.JLabel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jTextArea1 = new javax.swing.JTextArea();
-        jPanel3 = new javax.swing.JPanel();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
-
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-
-        jPanel1.setName("selectionPanel"); // NOI18N
-
-        jLabel1.setText("Select Staff/Doctor:");
-
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-        jComboBox1.setName("employeeComboBox"); // NOI18N
-
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(38, 38, 38)
-                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 177, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 161, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel1))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-
-        jPanel2.setName("inputPanel"); // NOI18N
-
-        jLabel2.setText("Your Feedback:");
-
-        jScrollPane1.setName("feedbackTextArea"); // NOI18N
-
-        jTextArea1.setColumns(20);
-        jTextArea1.setRows(5);
-        jTextArea1.setName("feedbackTextArea"); // NOI18N
-        jScrollPane1.setViewportView(jTextArea1);
-
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(14, 14, 14)
-                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGap(37, 37, 37)
-                        .addComponent(jLabel2))
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(8, Short.MAX_VALUE))
-        );
-
-        jPanel3.setName("buttonPanel"); // NOI18N
-
-        jButton1.setText("Submit Feedback");
-        jButton1.setName("submitBtn"); // NOI18N
-
-        jButton2.setText("View My Feedbacks");
-        jButton2.setName("viewBtn"); // NOI18N
-
-        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
-        jPanel3.setLayout(jPanel3Layout);
-        jPanel3Layout.setHorizontalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
-                .addGap(43, 43, 43)
-                .addComponent(jButton1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 15, Short.MAX_VALUE)
-                .addComponent(jButton2)
-                .addGap(57, 57, 57))
-        );
-        jPanel3Layout.setVerticalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
-                .addGap(32, 32, 32)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton1)
-                    .addComponent(jButton2))
-                .addContainerGap(45, Short.MAX_VALUE))
-        );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(179, Short.MAX_VALUE))
+            .addGap(0, 573, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(53, 53, 53)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addGap(0, 388, Short.MAX_VALUE)
         );
 
         pack();
@@ -347,11 +337,7 @@ public class CustomerFeedbackFrame extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
+    /* Set the Nimbus look and feel */
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
@@ -359,25 +345,17 @@ public class CustomerFeedbackFrame extends javax.swing.JFrame {
                     break;
                 }
             }
-        } catch (ReflectiveOperationException | javax.swing.UnsupportedLookAndFeelException ex) {
-            logger.log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
+            java.util.logging.Logger.getLogger(CustomerAppointmentsFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(() -> new CustomerFeedbackFrame().setVisible(true));
+        java.awt.EventQueue.invokeLater(() -> {
+            // Customer testCustomer = new Customer("test", "Test User", "test@email.com", "password", 100.0);
+            // new CustomerAppointmentsFrame(testCustomer).setVisible(true);
+        });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JComboBox<String> jComboBox1;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel3;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTextArea jTextArea1;
     // End of variables declaration//GEN-END:variables
 }

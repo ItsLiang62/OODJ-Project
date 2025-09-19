@@ -4,10 +4,13 @@
  */
 package gui.customer;
 import user.Customer;
-import database.Database;
+import operation.AppointmentMedicine;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import java.util.Set;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.List;
 /**
  *
@@ -15,240 +18,178 @@ import java.util.List;
  */
 public class CustomerPrescriptionsFrame extends javax.swing.JFrame {
     
-    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(CustomerPrescriptionsFrame.class.getName());
-    private Set<List<String>> prescriptionRecords;
+    private final Customer customerUser;
+    private JTable prescriptionsTable;
+    private DefaultTableModel tableModel;
     /**
      * Creates new form CustomerPrescriptionsFrame
+     * @param customerUser
      */
-    public CustomerPrescriptionsFrame(Set<List<String>> prescriptionRecords) {
-        this.prescriptionRecords = prescriptionRecords;
-        initComponents();
-        setupFrame();
-        loadPrescriptionsTable();
-        setupActionListeners();
+    public CustomerPrescriptionsFrame(Customer customerUser) {
+        this.customerUser = customerUser;
+        initializeUI();
+        loadPrescriptionsData();
     }
-    private void setupFrame() {
-        setTitle("My Prescriptions");
-        setSize(900, 500);
-        setLocationRelativeTo(null);
+        private void initializeUI() {
+        setTitle("My Prescriptions - " + customerUser.getName());
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-    }
-    private void setupActionListeners() {
-        jButton1.addActionListener(e -> refreshPrescriptions());
-        jButton2.addActionListener(e -> viewDetails());
-        jButton3.addActionListener(e -> printPrescription());
+        setSize(1200, 600);
+        setLocationRelativeTo(null);
+
+        // Create main panel with border layout
+        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        mainPanel.setBackground(new Color(240, 248, 255));
+
+        // Create title label
+        JLabel titleLabel = new JLabel("My Prescriptions", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setForeground(new Color(0, 51, 102));
+        mainPanel.add(titleLabel, BorderLayout.NORTH);
+
+        // Create info panel
+        JPanel infoPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        infoPanel.setBackground(new Color(240, 248, 255));
         
-        // Search functionality
-        jTextField1.addActionListener(e -> performSearch());
-        jComboBox1.addActionListener(e -> applyFilter());
-    }
-
-    private void loadPrescriptionsTable() {
-        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-        model.setRowCount(0); // Clear existing data
-
-        for (List<String> record : prescriptionRecords) {
-            // Assuming record structure matches the table columns
-            model.addRow(record.toArray());
-        }
-
-        styleTable();
+        JLabel infoLabel = new JLabel("View all your prescription medications prescribed by doctors");
+        infoLabel.setFont(new Font("Arial", Font.ITALIC, 14));
+        infoLabel.setForeground(new Color(85, 107, 47)); // Dark olive green
+        infoPanel.add(infoLabel);
         
-        if (model.getRowCount() == 0) {
-            JOptionPane.showMessageDialog(this, "No prescriptions found.");
-        }
-    }
+        mainPanel.add(infoPanel, BorderLayout.CENTER);
 
-    private void styleTable() {
-        jTable1.setRowHeight(25);
-        jTable1.getTableHeader().setReorderingAllowed(false);
+        // Create table model and table
+        String[] columnNames = AppointmentMedicine.getColumnNames();
+        tableModel = new DefaultTableModel(columnNames, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // Make table non-editable
+            }
+        };
+
+        prescriptionsTable = new JTable(tableModel);
+        prescriptionsTable.setFont(new Font("Arial", Font.PLAIN, 12));
+        prescriptionsTable.setRowHeight(25);
+        prescriptionsTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
+        prescriptionsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         
         // Set column widths
-        jTable1.getColumnModel().getColumn(0).setPreferredWidth(120); // Prescription ID
-        jTable1.getColumnModel().getColumn(1).setPreferredWidth(120); // Appointment ID
-        jTable1.getColumnModel().getColumn(2).setPreferredWidth(150); // Medicine Name
-        jTable1.getColumnModel().getColumn(3).setPreferredWidth(80);  // Dosage
-        jTable1.getColumnModel().getColumn(4).setPreferredWidth(100); // Frequency
-        jTable1.getColumnModel().getColumn(5).setPreferredWidth(80);  // Duration
-        jTable1.getColumnModel().getColumn(6).setPreferredWidth(200); // Instructions
+        prescriptionsTable.getColumnModel().getColumn(0).setPreferredWidth(100); // Appointment ID
+        prescriptionsTable.getColumnModel().getColumn(1).setPreferredWidth(100); // Medicine ID
+        prescriptionsTable.getColumnModel().getColumn(2).setPreferredWidth(200); // Target Symptom
+
+        // Add table to scroll pane
+        JScrollPane scrollPane = new JScrollPane(prescriptionsTable);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+        mainPanel.add(scrollPane, BorderLayout.CENTER);
+
+        // Create button panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        buttonPanel.setBackground(new Color(240, 248, 255));
+
+        JButton viewDetailsButton = createStyledButton("View Details");
+        JButton refreshButton = createStyledButton("Refresh");
+        JButton backButton = createStyledButton("Back to Main");
+
+        viewDetailsButton.addActionListener(new ViewDetailsButtonListener());
+        refreshButton.addActionListener(new RefreshButtonListener());
+        backButton.addActionListener(new BackButtonListener());
+
+        buttonPanel.add(viewDetailsButton);
+        buttonPanel.add(refreshButton);
+        buttonPanel.add(backButton);
+
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        // Add main panel to frame
+        add(mainPanel);
     }
 
-    private void refreshPrescriptions() {
-        try {
-            // This would reload from database in real application
-            // For now, we'll just reload the current data
-            loadPrescriptionsTable();
-            JOptionPane.showMessageDialog(this, "Prescriptions list refreshed.");
-        } catch (Exception ex) {
-            showError("Error refreshing prescriptions: " + ex.getMessage());
-        }
-    }
-
-    private void viewDetails() {
-        int selectedRow = jTable1.getSelectedRow();
+    private void loadPrescriptionsData() {
+        // Clear existing data
+        tableModel.setRowCount(0);
         
-        if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this,
-                "Please select a prescription to view details.",
-                "Selection Error", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        // Get selected prescription data
-        String prescriptionId = (String) jTable1.getValueAt(selectedRow, 0);
-        String medicineName = (String) jTable1.getValueAt(selectedRow, 2);
-        String dosage = (String) jTable1.getValueAt(selectedRow, 3);
-        String frequency = (String) jTable1.getValueAt(selectedRow, 4);
-        String duration = (String) jTable1.getValueAt(selectedRow, 5);
-        String instructions = (String) jTable1.getValueAt(selectedRow, 6);
-
-        // Create detailed message
-        String message = String.format(
-            "PRESCRIPTION DETAILS\n\n" +
-            "Prescription ID: %s\n" +
-            "Medicine: %s\n" +
-            "Dosage: %s\n" +
-            "Frequency: %s\n" +
-            "Duration: %s\n\n" +
-            "Instructions:\n%s",
-            prescriptionId, medicineName, dosage, frequency, duration, instructions
-        );
-
-        JOptionPane.showMessageDialog(this,
-            message,
-            "Prescription Details - " + medicineName,
-            JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    private void printPrescription() {
-        int selectedRow = jTable1.getSelectedRow();
+        // Get prescription records from customer
+        List<List<String>> prescriptionRecords = customerUser.getMyPrescriptionRecords();
         
-        if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this,
-                "Please select a prescription to print.",
-                "Selection Error", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        try {
-            String prescriptionId = (String) jTable1.getValueAt(selectedRow, 0);
-            String medicineName = (String) jTable1.getValueAt(selectedRow, 2);
-            
-            JTextArea printArea = new JTextArea();
-            printArea.setText(generatePrintText(selectedRow));
-            printArea.setFont(new java.awt.Font("Monospaced", java.awt.Font.PLAIN, 12));
-            printArea.setEditable(false);
-            
-            JOptionPane.showMessageDialog(this,
-                new JScrollPane(printArea),
-                "Print Preview - " + medicineName,
-                JOptionPane.INFORMATION_MESSAGE);
-                
-        } catch (Exception ex) {
-            showError("Error generating print preview: " + ex.getMessage());
-        }
-    }
-
-    private String generatePrintText(int row) {
-        return String.format(
-            "APU MEDICAL CENTRE\n" +
-            "==============================\n" +
-            "PRESCRIPTION\n" +
-            "==============================\n" +
-            "ID: %s\n" +
-            "Medicine: %s\n" +
-            "Dosage: %s\n" +
-            "Frequency: %s\n" +
-            "Duration: %s\n" +
-            "==============================\n" +
-            "Instructions:\n%s\n" +
-            "==============================\n" +
-            "Please follow the instructions carefully.\n" +
-            "Consult your doctor if symptoms persist.\n" +
-            "==============================\n",
-            jTable1.getValueAt(row, 0),
-            jTable1.getValueAt(row, 2),
-            jTable1.getValueAt(row, 3),
-            jTable1.getValueAt(row, 4),
-            jTable1.getValueAt(row, 5),
-            jTable1.getValueAt(row, 6)
-        );
-    }
-
-    private void performSearch() {
-        String searchText = jTextField1.getText().toLowerCase().trim();
-        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-        
-        if (searchText.isEmpty()) {
-            // Reset to show all records
-            loadPrescriptionsTable();
-            return;
-        }
-        
-        // Simple search implementation
-        for (int i = 0; i < model.getRowCount(); i++) {
-            boolean match = false;
-            for (int j = 0; j < model.getColumnCount(); j++) {
-                Object value = model.getValueAt(i, j);
-                if (value != null && value.toString().toLowerCase().contains(searchText)) {
-                    match = true;
-                    break;
-                }
-            }
-            // Hide non-matching rows (simple approach)
-            // In a real application, you might want to use RowFilter
-        }
-    }
-
-    private void applyFilter() {
-        String filter = (String) jComboBox1.getSelectedItem();
-        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-        
-        if (filter.equals("All Medicines")) {
-            // Show all records
-            loadPrescriptionsTable();
-            return;
-        }
-        
-        // Simple filter implementation
-        for (int i = 0; i < model.getRowCount(); i++) {
-            String medicineName = ((String) model.getValueAt(i, 2)).toLowerCase();
-            boolean show = false;
-            
-            switch (filter) {
-                case "Antibiotics":
-                    show = medicineName.contains("antibiotic") || 
-                           medicineName.contains("penicillin") ||
-                           medicineName.contains("amoxicillin") ||
-                           medicineName.contains("cephalexin");
-                    break;
-                case "Pain Relief":
-                    show = medicineName.contains("pain") || 
-                           medicineName.contains("analgesic") ||
-                           medicineName.contains("ibuprofen") ||
-                           medicineName.contains("paracetamol") ||
-                           medicineName.contains("aspirin");
-                    break;
-                case "Chronic Medication":
-                    show = medicineName.contains("insulin") || 
-                           medicineName.contains("metformin") ||
-                           medicineName.contains("blood pressure") ||
-                           medicineName.contains("cholesterol");
-                    break;
-                case "Other":
-                    show = !(medicineName.contains("antibiotic") || 
-                            medicineName.contains("pain") ||
-                            medicineName.contains("insulin"));
-                    break;
+        if (prescriptionRecords.isEmpty()) {
+            JOptionPane.showMessageDialog(this, 
+                "No prescribed medications found.", 
+                "Information", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            // Add data to table
+            for (List<String> record : prescriptionRecords) {
+                tableModel.addRow(record.toArray());
             }
             
-            // Simple approach - in real application use RowFilter
+            // Show success message with count
+            JOptionPane.showMessageDialog(this, 
+                "Loaded " + prescriptionRecords.size() + " prescription(s).", 
+                "Success", JOptionPane.INFORMATION_MESSAGE);
         }
     }
 
-    private void showError(String message) {
-        JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
-    }    
+    private JButton createStyledButton(String text) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Arial", Font.BOLD, 14));
+        button.setBackground(new Color(70, 130, 180));
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        return button;
+    }
+
+    private class ViewDetailsButtonListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            int selectedRow = prescriptionsTable.getSelectedRow();
+            if (selectedRow == -1) {
+                JOptionPane.showMessageDialog(CustomerPrescriptionsFrame.this, 
+                    "Please select a prescription to view details.", "Warning", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            // Get prescription details from selected row
+            String appointmentId = (String) tableModel.getValueAt(selectedRow, 0);
+            String medicineId = (String) tableModel.getValueAt(selectedRow, 1);
+            String targetSymptom = (String) tableModel.getValueAt(selectedRow, 2);
+
+
+            // Create detailed message
+            String message = String.format(
+                "Prescription Details:\n\n" +
+                "Appointment ID: %s\n" +
+                "Medicine ID: %s\n" +
+                "Target Symptom: %s",
+                appointmentId, medicineId, targetSymptom
+            );
+
+            JOptionPane.showMessageDialog(CustomerPrescriptionsFrame.this, 
+                message, "Prescription Details", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    private class RefreshButtonListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            loadPrescriptionsData();
+            JOptionPane.showMessageDialog(CustomerPrescriptionsFrame.this, 
+                "Prescriptions list refreshed.", "Information", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    private class BackButtonListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            SwingUtilities.invokeLater(() -> {
+                CustomerMainPage mainPage = new CustomerMainPage(customerUser);
+                mainPage.setVisible(true);
+            });
+            dispose();
+        }
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -258,156 +199,18 @@ public class CustomerPrescriptionsFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
-        jSeparator1 = new javax.swing.JSeparator();
-        jPanel1 = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
-        jLabel2 = new javax.swing.JLabel();
-        jComboBox1 = new javax.swing.JComboBox<>();
-        jPanel2 = new javax.swing.JPanel();
-        jButton2 = new javax.swing.JButton();
-        jButton3 = new javax.swing.JButton();
-        jButton4 = new javax.swing.JButton();
-
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setName("CustomerPrescriptionsFrame"); // NOI18N
-
-        jScrollPane1.setName("scrollPane"); // NOI18N
-
-        jTable1.setAutoCreateRowSorter(true);
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
-            },
-            new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
-            }
-        ));
-        jTable1.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        jScrollPane1.setViewportView(jTable1);
-
-        jPanel1.setName("searchPanel"); // NOI18N
-
-        jLabel1.setText("Search:");
-
-        jTextField1.setText("jTextField1");
-        jTextField1.setToolTipText("Search by medicine name or instructions");
-        jTextField1.setName("searchField"); // NOI18N
-
-        jButton1.setText("Search");
-        jButton1.setName("searchBtn"); // NOI18N
-
-        jLabel2.setText("Filter by:");
-
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-        jComboBox1.setName("filterComboBox"); // NOI18N
-
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(28, 28, 28)
-                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 89, Short.MAX_VALUE)
-                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 66, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(49, 49, 49))
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(151, 151, 151)
-                .addComponent(jButton1)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel2))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 49, Short.MAX_VALUE)
-                .addComponent(jButton1)
-                .addContainerGap())
-        );
-
-        jPanel2.setName("buttonPanel"); // NOI18N
-
-        jButton2.setText("Refresh");
-        jButton2.setName("refreshBtn"); // NOI18N
-
-        jButton3.setText("View Details");
-        jButton3.setName("detailsBtn"); // NOI18N
-
-        jButton4.setText("Print");
-        jButton4.setName("printBtn"); // NOI18N
-
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(141, 141, 141)
-                .addComponent(jButton2)
-                .addGap(52, 52, 52)
-                .addComponent(jButton3)
-                .addGap(27, 27, 27)
-                .addComponent(jButton4)
-                .addContainerGap(26, Short.MAX_VALUE))
-        );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(25, 25, 25)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton2)
-                    .addComponent(jButton3)
-                    .addComponent(jButton4))
-                .addContainerGap(52, Short.MAX_VALUE))
-        );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 489, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(6, 6, 6)
-                                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(208, Short.MAX_VALUE))
+            .addGap(0, 762, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(143, 143, 143)
-                        .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 176, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGap(0, 400, Short.MAX_VALUE)
         );
 
         pack();
@@ -417,11 +220,7 @@ public class CustomerPrescriptionsFrame extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
+    /* Set the Nimbus look and feel */
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
@@ -429,28 +228,18 @@ public class CustomerPrescriptionsFrame extends javax.swing.JFrame {
                     break;
                 }
             }
-        } catch (ReflectiveOperationException | javax.swing.UnsupportedLookAndFeelException ex) {
-            logger.log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
+            java.util.logging.Logger.getLogger(CustomerAppointmentsFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(() -> new CustomerPrescriptionsFrame().setVisible(true));
+        java.awt.EventQueue.invokeLater(() -> {
+            // Customer testCustomer = new Customer("test", "Test User", "test@email.com", "password", 100.0);
+            // new CustomerAppointmentsFrame(testCustomer).setVisible(true);
+        });
     }
 
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
-    private javax.swing.JButton jButton4;
-    private javax.swing.JComboBox<String> jComboBox1;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JSeparator jSeparator1;
-    private javax.swing.JTable jTable1;
-    private javax.swing.JTextField jTextField1;
     // End of variables declaration//GEN-END:variables
 }

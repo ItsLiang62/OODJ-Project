@@ -4,7 +4,9 @@
  */
 package gui.customer;
 import user.Customer;
+
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 /**
@@ -13,117 +15,247 @@ import java.awt.event.ActionListener;
  */
 public class CustomerEditProfileFrame extends javax.swing.JFrame {
     
-    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(CustomerEditProfileFrame.class.getName());
-    private Customer currentCustomer;
-    private CustomerMainPage dashboard;
+    private final Customer customerUser;
+    private JTextField nameField;
+    private JTextField emailField;
+    private JPasswordField passwordField;
+    private JPasswordField confirmPasswordField;
+    private JLabel walletLabel;
     /**
      * Creates new form CustomerEditProfileFrame
+     * @param customerUser
      */
-    public CustomerEditProfileFrame(Customer customer, CustomerMainPage dashboard) {
-        this.currentCustomer = customer;
-        this.dashboard = dashboard;
-        initComponents();
-        setupFrame();
-        populateFields();
-        setupActionListeners();
+    public CustomerEditProfileFrame(Customer customerUser) {
+        this.customerUser = customerUser;
+        initializeUI();
     }
-    private void setupFrame() {
-        setTitle("Edit Profile");
-        setSize(400, 300);
-        setLocationRelativeTo(null);
+    private void initializeUI() {
+        setTitle("Edit Profile - " + customerUser.getName());
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-    }
-    private void setupActionListeners() {
-        jButton1.addActionListener(e -> saveChanges());
-        jButton2.addActionListener(e -> cancelEdit());
-    }
+        setSize(600, 500);
+        setLocationRelativeTo(null);
 
-    private void populateFields() {
-        jTextField1.setText(currentCustomer.getName());
-        jTextField2.setText(currentCustomer.getEmail());
-        jPasswordField1.setText(currentCustomer.getPassword());
+        // Create main panel with border layout
+        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        mainPanel.setBackground(new Color(240, 248, 255));
+
+        // Create title label
+        JLabel titleLabel = new JLabel("Edit Your Profile", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setForeground(new Color(0, 51, 102));
+        mainPanel.add(titleLabel, BorderLayout.NORTH);
+
+        // Create form panel
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBackground(new Color(240, 248, 255));
+        formPanel.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
         
-        // Note: Your Customer class doesn't have getPhoneNumber() method
-        // If you need phone number functionality, you'll need to add it to your Customer class
-        // jTextField3.setText(currentCustomer.getPhoneNumber());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
+
+        // Wallet info
+        walletLabel = new JLabel(String.format("Current Wallet Balance: $%.2f", customerUser.getApWallet()));
+        walletLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        walletLabel.setForeground(new Color(0, 100, 0));
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
+        formPanel.add(walletLabel, gbc);
+
+        // Name field
+        gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 1;
+        formPanel.add(new JLabel("Full Name:"), gbc);
+        
+        nameField = new JTextField(customerUser.getName(), 20);
+        nameField.setFont(new Font("Arial", Font.PLAIN, 14));
+        gbc.gridx = 1; gbc.gridy = 1;
+        formPanel.add(nameField, gbc);
+
+        // Email field
+        gbc.gridx = 0; gbc.gridy = 2;
+        formPanel.add(new JLabel("Email Address:"), gbc);
+        
+        emailField = new JTextField(customerUser.getEmail(), 20);
+        emailField.setFont(new Font("Arial", Font.PLAIN, 14));
+        gbc.gridx = 1; gbc.gridy = 2;
+        formPanel.add(emailField, gbc);
+
+        // Password field
+        gbc.gridx = 0; gbc.gridy = 3;
+        formPanel.add(new JLabel("New Password:"), gbc);
+        
+        passwordField = new JPasswordField(20);
+        passwordField.setFont(new Font("Arial", Font.PLAIN, 14));
+        passwordField.setToolTipText("Leave blank to keep current password");
+        gbc.gridx = 1; gbc.gridy = 3;
+        formPanel.add(passwordField, gbc);
+
+        // Confirm Password field
+        gbc.gridx = 0; gbc.gridy = 4;
+        formPanel.add(new JLabel("Confirm Password:"), gbc);
+        
+        confirmPasswordField = new JPasswordField(20);
+        confirmPasswordField.setFont(new Font("Arial", Font.PLAIN, 14));
+        confirmPasswordField.setToolTipText("Leave blank to keep current password");
+        gbc.gridx = 1; gbc.gridy = 4;
+        formPanel.add(confirmPasswordField, gbc);
+
+        // Info label
+        JLabel infoLabel = new JLabel("Note: Leave password fields blank to keep current password");
+        infoLabel.setFont(new Font("Arial", Font.ITALIC, 12));
+        infoLabel.setForeground(Color.GRAY);
+        gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 2;
+        formPanel.add(infoLabel, gbc);
+
+        mainPanel.add(formPanel, BorderLayout.CENTER);
+
+        // Create button panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        buttonPanel.setBackground(new Color(240, 248, 255));
+
+        JButton saveButton = createStyledButton("Save Changes");
+        JButton cancelButton = createStyledButton("Cancel");
+        JButton backButton = createStyledButton("Back to Main");
+
+        saveButton.addActionListener(new SaveButtonListener());
+        cancelButton.addActionListener(new CancelButtonListener());
+        backButton.addActionListener(new BackButtonListener());
+
+        buttonPanel.add(saveButton);
+        buttonPanel.add(cancelButton);
+        buttonPanel.add(backButton);
+
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        // Add main panel to frame
+        add(mainPanel);
     }
 
-    private void saveChanges() {
-        String newName = jTextField1.getText().trim();
-        String newEmail = jTextField2.getText().trim();
-        String newPassword = new String(jPasswordField1.getPassword());
-        String newPhone = jTextField3.getText().trim();
-
-        // Validation
-        if (newName.isEmpty() || newEmail.isEmpty() || newPassword.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                "Name, Email, and Password cannot be empty.",
-                "Validation Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        if (!isValidEmail(newEmail)) {
-            JOptionPane.showMessageDialog(this,
-                "Please enter a valid email address.",
-                "Validation Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        if (newPassword.length() < 6) {
-            JOptionPane.showMessageDialog(this,
-                "Password must be at least 6 characters long.",
-                "Validation Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        try {
-            // Update customer information
-            currentCustomer.setName(newName);
-            currentCustomer.setEmail(newEmail);
-            currentCustomer.setPassword(newPassword);
-            
-            // Note: If you add phone number to your Customer class, uncomment this:
-            // currentCustomer.setPhoneNumber(newPhone);
-
-            JOptionPane.showMessageDialog(this,
-                "Profile updated successfully!",
-                "Success", JOptionPane.INFORMATION_MESSAGE);
-
-            // Close this window
-            this.dispose();
-
-        } catch (Exception ex) {
-            showError("Error updating profile: " + ex.getMessage());
-        }
+    private JButton createStyledButton(String text) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Arial", Font.BOLD, 14));
+        button.setBackground(new Color(70, 130, 180));
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        return button;
     }
 
-    private boolean isValidEmail(String email) {
-        // Simple email validation
-        return email.contains("@") && email.contains(".") && email.length() > 5;
-    }
+    private boolean validateForm() {
+        String name = nameField.getText().trim();
+        String email = emailField.getText().trim();
+        String password = new String(passwordField.getPassword());
+        String confirmPassword = new String(confirmPasswordField.getPassword());
 
-    private void cancelEdit() {
-        if (hasUnsavedChanges()) {
-            int confirm = JOptionPane.showConfirmDialog(this,
-                "You have unsaved changes. Discard them?",
-                "Confirm Cancel", JOptionPane.YES_NO_OPTION);
-            
-            if (confirm != JOptionPane.YES_OPTION) {
-                return;
+        // Validate name
+        if (name.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter your name.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            nameField.requestFocus();
+            return false;
+        }
+
+        // Validate email
+        if (email.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter your email address.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            emailField.requestFocus();
+            return false;
+        }
+
+        if (!email.contains("@") || !email.contains(".")) {
+            JOptionPane.showMessageDialog(this, "Please enter a valid email address.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            emailField.requestFocus();
+            return false;
+        }
+
+        // Validate password if provided
+        if (!password.isEmpty()) {
+            if (password.length() < 6) {
+                JOptionPane.showMessageDialog(this, "Password must be at least 6 characters long.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                passwordField.requestFocus();
+                return false;
+            }
+
+            if (!password.equals(confirmPassword)) {
+                JOptionPane.showMessageDialog(this, "Passwords do not match.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                confirmPasswordField.requestFocus();
+                return false;
             }
         }
-        this.dispose();
+
+        return true;
     }
 
-    private boolean hasUnsavedChanges() {
-        return !jTextField1.getText().equals(currentCustomer.getName()) ||
-               !jTextField2.getText().equals(currentCustomer.getEmail()) ||
-               !new String(jPasswordField1.getPassword()).equals(currentCustomer.getPassword()) ||
-               !jTextField3.getText().trim().isEmpty(); // Phone field is likely always changed since it's not in Customer class
+    private class SaveButtonListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (!validateForm()) {
+                return;
+            }
+
+            String name = nameField.getText().trim();
+            String email = emailField.getText().trim();
+            String password = new String(passwordField.getPassword());
+
+            int confirm = JOptionPane.showConfirmDialog(CustomerEditProfileFrame.this, 
+                "Are you sure you want to save these changes?", "Confirm Save", JOptionPane.YES_NO_OPTION);
+            
+            if (confirm == JOptionPane.YES_OPTION) {
+                try {
+                    // Update name if changed
+                    if (!name.equals(customerUser.getName())) {
+                        customerUser.setName(name);
+                    }
+
+                    // Update email if changed
+                    if (!email.equals(customerUser.getEmail())) {
+                        customerUser.setEmail(email);
+                    }
+
+                    // Update password if provided
+                    if (!password.isEmpty()) {
+                        customerUser.setPassword(password);
+                    }
+
+                    JOptionPane.showMessageDialog(CustomerEditProfileFrame.this, 
+                        "Profile updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                    
+                    // Clear password fields
+                    passwordField.setText("");
+                    confirmPasswordField.setText("");
+                    
+                } catch (HeadlessException ex) {
+                    JOptionPane.showMessageDialog(CustomerEditProfileFrame.this, 
+                        "Error updating profile: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }
     }
 
-    private void showError(String message) {
-        JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
+    private class CancelButtonListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            // Reset form to original values
+            nameField.setText(customerUser.getName());
+            emailField.setText(customerUser.getEmail());
+            passwordField.setText("");
+            confirmPasswordField.setText("");
+            
+            JOptionPane.showMessageDialog(CustomerEditProfileFrame.this, 
+                "Changes discarded.", "Information", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    private class BackButtonListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            SwingUtilities.invokeLater(() -> {
+                CustomerMainPage mainPage = new CustomerMainPage(customerUser);
+                mainPage.setVisible(true);
+            });
+            dispose();
+        }
     }
     
     /**
@@ -135,151 +267,17 @@ public class CustomerEditProfileFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jPanel1 = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
-        jLabel2 = new javax.swing.JLabel();
-        jTextField2 = new javax.swing.JTextField();
-        jLabel3 = new javax.swing.JLabel();
-        jTextField3 = new javax.swing.JTextField();
-        jLabel4 = new javax.swing.JLabel();
-        jTextField4 = new javax.swing.JTextField();
-        jPanel2 = new javax.swing.JPanel();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
-        jPasswordField1 = new javax.swing.JPasswordField();
-
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-
-        jPanel1.setName("formPanel"); // NOI18N
-
-        jLabel1.setText("Name:");
-
-        jTextField1.setText("jTextField1");
-        jTextField1.setName("nameField"); // NOI18N
-
-        jLabel2.setText("Email:");
-
-        jTextField2.setText("jTextField2");
-        jTextField2.setName("emailField"); // NOI18N
-
-        jLabel3.setText("Password:");
-
-        jTextField3.setText("jTextField3");
-        jTextField3.setName("passwordField"); // NOI18N
-
-        jLabel4.setText("Phone:");
-
-        jTextField4.setText("jTextField4");
-        jTextField4.setName("phoneField"); // NOI18N
-
-        jPanel2.setName("buttonPanel"); // NOI18N
-
-        jButton1.setText("Save Changes");
-        jButton1.setName("saveBtn"); // NOI18N
-
-        jButton2.setText("Cancel");
-        jButton2.setName("cancelBtn"); // NOI18N
-
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(21, 21, 21)
-                .addComponent(jButton1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 56, Short.MAX_VALUE)
-                .addComponent(jButton2)
-                .addGap(28, 28, 28))
-        );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(26, 26, 26)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton1)
-                    .addComponent(jButton2))
-                .addContainerGap(51, Short.MAX_VALUE))
-        );
-
-        jPasswordField1.setText("jPasswordField1");
-
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(12, 12, 12)
-                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(229, Short.MAX_VALUE))
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(26, 26, 26)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                                .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(77, 77, 77)
-                                .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jTextField4, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(165, 165, 165))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(28, 28, 28)
-                        .addComponent(jPasswordField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(17, 17, 17)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(29, 29, 29)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2)
-                    .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(26, 26, 26)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3)
-                    .addComponent(jPasswordField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel4)
-                            .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(18, 18, 18)
-                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jTextField4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(17, 17, 17)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(89, Short.MAX_VALUE))
+            .addGap(0, 627, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(43, 43, 43)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGap(0, 435, Short.MAX_VALUE)
         );
 
         pack();
@@ -290,10 +288,6 @@ public class CustomerEditProfileFrame extends javax.swing.JFrame {
      */
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
@@ -301,28 +295,17 @@ public class CustomerEditProfileFrame extends javax.swing.JFrame {
                     break;
                 }
             }
-        } catch (ReflectiveOperationException | javax.swing.UnsupportedLookAndFeelException ex) {
-            logger.log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
+            java.util.logging.Logger.getLogger(CustomerAppointmentsFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(() -> new CustomerEditProfileFrame().setVisible(true));
+        java.awt.EventQueue.invokeLater(() -> {
+            // Customer testCustomer = new Customer("test", "Test User", "test@email.com", "password", 100.0);
+            // new CustomerAppointmentsFrame(testCustomer).setVisible(true);
+        });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JPasswordField jPasswordField1;
-    private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField2;
-    private javax.swing.JTextField jTextField3;
-    private javax.swing.JTextField jTextField4;
     // End of variables declaration//GEN-END:variables
 }

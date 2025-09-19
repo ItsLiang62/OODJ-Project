@@ -5,10 +5,11 @@
 package gui.customer;
 import user.Customer;
 import operation.Appointment;
-import database.Database;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import java.util.Set;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.List;
 /**
  *
@@ -16,154 +17,120 @@ import java.util.List;
  */
 public class CustomerAppointmentsFrame extends javax.swing.JFrame {
     
-    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(CustomerAppointmentsFrame.class.getName());
-    private Customer currentCustomer;
-    private Set<List<String>> appointmentRecords;
+    private final Customer customerUser;
+    private JTable appointmentsTable;
+    private DefaultTableModel tableModel;
     /**
      * Creates new form CustomerAppointmentsFrame
+     * @param customerUser
      */
-    public CustomerAppointmentsFrame(Customer customer, Set<List<String>> appointmentRecords) {
-        this.currentCustomer = customer;
-        this.appointmentRecords = appointmentRecords;
-        initComponents();
-        setupFrame();
-        loadAppointmentsTable();
-        setupActionListeners();
+    public CustomerAppointmentsFrame(Customer customerUser) {
+        this.customerUser = customerUser;
+        initializeUI();
+        loadAppointmentsData();
     }
-    private void setupFrame() {
-        setTitle("My Appointments");
-        setSize(800, 500);
-        setLocationRelativeTo(null);
+    private void initializeUI() {
+        setTitle("My Appointments - " + customerUser.getName());
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setSize(1000, 600);
+        setLocationRelativeTo(null);
+
+        // Create main panel with border layout
+        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        mainPanel.setBackground(new Color(240, 248, 255));
+
+        // Create title label
+        JLabel titleLabel = new JLabel("My Appointments", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setForeground(new Color(0, 51, 102));
+        mainPanel.add(titleLabel, BorderLayout.NORTH);
+
+        // Create table model and table
+        String[] columnNames = Appointment.getColumnNames();
+        tableModel = new DefaultTableModel(columnNames, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // Make table non-editable
+            }
+        };
+
+        appointmentsTable = new JTable(tableModel);
+        appointmentsTable.setFont(new Font("Arial", Font.PLAIN, 14));
+        appointmentsTable.setRowHeight(25);
+        appointmentsTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 14));
+        appointmentsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        // Add table to scroll pane
+        JScrollPane scrollPane = new JScrollPane(appointmentsTable);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+        mainPanel.add(scrollPane, BorderLayout.CENTER);
+
+        // Create button panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        buttonPanel.setBackground(new Color(240, 248, 255));
+
+        JButton refreshButton = createStyledButton("Refresh");
+        JButton backButton = createStyledButton("Back to Main");
+
+        refreshButton.addActionListener(new RefreshButtonListener());
+        backButton.addActionListener(new BackButtonListener());
+
+        buttonPanel.add(refreshButton);
+        buttonPanel.add(backButton);
+
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        // Add main panel to frame
+        add(mainPanel);
     }
 
-    private void initComponents() {
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
-
-        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {},
-            new String [] {
-                "Appointment ID", "Date", "Doctor", "Service", "Status", "Total Charge (RM)"
-            }
-        ) {
-            Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.String.class, 
-                java.lang.String.class, java.lang.String.class, java.lang.Double.class
-            };
-            boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false
-            };
-
-            public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
-            }
-
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
-            }
-        });
-
-            private void setupActionListeners() {
-        jButton1.addActionListener(e -> refreshAppointments());
-        jButton2.addActionListener(e -> payForSelectedAppointment());
-    }
-
-    private void loadAppointmentsTable() {
-        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-        model.setRowCount(0); // Clear existing data
-
-        for (List<String> record : appointmentRecords) {
-            // Assuming record structure: [appointmentId, date, doctor, service, status, charge]
-            model.addRow(record.toArray());
-        }
-
-        styleTable();
+    private void loadAppointmentsData() {
+        // Clear existing data
+        tableModel.setRowCount(0);
         
-        if (model.getRowCount() == 0) {
-            JOptionPane.showMessageDialog(this, "No appointments found.");
-        }
-    }
-
-    private void styleTable() {
-        jTable1.setRowHeight(25);
-        jTable1.getTableHeader().setReorderingAllowed(false);
+        List<List<String>> appointmentRecords = customerUser.getMyAppointmentRecords();
         
-        // Set column widths
-        jTable1.getColumnModel().getColumn(0).setPreferredWidth(120); // Appointment ID
-        jTable1.getColumnModel().getColumn(1).setPreferredWidth(100); // Date
-        jTable1.getColumnModel().getColumn(2).setPreferredWidth(150); // Doctor
-        jTable1.getColumnModel().getColumn(3).setPreferredWidth(150); // Service
-        jTable1.getColumnModel().getColumn(4).setPreferredWidth(100); // Status
-        jTable1.getColumnModel().getColumn(5).setPreferredWidth(120); // Charge
-    }
-
-    private void refreshAppointments() {
-        try {
-            Set<List<String>> updatedRecords = currentCustomer.getAllMyAppointmentRecords();
-            this.appointmentRecords = updatedRecords;
-            loadAppointmentsTable();
-            JOptionPane.showMessageDialog(this, "Appointments list refreshed.");
-        } catch (Exception ex) {
-            showError("Error refreshing appointments: " + ex.getMessage());
-        }
-    }
-
-    private void payForSelectedAppointment() {
-        int selectedRow = jTable1.getSelectedRow();
-        
-        if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this, 
-                "Please select an appointment to pay.", 
-                "Selection Error", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        String appointmentId = (String) jTable1.getValueAt(selectedRow, 0);
-        String status = (String) jTable1.getValueAt(selectedRow, 4);
-        double amount = (Double) jTable1.getValueAt(selectedRow, 5);
-
-        // Check if already paid/completed
-        if ("completed".equalsIgnoreCase(status) || "paid".equalsIgnoreCase(status)) {
-            JOptionPane.showMessageDialog(this, 
-                "This appointment is already paid and completed.", 
-                "Payment Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        // Confirm payment
-        int confirm = JOptionPane.showConfirmDialog(this,
-            "Confirm payment of RM " + String.format("%.2f", amount) + " for appointment " + appointmentId + "?",
-            "Confirm Payment", JOptionPane.YES_NO_OPTION);
-
-        if (confirm == JOptionPane.YES_OPTION) {
-            try {
-                Appointment appointment = Database.getAppointment(appointmentId);
-                currentCustomer.payForAppointment(appointment);
-                
-                JOptionPane.showMessageDialog(this,
-                    "Payment successful! RM " + String.format("%.2f", amount) + " deducted from your AP Wallet.",
-                    "Payment Successful", JOptionPane.INFORMATION_MESSAGE);
-                
-                // Refresh the table
-                refreshAppointments();
-                
-            } catch (customExceptions.AppointmentCompletedException ex) {
-                showError("Appointment already completed: " + ex.getMessage());
-            } catch (customExceptions.InsufficientApWalletException ex) {
-                showError("Insufficient funds: " + ex.getMessage());
-            } catch (Exception ex) {
-                showError("Payment failed: " + ex.getMessage());
+        if (appointmentRecords.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No appointments found.", "Information", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            for (List<String> record : appointmentRecords) {
+                tableModel.addRow(record.toArray());
             }
         }
     }
 
-    private void showError(String message) {
-        JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
+    private JButton createStyledButton(String text) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Arial", Font.BOLD, 14));
+        button.setBackground(new Color(70, 130, 180));
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        return button;
+    }
+
+
+
+    private class RefreshButtonListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            loadAppointmentsData();
+            JOptionPane.showMessageDialog(CustomerAppointmentsFrame.this, 
+                "Appointments list refreshed.", "Information", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    private class BackButtonListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            SwingUtilities.invokeLater(() -> {
+                CustomerMainPage mainPage = new CustomerMainPage(customerUser);
+                mainPage.setVisible(true);
+            });
+            dispose();
+        }
     }
 
     /**
@@ -175,86 +142,17 @@ public class CustomerAppointmentsFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
-        jPanel1 = new javax.swing.JPanel();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
-        jLabel1 = new javax.swing.JLabel();
-
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-
-        jScrollPane1.setName("scrollPane"); // NOI18N
-
-        jTable1.setAutoCreateRowSorter(true);
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
-            },
-            new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
-            }
-        ));
-        jTable1.setName("appointmentsTable"); // NOI18N
-        jTable1.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        jScrollPane1.setViewportView(jTable1);
-
-        jPanel1.setName("buttonPanel"); // NOI18N
-
-        jButton1.setText("Refresh");
-        jButton1.setName("refreshBtn"); // NOI18N
-
-        jButton2.setText("Pay Selected");
-        jButton2.setName("payBtn"); // NOI18N
-
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(47, 47, 47)
-                .addComponent(jButton1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 104, Short.MAX_VALUE)
-                .addComponent(jButton2)
-                .addGap(68, 68, 68))
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(28, 28, 28)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton1)
-                    .addComponent(jButton2))
-                .addContainerGap(49, Short.MAX_VALUE))
-        );
-
-        jLabel1.setText("My Appointments");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(25, 25, 25)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 504, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 173, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(111, Short.MAX_VALUE))
+            .addGap(0, 640, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(17, 17, 17)
-                .addComponent(jLabel1)
-                .addGap(33, 33, 33)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(22, Short.MAX_VALUE))
+            .addGap(0, 300, Short.MAX_VALUE)
         );
 
         pack();
@@ -265,10 +163,6 @@ public class CustomerAppointmentsFrame extends javax.swing.JFrame {
      */
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
@@ -276,21 +170,18 @@ public class CustomerAppointmentsFrame extends javax.swing.JFrame {
                     break;
                 }
             }
-        } catch (ReflectiveOperationException | javax.swing.UnsupportedLookAndFeelException ex) {
-            logger.log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
+            java.util.logging.Logger.getLogger(CustomerAppointmentsFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(() -> new CustomerAppointmentsFrame().setVisible(true));
+        java.awt.EventQueue.invokeLater(() -> {
+            // Customer testCustomer = new Customer("test", "Test User", "test@email.com", "password", 100.0);
+            // new CustomerAppointmentsFrame(testCustomer).setVisible(true);
+        });
     }
+}
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTable jTable1;
     // End of variables declaration//GEN-END:variables
-}
+
