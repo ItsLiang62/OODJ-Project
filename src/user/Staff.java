@@ -161,8 +161,6 @@ public class Staff extends User {
     }
 
     public static void removeById(String id, boolean removeDependencies) {
-        Database.removeById(staffs, id, staffFile);
-
         if (removeDependencies) {
             for (CustomerFeedback customerFeedback: CustomerFeedback.getAll()) {
                 if (customerFeedback.getNonManagerEmployeeId().equals(id)) {
@@ -170,5 +168,6 @@ public class Staff extends User {
                 }
             }
         }
+        Database.removeById(staffs, id, staffFile);
     }
 }
