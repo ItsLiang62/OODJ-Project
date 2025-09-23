@@ -243,8 +243,6 @@ public class Appointment implements Identifiable {
     }
 
     public static void removeById(String id, boolean removeDependencies) {
-        Database.removeById(appointments, id, appointmentFile);
-
         if (removeDependencies) {
             for (AppointmentMedicine appointmentMedicine: AppointmentMedicine.getAll()) {
                 if (appointmentMedicine.getAppointmentId().equals(id)) {
@@ -257,6 +255,7 @@ public class Appointment implements Identifiable {
                 }
             }
         }
+        Database.removeById(appointments, id, appointmentFile);
     }
 
     public static String[] getColumnNames() {
