@@ -19,7 +19,8 @@ bin/
 !**/src/test/**/bin/
 
 ### NetBeans ###
-/lib
+/lib/CopyLibs/
+/lib/nblibraries.properties
 /nbproject/private/
 /nbbuild/
 /dist/
