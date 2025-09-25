@@ -148,6 +148,12 @@ public class Doctor extends User {
     public static List<List<String>> getPublicRecords(Set<Doctor> doctors) {
         return Database.getPublicRecords(doctors);
     }
+    
+
+    public void removeAppointmentById(String appointmentId) {
+        Appointment.removeById(appointmentId, true);
+    }    
+    
 
     public static void removeById(String id, boolean removeDependencies) {
         if (removeDependencies) {
