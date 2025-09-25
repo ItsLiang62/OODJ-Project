@@ -156,8 +156,6 @@ public class Doctor extends User {
     
 
     public static void removeById(String id, boolean removeDependencies) {
-        Database.removeById(doctors, id, doctorFile);
-
         if (removeDependencies) {
             for (CustomerFeedback customerFeedback: CustomerFeedback.getAll()) {
                 if (customerFeedback.getNonManagerEmployeeId().equals(id)) {
@@ -170,5 +168,6 @@ public class Doctor extends User {
                 }
             }
         }
+        Database.removeById(doctors, id, doctorFile);
     }
 }

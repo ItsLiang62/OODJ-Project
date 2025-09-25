@@ -2,6 +2,7 @@ package gui.manager;
 
 import customExceptions.EmailNotFoundException;
 import database.Database;
+import gui.customer.CustomerMainPage;
 import gui.staff.StaffMainPage;
 import gui.doctor.DoctorMainPage;
 import user.*;
@@ -136,6 +137,8 @@ public class LoginPage extends JFrame {
                         showIncorrectPasswordErrorMessage();
                     } else {
                         showLoginSuccessfulMessage();
+                        SwingUtilities.invokeLater(() -> new CustomerMainPage(Customer.getById(userId)));
+                        dispose();
                     }
                     return;
                 default:

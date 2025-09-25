@@ -124,6 +124,6 @@ public class ManageCustomersPage extends JFrame {
 
         TableHelper.configureToPreferredSettings(this.customerTable, 600, 200, new JButton[] {editButton, deleteButton});
 
-        PageDesigner.displayBorderLayoutListPage(this, "Manage Customers", titleLabel, loadPanelButtons, operatePanelButtons, backButton, scrollPane);
+        PageDesigner.displayBorderLayoutListPage(this, "Manage Customers Page", titleLabel, loadPanelButtons, operatePanelButtons, backButton, scrollPane);
     }
 }

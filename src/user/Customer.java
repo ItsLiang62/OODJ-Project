@@ -191,8 +191,6 @@ public class Customer extends User {
     }
 
     public static void removeById(String id, boolean removeDependencies) {
-        Database.removeById(customers, id, customerFile);
-
         if (removeDependencies) {
             for (CustomerFeedback customerFeedback: CustomerFeedback.getAll()) {
                 if (customerFeedback.getCustomerId().equals(id)) {
@@ -205,5 +203,6 @@ public class Customer extends User {
                 }
             }
         }
+        Database.removeById(customers, id, customerFile);
     }
 }
