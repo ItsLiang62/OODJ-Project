@@ -94,7 +94,7 @@ public class TopUpWalletFrame extends javax.swing.JFrame {
         gbc.gridx = 0; gbc.gridy = 3;
         formPanel.add(new JLabel("Payment Method:"), gbc);
         
-        String[] paymentMethods = {"Credit/Debit Card", "PayPal", "Bank Transfer", "Google Pay", "Apple Pay"};
+        String[] paymentMethods = {"Credit/Debit Card", "TNG eWallet", "Bank Transfer", "Google Pay", "Apple Pay"};
         JComboBox<String> paymentMethodCombo = new JComboBox<>(paymentMethods);
         paymentMethodCombo.setFont(new Font("Arial", Font.PLAIN, 14));
         gbc.gridx = 1; gbc.gridy = 3;

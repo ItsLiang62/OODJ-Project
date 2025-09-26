@@ -106,7 +106,7 @@ public class CustomerInvoicesFrame extends javax.swing.JFrame {
         
         if (invoiceRecords.isEmpty()) {
             JOptionPane.showMessageDialog(this, 
-                "No invoices found. Invoices will be generated after appointments.", 
+                "No invoices found.", 
                 "Information", JOptionPane.INFORMATION_MESSAGE);
         } else {
             // Add data to table and calculate total amount
