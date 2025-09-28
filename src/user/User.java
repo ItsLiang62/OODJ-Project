@@ -89,7 +89,7 @@ public abstract class User implements database.Identifiable {
         userEmails.addAll(Staff.getFieldVals(Staff.getAll(), Staff::getEmail));
         userEmails.addAll(Doctor.getFieldVals(Doctor.getAll(), Doctor::getEmail));
         userEmails.addAll(Customer.getFieldVals(Customer.getAll(), Customer::getEmail));
-        if (userEmails.contains(email)) {
+        if (userEmails.contains(email) && !email.equals(this.email)) {
             throw new RecordAlreadyInDatabaseException("Email is already in use by another user!");
         }
     }
